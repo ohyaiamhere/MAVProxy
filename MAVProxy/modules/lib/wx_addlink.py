@@ -9,6 +9,7 @@ from pymavlink import mavutil
 from MAVProxy.modules.lib import mp_util
 from MAVProxy.modules.lib import multiproc
 import MAVProxy.modules.mavproxy_link
+from MAVProxy.modules.lib.mp_i18n import tr
 
 class linkAddDialog(wx.Dialog):
     def __init__(self, *args, **kwds):
@@ -145,7 +146,7 @@ if __name__ == "__main__":
     
     dlg = linkAddDialog(None, title='Add New Link')
     if dlg.ShowModal() != wx.ID_ADD:
-        print("cancelled")
+        print(tr("cancelled"))
         dlg.Destroy()
     else:
         # get the connection string before closing dialog

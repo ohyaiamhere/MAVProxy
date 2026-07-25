@@ -10,16 +10,17 @@ import base64
 import struct
 import random
 import glob
+from MAVProxy.modules.lib.mp_i18n import tr
 try:
     import monocypher
 except ImportError:
-    print("Please install monocypher with: python3 -m pip install pymonocypher")
+    print(tr("please_install_monocypher_with_python3_m"))
 
 class SecureCommandModule(mp_module.MPModule):
 
     def __init__(self, mpstate):
-        super(SecureCommandModule, self).__init__(mpstate, "SecureCommand", "SecureCommand Support", public = True)
-        self.add_command('securecommand', self.cmd_securecommand, "SecureCommand control",
+        super(SecureCommandModule, self).__init__(mpstate, "SecureCommand", tr("mod_securecommand_support"), public = True)
+        self.add_command('securecommand', self.cmd_securecommand, tr("cmd_securecommand_control"),
                          ["<getsessionkey|getpublickeys|setpublickeys|removepublickeys|setconfig>", "set (SECURECOMMANDSETTING)"])
 
         from MAVProxy.modules.lib.mp_settings import MPSetting
@@ -35,7 +36,7 @@ class SecureCommandModule(mp_module.MPModule):
 
     def cmd_securecommand(self, args):
         '''securecommand command parser'''
-        usage = "usage: securecommand <set|getsessionkey|getpublickeys|setpublickeys|removepublickeys|setconfig>"
+        usage = tr("usage_usage_securecommand_set_getsessionkey_getpublickeys_set")
         if len(args) == 0:
             print(usage)
             return
@@ -93,7 +94,7 @@ class SecureCommandModule(mp_module.MPModule):
         d += data
         if command != mavutil.mavlink.SECURE_COMMAND_GET_SESSION_KEY:
             if self.session_key is None:
-                print("No session key")
+                print(tr("no_session_key"))
                 raise Exception("No session key")
             d += self.session_key
         self.sent_sequence = seq
@@ -108,7 +109,7 @@ class SecureCommandModule(mp_module.MPModule):
     def cmd_getsessionkey(self):
         '''request session key'''
         if not self.have_private_key():
-            print("No private key set")
+            print(tr("no_private_key_set"))
             return
         sig = self.make_signature(self.sequence, mavutil.mavlink.SECURE_COMMAND_GET_SESSION_KEY, bytes())
         self.master.mav.secure_command_send(self.target_system, self.target_component,
@@ -119,10 +120,10 @@ class SecureCommandModule(mp_module.MPModule):
     def cmd_getpublickeys(self, args):
         '''get public keys'''
         if not self.have_private_key():
-            print("No private key set")
+            print(tr("no_private_key_set"))
             return
         if not self.session_key:
-            print("No session key")
+            print(tr("no_session_key"))
             return
         idx = 0
         nkeys = 6
@@ -140,13 +141,13 @@ class SecureCommandModule(mp_module.MPModule):
     def cmd_removepublickeys(self, args):
         '''remove public keys'''
         if not self.have_private_key():
-            print("No private key set")
+            print(tr("no_private_key_set"))
             return
         if not self.session_key:
-            print("No session key")
+            print(tr("no_session_key"))
             return
         if len(args) != 2:
-            print("Usage: removepublickeys INDEX COUNT")
+            print(tr("usage_removepublickeys_index_count"))
             return
         idx = int(args[0])
         nkeys = int(args[1])
@@ -160,13 +161,13 @@ class SecureCommandModule(mp_module.MPModule):
     def cmd_setpublickeys(self, args):
         '''set public keys'''
         if not self.have_private_key():
-            print("No private key set")
+            print(tr("no_private_key_set"))
             return
         if not self.session_key:
-            print("No session key")
+            print(tr("no_session_key"))
             return
         if len(args) < 2:
-            print("Usage: setpublickeys keyindex KEYFILES...")
+            print(tr("usage_setpublickeys_keyindex_keyfiles"))
             return
         idx = int(args[0])
         keys = []
@@ -174,15 +175,15 @@ class SecureCommandModule(mp_module.MPModule):
             for fname in sorted(glob.glob(kfile)):
                 k = self.read_public_key(fname)
                 if k is None:
-                    print("Unable to load keyfile %s" % fname)
+                    print(tr("unable_to_load_keyfile") % fname)
                     return
-                print("Loaded key %s" % fname)
+                print(tr("loaded_key") % fname)
                 keys.append(k)
         if len(keys) > 6:
-            print("Too many keys %u - max is 6" % len(keys))
+            print(tr("too_many_keys_u_max_is") % len(keys))
             return
         if len(keys) == 0:
-            print("No keys found")
+            print(tr("no_keys_found"))
             return
         req = struct.pack("<B", idx)
         for k in keys:
@@ -191,19 +192,19 @@ class SecureCommandModule(mp_module.MPModule):
         self.master.mav.secure_command_send(self.target_system, self.target_component,
                                             self.sequence, mavutil.mavlink.SECURE_COMMAND_SET_PUBLIC_KEYS,
                                             len(req), len(sig), self.pad_data(req+sig))
-        print("Sent %u public keys starting at index %u" % (len(keys), idx))
+        print(tr("sent_u_public_keys_starting_at") % (len(keys), idx))
         self.advance_sequence()
 
     def cmd_setconfig(self, args):
         '''set configuration parameters'''
         if not self.have_private_key():
-            print("No private key set")
+            print(tr("no_private_key_set"))
             return
         if not self.session_key:
-            print("No session key")
+            print(tr("no_session_key"))
             return
         if len(args) < 1:
-            print("Usage: setconfig PARAM=VALUE...")
+            print(tr("usage_setconfig_param_value"))
             return
         req = bytearray()
         for i in range(len(args)):
@@ -215,55 +216,55 @@ class SecureCommandModule(mp_module.MPModule):
         self.master.mav.secure_command_send(self.target_system, self.target_component,
                                             self.sequence, mavutil.mavlink.SECURE_COMMAND_SET_REMOTEID_CONFIG,
                                             len(req), len(sig), self.pad_data(req+sig))
-        print("Sent %u config commands" % len(args))
+        print(tr("sent_u_config_commands") % len(args))
         self.advance_sequence()
         
     def mavlink_packet(self, m):
         '''handle an incoming mavlink packet'''
         if m.get_type() == "SECURE_COMMAND_REPLY":
             if m.sequence != self.sent_sequence:
-                print("Invalid reply sequence")
+                print(tr("invalid_reply_sequence"))
                 return
             m.sent_sequence = None
 
             if m.operation == mavutil.mavlink.SECURE_COMMAND_GET_SESSION_KEY:
                 if m.result == mavutil.mavlink.MAV_RESULT_ACCEPTED:
                     self.session_key = bytearray(m.data[:m.data_length])
-                    print("Got session key length=%u" % len(self.session_key))
+                    print(tr("got_session_key_length_u") % len(self.session_key))
                 else:
-                    print("Get session key failed: %u" % m.result)
+                    print(tr("get_session_key_failed_u") % m.result)
 
             if m.operation == mavutil.mavlink.SECURE_COMMAND_GET_PUBLIC_KEYS:
                 if m.result == mavutil.mavlink.MAV_RESULT_ACCEPTED:
                     idx = m.data[0]
                     if idx >= len(self.public_keys):
-                        print("Invalid key index %u" % idx)
+                        print(tr("invalid_key_index_u") % idx)
                         return
                     keys = bytearray(m.data[1:m.data_length])
                     numkeys = len(keys) // 32
                     if numkeys == 0:
-                        print("No public keys returned")
+                        print(tr("no_public_keys_returned"))
                         return
                     for i in range(idx, numkeys):
                         self.public_keys[i] = keys[32*i:32*(i+1)]
                         keyfile = "public_key%u.dat" % i
                         open(keyfile, "w").write("PUBLIC_KEYV1:" + base64.b64encode(self.public_keys[i]).decode('utf-8') + "\n")
-                        print("Wrote %s" % keyfile)
-                    print("Got public keys %u to %u" % (idx, numkeys+idx-1))
+                        print(tr("wrote") % keyfile)
+                    print(tr("got_public_keys_u_to_u") % (idx, numkeys+idx-1))
                 else:
-                    print("Get public keys failed: %u" % m.result)
+                    print(tr("get_public_keys_failed_u") % m.result)
 
             if m.operation == mavutil.mavlink.SECURE_COMMAND_SET_PUBLIC_KEYS:
                 if m.result == mavutil.mavlink.MAV_RESULT_ACCEPTED:
-                    print("Set public keys OK")
+                    print(tr("set_public_keys_ok"))
                 else:
-                    print("Set public keys failed: %u" % m.result)
+                    print(tr("set_public_keys_failed_u") % m.result)
 
             if m.operation == mavutil.mavlink.SECURE_COMMAND_REMOVE_PUBLIC_KEYS:
                 if m.result == mavutil.mavlink.MAV_RESULT_ACCEPTED:
-                    print("Remove public keys OK")
+                    print(tr("remove_public_keys_ok"))
                 else:
-                    print("Remove public keys failed: %u" % m.result)
+                    print(tr("remove_public_keys_failed_u") % m.result)
                     
 def init(mpstate):
     '''initialise module'''

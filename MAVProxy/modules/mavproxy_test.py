@@ -2,6 +2,7 @@
 '''test flight for DCM noise'''
 
 import time, math
+from MAVProxy.modules.lib.mp_i18n import tr
 
 def enum(**enums):
     return type('Enum', (), enums)
@@ -12,9 +13,9 @@ from MAVProxy.modules.lib import mp_module
 
 class TestModule(mp_module.MPModule):
     def __init__(self, mpstate):
-        super(TestModule, self).__init__(mpstate, "test", "test flight")
+        super(TestModule, self).__init__(mpstate, "test", tr("mod_test_flight"))
         self.state = TestState.INIT
-        print("Module test loaded")
+        print(tr("module_test_loaded"))
 
     def mavlink_packet(self, m):
         '''handle an incoming mavlink packet'''

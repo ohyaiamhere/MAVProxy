@@ -4,22 +4,23 @@
 import time
 from pymavlink import mavutil
 from MAVProxy.modules.lib import mp_module
+from MAVProxy.modules.lib.mp_i18n import tr
 
 class RelayModule(mp_module.MPModule):
     def __init__(self, mpstate):
         super(RelayModule, self).__init__(mpstate, "relay")
-        self.add_command('relay', self.cmd_relay, "relay commands")
-        self.add_command('servo', self.cmd_servo, "servo commands")
-        self.add_command('motortest', self.cmd_motortest, "motortest commands")
+        self.add_command('relay', self.cmd_relay, tr("cmd_relay_commands"))
+        self.add_command('servo', self.cmd_servo, tr("cmd_servo_commands"))
+        self.add_command('motortest', self.cmd_motortest, tr("cmd_motortest_commands"))
 
     def cmd_relay(self, args):
         '''set relays'''
         if len(args) == 0 or args[0] not in ['set', 'repeat']:
-            print("Usage: relay <set|repeat>")
+            print(tr("usage_relay_set_repeat"))
             return
         if args[0] == "set":
             if len(args) < 3:
-                print("Usage: relay set <RELAY_NUM> <0|1>")
+                print(tr("usage_relay_set_relay_num_0"))
                 return
             self.master.mav.command_long_send(self.target_system,
                                                    self.target_component,
@@ -28,7 +29,7 @@ class RelayModule(mp_module.MPModule):
                                                    0, 0, 0, 0, 0)
         if args[0] == "repeat":
             if len(args) < 4:
-                print("Usage: relay repeat <RELAY_NUM> <COUNT> <PERIOD>")
+                print(tr("usage_relay_repeat_relay_num_count"))
                 return
             self.master.mav.command_long_send(self.target_system,
                                                    self.target_component,
@@ -39,11 +40,11 @@ class RelayModule(mp_module.MPModule):
     def cmd_servo(self, args):
         '''set servos'''
         if len(args) == 0 or args[0] not in ['set', 'repeat']:
-            print("Usage: servo <set|repeat>")
+            print(tr("usage_servo_set_repeat"))
             return
         if args[0] == "set":
             if len(args) < 3:
-                print("Usage: servo set <SERVO_NUM> <PWM>")
+                print(tr("usage_servo_set_servo_num_pwm"))
                 return
             self.master.mav.command_long_send(self.target_system,
                                                    self.target_component,
@@ -52,7 +53,7 @@ class RelayModule(mp_module.MPModule):
                                                    0, 0, 0, 0, 0)
         if args[0] == "repeat":
             if len(args) < 5:
-                print("Usage: servo repeat <SERVO_NUM> <PWM> <COUNT> <PERIOD>")
+                print(tr("usage_servo_repeat_servo_num_pwm"))
                 return
             self.master.mav.command_long_send(self.target_system,
                                                    self.target_component,
@@ -64,7 +65,7 @@ class RelayModule(mp_module.MPModule):
     def cmd_motortest(self, args):
         '''run motortests on copter'''
         if len(args) < 4:
-            print("Usage: motortest motor-test-sequence-number type(0=percent, 1=PWM, 2=RC-passthru) value timeout(s) <count>")
+            print(tr("usage_motortest_motor_test_sequence_number"))
             return
         if len(args) == 5:
             count = int(args[4])

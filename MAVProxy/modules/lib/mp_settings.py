@@ -3,6 +3,7 @@
 
 import time
 import fnmatch
+from MAVProxy.modules.lib.mp_i18n import tr
 
 class MPSetting:
     def __init__(self, name, type, default, label=None, tab=None,
@@ -54,7 +55,7 @@ class MPSetting:
         if self.range is not None:
             (minv,maxv) = self.range
             if value < minv or value > maxv:
-                print("Out of range (min=%f max=%f)" % (minv, maxv))
+                print(tr("out_of_range_min_max") % (minv, maxv))
                 return False
         if self.choice is not None:
             found = False
@@ -74,7 +75,7 @@ class MPSetting:
                     value = thisvalue
                     break
             if not found:
-                print("Must be one of %s" % str(options))
+                print(tr("must_be_one_of") % str(options))
                 return False
         self.value = value
         return True
@@ -144,7 +145,7 @@ class MPSettings(object):
         setting = self._vars[name]
         oldvalue = setting.value
         if not setting.set(value):
-            print("Unable to set %s (want type=%s)" % (value, setting.type))
+            print(tr("unable_to_set_want_type") % (value, setting.type))
             return False
         if oldvalue != setting.value:
             self._last_change = time.time()
@@ -191,7 +192,7 @@ class MPSettings(object):
             return
 
         if getattr(self, args[0], [None]) == [None]:
-            print("Unknown setting '%s'" % args[0])
+            print(tr("unknown_setting") % args[0])
             return
         if len(args) == 1:
             self.show(args[0])

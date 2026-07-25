@@ -7,6 +7,7 @@ import sc_config
 from sc_video import sc_video
 from sc_webcam import SmartCameraWebCam
 from sc_SonyQX1 import SmartCamera_SonyQX
+from MAVProxy.modules.lib.mp_i18n import tr
 
 """
 sc_main.py - runs top level smart camera function
@@ -73,10 +74,10 @@ class SmartCamera(object):
                 new_camera = SmartCamera_SonyQX(i,"wlan0")
                 if new_camera.boValidCameraFound() is True:
                     self.camera_list = self.camera_list + [new_camera]
-                    print("Found QX Camera")
+                    print(tr("found_qx_camera"))
 
         # display number of cameras found
-        print ("cameras found: %d" % len(self.camera_list))
+        print (tr("cameras_found") % len(self.camera_list))
 
     # fetch_mission - fetch mission from flight controller
     def fetch_mission(self):

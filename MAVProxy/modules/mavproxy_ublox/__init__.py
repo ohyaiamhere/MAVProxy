@@ -17,6 +17,7 @@ import ublox as ub
 from MAVProxy.modules.lib import mp_module
 from MAVProxy.modules.lib import mp_util
 from MAVProxy.modules.lib import mp_settings
+from MAVProxy.modules.lib.mp_i18n import tr
 
 
 class ublox(mp_module.MPModule):
@@ -44,13 +45,13 @@ class ublox(mp_module.MPModule):
         self.mga_dbd_cachefile = os.path.join(self.mga_cachedir, "dbd.ubx")
         self.mga_offline = ub.mga.MGAOfflineCache(cachefile=os.path.join(self.mga_cachedir, "offline.ubx"), token=self.api_token)
         if self.mga_offline.should_request_fresh_data():
-            print("Apparently should request fresh data")
+            print(tr("apparently_should_request_fresh_data"))
 #        self.mga_offline.start_update_thread()
         self.ublox_settings = mp_settings.MPSettings(
             [ ('verbose', bool, False),
               ('auto', bool, False),
           ])
-        self.add_command('ublox', self.cmd_ublox, "ublox module", ['status','set (AUTO)', 'reset', 'mga'])
+        self.add_command('ublox', self.cmd_ublox, tr("cmd_ublox_module"), ['status','set (AUTO)', 'reset', 'mga'])
 
     def token_file(self):
         return os.path.join(mp_util.dot_mavproxy('ublox'), "api_token")
@@ -89,7 +90,7 @@ class ublox(mp_module.MPModule):
 
     def cmd_ublox_reset(self, args):
         '''attempts to cold-reboot (factory-reboot) gps module'''
-        print("Sending uBlox reset")
+        print(tr("sending_ublox_reset"))
         msg = struct.pack("<HBB", 0xFFFF, 0x0, 0)
         self.master.mav.gps_inject_data_send(
             self.target_system,
@@ -99,7 +100,7 @@ class ublox(mp_module.MPModule):
 
     def cmd_ublox_mga(self, args):
         '''returns information about module'''
-        print("ublox mga called" % ())
+        print(tr("ublox_mga_called") % ())
 
     def idle_upload_mga_dbd(self):
         # still need to answer the question of downloading the MGA
@@ -118,23 +119,23 @@ class ublox(mp_module.MPModule):
         self.mga_offline_last_check = now
         date = self.mga_offline.get_data_date_closest_to_now()
         if date is None:
-            print("No offline data")
+            print(tr("no_offline_data"))
             return False
         if (self.mga_offline_data_uploaded is not None and
             self.mga_offline_data_uploaded == date):
-            print("Already uploaded data for (%s)" % str(date))
+            print(tr("already_uploaded_data_for") % str(date))
             return
         # send all data past his point; the driver in ArduPilot will filter
         # to send just the closest to the GPS
         data = self.mga_offline.messages_for_date(date)
-        print("Uploading MGA-Offline for %s" % str(data))
+        print(tr("uploading_mga_offline_for") % str(data))
  #       print("Uploadable data: %s" % str(data))
         if len(data) == 0:
             return False
         for msg in data:
             raw = msg.raw()
             if len(raw) > 110:
-                print("offline data message too long")
+                print(tr("offline_data_message_too_long"))
                 continue
 #            print("Sending message (%s)" % (str(msg)))
             self.master.mav.gps_inject_data_send(
@@ -161,7 +162,7 @@ class ublox(mp_module.MPModule):
         if self.auto:
             if now-self.last_auto > 2:
                 self.last_auto = now
-                print("Doing auto things")
+                print(tr("doing_auto_things"))
                 if self.idle_upload_mga_dbd():
                     self.auto_status = "DBD uploaded"
 
@@ -184,7 +185,7 @@ class ublox(mp_module.MPModule):
             self.time_boot_ms = m.time_boot_ms
 
     def unload(self):
-        print("Unload called")
+        print(tr("unload_called"))
         self.mga_offline.stop_update_thread()
 
 def init(mpstate):

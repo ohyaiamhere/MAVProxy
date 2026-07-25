@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from MAVProxy.modules.lib.mp_i18n import tr
 '''firmware handling'''
 
 import time, os, fnmatch
@@ -17,11 +18,11 @@ from MAVProxy.modules.lib import mp_settings
 class FirmwareModule(mp_module.MPModule):
 
     def __init__(self, mpstate):
-        super(FirmwareModule, self).__init__(mpstate, "firmware", "firmware handling", public = True)
+        super(FirmwareModule, self).__init__(mpstate, "firmware", tr("mod_firmware_handling"), public = True)
         self.firmware_settings = mp_settings.MPSettings(
             [('uploader', str, "uploader.py"),
             ])
-        self.add_command('fw', self.cmd_fw, "firmware handling",
+        self.add_command('fw', self.cmd_fw, tr("mod_firmware_handling"),
                          ["<manifest> (OPT)",
                           "list <filterterm...>",
                           "flash <filterterm...>",
@@ -116,7 +117,7 @@ fw download releasetype=OFFICIAL frame=quad platform=PX4-v2
                 if str(row_subs_value) != str(filtervalue):
                     return True
             else:
-                print("fw: Unknown filter keyword (%s)" % (filtername,))
+                print(tr("fw_unknown_filter_keyword") % (filtername,))
         return False
 
     def filters_from_args(self, args):
@@ -185,7 +186,7 @@ fw download releasetype=OFFICIAL frame=quad platform=PX4-v2
     def filtered_rows_from_args(self, args):
         '''extracts filters from args, rows from manifests, returns filtered rows'''
         if len(self.manifests) == 0:
-            print("fw: No manifests downloaded.  Try 'fw manifest download'")
+            print(tr("fw_no_manifests_downloaded_try_fw"))
             return None
 
         (filters,remainder) = self.filters_from_args(args)
@@ -203,15 +204,15 @@ fw download releasetype=OFFICIAL frame=quad platform=PX4-v2
         stuff = self.filtered_rows_from_args(args)
         (filtered, remainder) = stuff
         if stuff is None:
-            print("Nothing returned from filter")
+            print(tr("nothing_returned_from_filter"))
             return
 
         (filtered, remainder) = stuff
 
         if len(filtered) != 1:
-            print("Filter must return single firmware")
+            print(tr("filter_must_return_single_firmware"))
             self.list_firmwares(filtered)
-            print("Filter must return single firmware")
+            print(tr("filter_must_return_single_firmware"))
             return
 
         firmware = filtered[0]["_firmware"]
@@ -219,7 +220,7 @@ fw download releasetype=OFFICIAL frame=quad platform=PX4-v2
         try:
             filename = self.download_firmware(firmware)
         except Exception as e:
-            print("fw: download failed")
+            print(tr("fw_download_failed"))
             print(e)
             return
 
@@ -237,10 +238,10 @@ fw download releasetype=OFFICIAL frame=quad platform=PX4-v2
 
     def list_firmwares(self, filtered):
         print("")
-        print(" seq platform frame    major.minor.patch releasetype latest git-sha format")
+        print(tr("seq_platform_frame_major_minor_patch"))
         for row in filtered:
-            print("{seq:>5} {platform:<13} {frame:<10} {version:<10} {releasetype:<9} {latest:<6} {git-sha} {format}".format(**row))
-        print(" seq platform frame    major.minor.patch releasetype latest git-sha format")
+            print(tr("msg_5").format(**row))
+        print(tr("seq_platform_frame_major_minor_patch"))
 
     def cmd_fw_download(self, args):
         '''cmd handler for downloading firmware'''
@@ -249,22 +250,22 @@ fw download releasetype=OFFICIAL frame=quad platform=PX4-v2
             return
         (filtered, remainder) = stuff
         if len(filtered) == 0:
-            print("fw: No firmware specified")
+            print(tr("fw_no_firmware_specified"))
             return
         if len(filtered) > 1:
-            print("fw: No single firmware specified")
+            print(tr("fw_no_single_firmware_specified"))
             return
 
         try:
             self.download_firmware(filtered[0]["_firmware"])
         except Exception as e:
-            print("fw: download failed")
+            print(tr("fw_download_failed"))
             print(e)
 
     def download_firmware(self, firmware, filename=None):
         url = firmware["url"]
 
-        print("fw: URL: %s"  % (url,))
+        print(tr("fw_url")  % (url,))
         if filename is None:
             filename = os.path.basename(url)
         files = []
@@ -274,10 +275,10 @@ fw download releasetype=OFFICIAL frame=quad platform=PX4-v2
         tstart = time.time()
         while True:
             if time.time() - tstart > 60:
-                print("Download timeout")
+                print(tr("download_timeout"))
             if not child.is_alive():
                 break
-            print("Waiting for download to complete...")
+            print(tr("waiting_for_download_to_complete"))
             time.sleep(1)
 
         return filename
@@ -337,12 +338,12 @@ fw download releasetype=OFFICIAL frame=quad platform=PX4-v2
         if args[0] == "help":
             return self.cmd_fw_manifest_help()
         else:
-            print("fw: Unknown manifest option (%s)" % args[0])
+            print(tr("fw_unknown_manifest_option") % args[0])
             print(fw_manifest_usage())
 
     def manifest_parse(self, path):
         '''parse manifest at path, return JSON object'''
-        print("fw: parsing manifests")
+        print(tr("fw_parsing_manifests"))
         content = open(path).read()
         return json.loads(content)
 
@@ -360,17 +361,17 @@ fw download releasetype=OFFICIAL frame=quad platform=PX4-v2
         self.manifests = []
         for manifest_path in self.find_manifests():
             if self.manifest_path_is_old(manifest_path):
-                print("fw: Manifest (%s) is old; consider 'fw manifest download'" % (manifest_path))
+                print(tr("fw_manifest_is_old_consider_fw") % (manifest_path))
             manifest = self.manifest_parse(manifest_path)
             if self.semver_major(manifest["format-version"]) != 1:
-                print("fw: Manifest (%s) has major version %d; MAVProxy only understands version 1" % (manifest_path,manifest["format-version"]))
+                print(tr("fw_manifest_has_major_version_mavproxy") % (manifest_path,manifest["format-version"]))
                 continue
             self.manifests.append(manifest)
 
     def cmd_fw_manifest_status(self):
         '''brief summary of manifest status'''
-        print(f"fw: {len(list(self.downloaders.keys()))} downloaders")
-        print(f"fw: {len(self.find_manifests())} manifests")
+        print(tr("fw_downloaders") % (len(list(self.downloaders.keys())),))
+        print(tr("fw_manifests") % (len(self.find_manifests()),))
 
     def download_url(self, url, path):
         mp_util.download_files([(url,path)])
@@ -381,7 +382,7 @@ fw download releasetype=OFFICIAL frame=quad platform=PX4-v2
             removed_one = False
             for url in list(self.downloaders.keys()):
                 if not self.downloaders[url].is_alive():
-                    print("fw: Download thread for (%s) done" % url)
+                    print(tr("fw_download_thread_for_done") % url)
                     del self.downloaders[url]
                     removed_one = True
             if removed_one and not self.downloaders.keys():
@@ -411,7 +412,7 @@ fw download releasetype=OFFICIAL frame=quad platform=PX4-v2
                 self.downloaders[url].start()
             self.downloaders_lock.release()
         else:
-            print("fw: Failed to acquire download lock")
+            print(tr("fw_failed_to_acquire_download_lock"))
 
 def init(mpstate):
     '''initialise module'''

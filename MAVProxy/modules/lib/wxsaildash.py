@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from MAVProxy.modules.lib.mp_i18n import tr
 """
   MAVProxy sailing dashboard
 """
@@ -70,7 +71,7 @@ if __name__ == "__main__":
     multiproc.freeze_support()
     sail_dash = SailingDashboard()
     while sail_dash.is_alive():
-        print('sailing dashboard is alive')
+        print(tr("sailing_dashboard_is_alive"))
         time.sleep(0.5)
 
 

@@ -2,6 +2,7 @@
 
 import os, wx, pickle
 from MAVProxy.modules.lib import mp_util
+from MAVProxy.modules.lib.mp_i18n import tr
 
 '''
 handle saving/loading of window positions
@@ -83,12 +84,12 @@ def save_layout(vehname):
     global window_list
     global vehiclename
     if display_size is None:
-        print("No layouts to save")
+        print(tr("no_layouts_to_save"))
         return
     vehiclename = vehname
     fname = layout_filename(False)
     if fname is None:
-        print("No file to save layout to")
+        print(tr("no_file_to_save_layout_to"))
         return
     layout = {}
     try:
@@ -102,7 +103,7 @@ def save_layout(vehname):
         layout[name] = window_list[name].layout
         count += 1
     pickle.dump(layout, open(fname,"wb"))
-    print("Saved layout for %u windows" % count)
+    print(tr("saved_layout_for_u_windows") % count)
 
 def load_layout(vehname):
     '''load window layout'''
@@ -117,13 +118,13 @@ def load_layout(vehname):
     vehiclename = vehname
     fname = layout_filename(True)
     if fname is None:
-        print("No file to load layout from")
+        print(tr("no_file_to_load_layout_from"))
         return
     try:
         layout = pickle.load(open(fname,"rb"))
     except Exception:
         layout = {}
-        print("Unable to load %s" % fname)
+        print(tr("unable_to_load_2") % fname)
         loaded_layout = layout
         return
     count = 0
@@ -135,5 +136,5 @@ def load_layout(vehname):
             except Exception as ex:
                 print(ex)
     loaded_layout = layout
-    print("Loaded layout for %u windows" % count)
+    print(tr("loaded_layout_for_u_windows") % count)
     

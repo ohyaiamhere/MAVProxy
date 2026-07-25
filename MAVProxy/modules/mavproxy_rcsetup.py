@@ -5,6 +5,7 @@ AP_FLAKE8_CLEAN
 '''
 
 from MAVProxy.modules.lib import mp_module
+from MAVProxy.modules.lib.mp_i18n import tr
 
 
 class RCSetupModule(mp_module.MPModule):
@@ -13,10 +14,10 @@ class RCSetupModule(mp_module.MPModule):
         self.calibrating = False
         self.num_channels = 4
         self.clear_rc_cal()
-        self.add_command('rccal', self.cmd_rccal, "RC calibration start/stop")
-        self.add_command('rctrim', self.cmd_rctrim, "RC min/max trim")
+        self.add_command('rccal', self.cmd_rccal, tr("cmd_rc_calibration_start_stop"))
+        self.add_command('rctrim', self.cmd_rctrim, tr("cmd_rc_min_max_trim"))
         self.empty_input_count = None
-        print("rcsetup initialised")
+        print(tr("rcsetup_initialised"))
 
     def clear_rc_cal(self):
         self.rc_cal = []
@@ -33,9 +34,9 @@ class RCSetupModule(mp_module.MPModule):
                 continue
 
             self.param_set('RC%u_MIN' % i, self.rc_cal[i][0], 5)
-            self.console.writeln("Set: RC%u_MIN=%u" % (i, self.rc_cal[i][0]))
+            self.console.writeln(tr("set_rc_u_min_u") % (i, self.rc_cal[i][0]))
             self.param_set('RC%u_MAX' % i, self.rc_cal[i][1], 5)
-            self.console.writeln("Set: RC%u_MAX=%u" % (i, self.rc_cal[i][1]))
+            self.console.writeln(tr("set_rc_u_max_u") % (i, self.rc_cal[i][1]))
 
     def get_cal_min(self, channel):
         return self.rc_cal[channel][0]
@@ -60,9 +61,9 @@ class RCSetupModule(mp_module.MPModule):
         if (args[0] == "start"):
             if len(args) > 1:
                 self.num_channels = int(args[1])
-            print("Calibrating %u channels" % self.num_channels)
-            print("WARNING: remove propellers from electric planes!!")
-            print("Push return when ready to calibrate.")
+            print(tr("calibrating_u_channels") % self.num_channels)
+            print(tr("warning_remove_propellers_from_electric_planes"))
+            print(tr("push_return_when_ready_to_calibrate"))
             self.empty_input_count = self.mpstate.empty_input_count
         elif (args[0] == "done"):
             self.calibrating = False
@@ -85,7 +86,7 @@ class RCSetupModule(mp_module.MPModule):
     def cmd_rctrim(self, args):
         '''set RCx_TRIM'''
         if 'RC_CHANNELS' not in self.status.msgs:
-            print("No RC_CHANNELS to trim with")
+            print(tr("no_rc_channels_to_trim_with"))
             return
         m = self.status.msgs['RC_CHANNELS']
         for ch in range(1, 5):
@@ -109,13 +110,13 @@ class RCSetupModule(mp_module.MPModule):
 
                 if self.get_cal_min(i) > v:
                     self.set_cal_min(i, v)
-                    self.console.writeln("Calibrating: RC%u_MIN=%u" % (i, v))
+                    self.console.writeln(tr("calibrating_rc_u_min_u") % (i, v))
                 if self.get_cal_max(i) < v:
                     self.set_cal_max(i, v)
-                    self.console.writeln("Calibrating: RC%u_MAX=%u" % (i, v))
+                    self.console.writeln(tr("calibrating_rc_u_max_u") % (i, v))
 
     def print_cal_usage(self):
-        print("Usage rccal <start|done>")
+        print(tr("usage_rccal_start_done"))
 
 
 def init(mpstate):

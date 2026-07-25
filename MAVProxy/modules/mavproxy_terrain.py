@@ -8,10 +8,11 @@ from MAVProxy.modules.lib import mp_elevation
 from MAVProxy.modules.lib import mp_util
 from MAVProxy.modules.lib import mp_module
 from MAVProxy.modules.lib import mp_settings
+from MAVProxy.modules.lib.mp_i18n import tr
 
 class TerrainModule(mp_module.MPModule):
     def __init__(self, mpstate):
-        super(TerrainModule, self).__init__(mpstate, "terrain", "terrain handling", public=True)
+        super(TerrainModule, self).__init__(mpstate, "terrain", tr("mod_terrain_handling"), public=True)
 
         self.current_request = None
         self.sent_mask = 0
@@ -20,7 +21,7 @@ class TerrainModule(mp_module.MPModule):
         self.blocks_sent = 0
         self.check_lat = 0
         self.check_lon = 0
-        self.add_command('terrain', self.cmd_terrain, "terrain control",
+        self.add_command('terrain', self.cmd_terrain, tr("cmd_terrain_control"),
                          ["<status|check>",
                           'set (TERRAINSETTING)'])
         self.terrain_settings = mp_settings.MPSettings([('debug', int, 0),
@@ -33,12 +34,12 @@ class TerrainModule(mp_module.MPModule):
 
     def cmd_terrain(self, args):
         '''terrain command parser'''
-        usage = "usage: terrain <set|status|check>"
+        usage = tr("usage_usage_terrain_set_status_check")
         if len(args) == 0:
             print(usage)
             return
         if args[0] == "status":
-            print("blocks_sent: %u requests_received: %u" % (
+            print(tr("blocks_sent_u_requests_received_u") % (
                 self.blocks_sent,
                 self.requests_received))
         elif args[0] == "set":
@@ -57,7 +58,7 @@ class TerrainModule(mp_module.MPModule):
         else:
             latlon = self.mpstate.click_location
             if latlon is None:
-                print("No map click position available")
+                print(tr("no_map_click_position_available"))
                 return
         self.check_lat = int(latlon[0]*1e7)
         self.check_lon = int(latlon[1]*1e7)
@@ -98,7 +99,7 @@ class TerrainModule(mp_module.MPModule):
             alt = self.ElevationModel.GetElevation(lat2, lon2)
             if alt is None:
                 if self.terrain_settings.debug:
-                    print("no alt ", lat2, lon2)
+                    print(tr("no_alt"), lat2, lon2)
                 return
             data.append(int(alt))
         self.master.mav.terrain_data_send(self.current_request.lat,
@@ -112,12 +113,12 @@ class TerrainModule(mp_module.MPModule):
         if self.terrain_settings.debug and bit == 55:
             lat = self.current_request.lat * 1.0e-7
             lon = self.current_request.lon * 1.0e-7
-            print("--lat=%f --lon=%f %.1f" % (
+            print(tr("lat_lon") % (
                 lat, lon, self.ElevationModel.GetElevation(lat, lon)))
             (lat2,lon2) = mp_util.gps_offset(lat, lon,
                                              east=32*self.current_request.grid_spacing,
                                              north=28*self.current_request.grid_spacing)
-            print("--lat=%f --lon=%f %.1f" % (
+            print(tr("lat_lon") % (
                 lat2, lon2, self.ElevationModel.GetElevation(lat2, lon2)))
 
 

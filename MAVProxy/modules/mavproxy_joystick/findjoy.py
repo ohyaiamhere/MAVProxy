@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from MAVProxy.modules.lib.mp_i18n import tr
 '''This is a script that will help you identify controls on your joystick
 in order to create an appropriate joystick definition for the joystick
 module.  You can run it like this:
@@ -28,11 +29,11 @@ def parse_args():
 def list_joysticks():
     '''Print a list of available joysticks'''
 
-    print('Available joysticks:')
+    print(tr("available_joysticks"))
     print()
     for jid in range(pygame.joystick.get_count()):
         j = pygame.joystick.Joystick(jid)
-        print('({}) {}'.format(jid, j.get_name()))
+        print(tr("msg_19").format(jid, j.get_name()))
 
 
 def select_joystick():
@@ -41,7 +42,7 @@ def select_joystick():
     list_joysticks()
 
     while True:
-        print('Select a joystick (L to list, Q to quit)'),
+        print(tr("select_a_joystick_l_to_list")),
         choice = sys.stdin.readline().strip()
 
         if choice.lower() == 'l':
@@ -51,11 +52,11 @@ def select_joystick():
         elif choice.isdigit():
             jid = int(choice)
             if jid not in range(pygame.joystick.get_count()):
-                print('Invalid joystick.')
+                print(tr("invalid_joystick"))
                 continue
             break
         else:
-            print('What?')
+            print(tr("what"))
 
     return jid
 
@@ -87,32 +88,32 @@ def main():
     if args.joystick is None:
         args.joystick = select_joystick()
         if args.joystick is None:
-            print('No joystick selected.')
+            print(tr("no_joystick_selected"))
             return
 
     joy = pygame.joystick.Joystick(args.joystick)
     joy.init()
 
-    print('Joystick: {}'.format(joy.get_name()))
-    print('  Axes: {}'.format(joy.get_numaxes()))
-    print('  Buttons: {}'.format(joy.get_numbuttons()))
-    print('  Hats: {}'.format(joy.get_numhats()))
-    print('  Balls: {}'.format(joy.get_numballs()))
+    print(tr("joystick").format(joy.get_name()))
+    print(tr("axes").format(joy.get_numaxes()))
+    print(tr("buttons").format(joy.get_numbuttons()))
+    print(tr("hats").format(joy.get_numhats()))
+    print(tr("balls").format(joy.get_numballs()))
     print()
 
     pygame.event.clear()
     while True:
-        print('Move a control on your joystick')
+        print(tr("move_a_control_on_your_joystick"))
         print()
         e = pygame.event.wait()
         if e.type == pygame.JOYAXISMOTION:
-            print('Axis', e.axis)
+            print(tr("axis"), e.axis)
         elif e.type in [pygame.JOYBUTTONDOWN, pygame.JOYBUTTONUP]:
-            print('Button', e.button)
+            print(tr("button"), e.button)
         elif e.type == pygame.JOYHATMOTION:
-            print('Hat', e.hat)
+            print(tr("hat"), e.hat)
         elif e.type == pygame.JOYBALLMOTION:
-            print('Ball', e.ball)
+            print(tr("ball"), e.ball)
 
         # consume events
         t0 = time.time()

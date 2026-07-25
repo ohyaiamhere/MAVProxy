@@ -6,11 +6,12 @@ AP_FLAKE8_CLEAN
 '''
 
 import wave
+from MAVProxy.modules.lib.mp_i18n import tr
 try:
     import pyaudio  # install using, "sudo apt-get install python3-pyaudio"
     from openai import OpenAI
 except Exception:
-    print("chat: failed to import pyaudio or openai.  See https://ardupilot.org/mavproxy/docs/modules/chat.html")
+    print(tr("chat_failed_to_import_pyaudio_or"))
     exit()
 
 # initializing the global list to keep and update the stop_recording state
@@ -35,7 +36,7 @@ class chat_voice_to_text():
             try:
                 self.client = OpenAI()
             except Exception:
-                print("chat: failed to connect to OpenAI")
+                print(tr("chat_failed_to_connect_to_openai"))
                 return False
 
         # return True if connected
@@ -51,7 +52,7 @@ class chat_voice_to_text():
         try:
             stream = p.open(format=pyaudio.paInt16, channels=1, rate=44100, input=True, frames_per_buffer=1024)
         except Exception:
-            print("chat: failed to connect to microphone")
+            print(tr("chat_failed_to_connect_to_microphone"))
             return None
 
         # record until specified time

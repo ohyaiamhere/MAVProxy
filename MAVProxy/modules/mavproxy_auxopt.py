@@ -3,6 +3,7 @@
 
 import time, os
 from MAVProxy.modules.lib import mp_module
+from MAVProxy.modules.lib.mp_i18n import tr
 
 
 aux_options = {
@@ -26,8 +27,8 @@ aux_options = {
 
 class AuxoptModule(mp_module.MPModule):
     def __init__(self, mpstate):
-        super(AuxoptModule, self).__init__(mpstate, "auxopt", "auxopt command handling")
-        self.add_command('auxopt', self.cmd_auxopt,   'select option for aux switches on CH7 and CH8 (ArduCopter only)',
+        super(AuxoptModule, self).__init__(mpstate, "auxopt", tr("mod_auxopt_command_handling"))
+        self.add_command('auxopt', self.cmd_auxopt,   tr("cmd_select_option_for_aux_switches_on_ch7_and"),
                          ['set <7|8> <Nothing|Flip|SimpleMode|RTL|SaveTrim|SaveWP|MultiMode|CameraTrigger|Sonar|Fence|ResetYaw|SuperSimpleMode|AcroTrainer|Acro|Auto|AutoTune|Land>',
                           'reset <7|8|all>',
                           '<show|list>'])
@@ -54,18 +55,18 @@ class AuxoptModule(mp_module.MPModule):
     def cmd_auxopt(self, args):
         '''handle AUX switches (CH7, CH8) settings'''
         if self.mpstate.vehicle_type != 'copter':
-            print("This command is only available for copter")
+            print(tr("this_command_is_only_available_for"))
             return
         if len(args) == 0 or args[0] not in ('set', 'show', 'reset', 'list'):
-            print("Usage: auxopt set|show|reset|list")
+            print(tr("usage_auxopt_set_show_reset_list"))
             return
         if args[0] == 'list':
-            print("Options available:")
+            print(tr("options_available"))
             for s in sorted(aux_options.keys()):
                 print('  ' + s)
         elif args[0] == 'show':
             if len(args) > 2 and args[1] not in ['7', '8', 'all']:
-                print("Usage: auxopt show [7|8|all]")
+                print(tr("usage_auxopt_show_7_8_all"))
                 return
             if len(args) < 2 or args[1] == 'all':
                 self.aux_show('7')
@@ -74,7 +75,7 @@ class AuxoptModule(mp_module.MPModule):
             self.aux_show(args[1])
         elif args[0] == 'reset':
             if len(args) < 2 or args[1] not in ['7', '8', 'all']:
-                print("Usage: auxopt reset 7|8|all")
+                print(tr("usage_auxopt_reset_7_8_all"))
                 return
             if args[1] == 'all':
                 self.param_set('CH7_OPT', '0')
@@ -84,7 +85,7 @@ class AuxoptModule(mp_module.MPModule):
             self.param_set(param, '0')
         elif args[0] == 'set':
             if len(args) < 3 or args[1] not in ['7', '8']:
-                print("Usage: auxopt set 7|8 OPTION")
+                print(tr("usage_auxopt_set_7_8_option"))
                 return
             option = self.aux_option_validate(args[2])
             if not option:
@@ -93,7 +94,7 @@ class AuxoptModule(mp_module.MPModule):
             param = "CH%s_OPT" % args[1]
             self.param_set(param, aux_options[option])
         else:
-            print("Usage: auxopt set|show|list")
+            print(tr("usage_auxopt_set_show_list"))
 
 def init(mpstate):
     '''initialise module'''

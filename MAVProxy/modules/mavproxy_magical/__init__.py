@@ -1,3 +1,4 @@
+from MAVProxy.modules.lib.mp_i18n import tr
 # Copyright (C) 2016  Intel Corporation. All rights reserved.
 #
 # This file is free software: you can redistribute it and/or modify it
@@ -36,7 +37,7 @@ class MagicalModule(mp_module.MPModule):
         self.add_command(
             'magical_ui',
             self.cmd_magical_ui,
-            'open the GUI for compass calibration',
+            tr("cmd_open_the_gui_for_compass_calibration"),
         )
 
         self.mpstate = mpstate
@@ -64,7 +65,7 @@ class MagicalModule(mp_module.MPModule):
         self.parent_pipe.send(dict(name='close'))
         self.ui_process.join(2)
         if self.ui_process.is_alive():
-            print("magical: UI process timed out, killing it", file=sys.stderr)
+            print(tr("magical_ui_process_timed_out_killing"), file=sys.stderr)
             self.kill_ui()
 
     def kill_ui(self):

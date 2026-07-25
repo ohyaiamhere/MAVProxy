@@ -16,6 +16,7 @@ import cv2
 from MAVProxy.modules.lib import mp_elevation
 from pymavlink.rotmat import Vector3
 from MAVProxy.modules.lib import mp_util
+from MAVProxy.modules.lib.mp_i18n import tr, ensure_language_from_argv
 
 class CameraParams:
     '''
@@ -329,7 +330,7 @@ class CameraProjection:
 def test_pixel_position():
     C = CameraParams(lens=4.0, sensorwidth=5.0, xresolution=1024, yresolution=768)
     cproj = CameraProjection(C)
-    print("FOV: %.1f degrees" % C.FOV)
+    print(tr("fov_degrees") % C.FOV)
     pos_ned = cproj.pixel_position_flat(100, 100, 123, 2, -89.9, 0)
     assert abs((pos_ned - Vector3(43.6719, -67.3798, 123)).length()) < 0.01
 
@@ -340,35 +341,36 @@ def test_pixel_position():
 if __name__ == "__main__":
 
     C1 = CameraParams(xresolution=640, yresolution=512, FOV=24.2)
-    print("Lens: %.2f" % C1.lens)
+    print(tr("lens") % C1.lens)
     C2 = CameraParams(xresolution=2560, yresolution=1440, FOV=88.0)
-    print("Lens: %.2f" % C2.lens)
+    print(tr("lens") % C2.lens)
 
     test_pixel_position()
 
     from argparse import ArgumentParser
-    parser = ArgumentParser("camera_projection.py [options]")
-    parser.add_argument("--lat", type=float, default=-35.363261, help="start latitude")
-    parser.add_argument("--lon", type=float, default=149.165230, help="start longitude")
-    parser.add_argument("--alt-agl", type=float, default=100.0, help="height AGL")
-    parser.add_argument("--roll", type=float, default=0.0, help="roll")
-    parser.add_argument("--pitch", type=float, default=-30, help="pitch")
-    parser.add_argument("--yaw", type=float, default=0.0, help="yaw")
-    parser.add_argument("--yaw-delta", type=float, default=0.0, help="yaw delta per loop")
-    parser.add_argument("--pitch-delta", type=float, default=-1.0, help="pitch delta per loop")
-    parser.add_argument("--service", default="MicrosoftSat", help="tile service")
-    parser.add_argument("--offline", action='store_true', default=False, help="no download")
-    parser.add_argument("--delay", type=float, default=0.3, help="tile download delay")
-    parser.add_argument("--max-zoom", type=int, default=19, help="maximum tile zoom")
-    parser.add_argument("--debug", action='store_true', default=False, help="show debug info")
-    parser.add_argument("--boundary", default=None, help="show boundary")
-    parser.add_argument("--mission", default=[], action='append', help="show mission")
-    parser.add_argument("--thumbnail", default=None, help="show thumbnail")
-    parser.add_argument("--icon", default=None, help="show icon")
-    parser.add_argument("--flag", default=[], type=str, action='append', help="flag positions")
-    parser.add_argument("--grid", default=False, action='store_true', help="add a UTM grid")
-    parser.add_argument("--verbose", action='store_true', default=False, help="show mount actions")
-    parser.add_argument("--terrain-source", type=str, default="SRTM1", choices=["SRTM1", "SRTM3", "None"], help="Elevation model")
+    ensure_language_from_argv()
+    parser = ArgumentParser(tr("opt_usage_camera_projection_py_options"))
+    parser.add_argument("--lat", type=float, default=-35.363261, help=tr("opt_start_latitude"))
+    parser.add_argument("--lon", type=float, default=149.165230, help=tr("opt_start_longitude"))
+    parser.add_argument("--alt-agl", type=float, default=100.0, help=tr("opt_height_agl"))
+    parser.add_argument("--roll", type=float, default=0.0, help=tr("opt_roll"))
+    parser.add_argument("--pitch", type=float, default=-30, help=tr("opt_pitch"))
+    parser.add_argument("--yaw", type=float, default=0.0, help=tr("opt_yaw"))
+    parser.add_argument("--yaw-delta", type=float, default=0.0, help=tr("opt_yaw_delta_per_loop"))
+    parser.add_argument("--pitch-delta", type=float, default=-1.0, help=tr("opt_pitch_delta_per_loop"))
+    parser.add_argument("--service", default="MicrosoftSat", help=tr("opt_tile_service"))
+    parser.add_argument("--offline", action='store_true', default=False, help=tr("opt_no_download"))
+    parser.add_argument("--delay", type=float, default=0.3, help=tr("opt_tile_download_delay"))
+    parser.add_argument("--max-zoom", type=int, default=19, help=tr("opt_maximum_tile_zoom"))
+    parser.add_argument("--debug", action='store_true', default=False, help=tr("opt_show_debug_info"))
+    parser.add_argument("--boundary", default=None, help=tr("opt_show_boundary"))
+    parser.add_argument("--mission", default=[], action='append', help=tr("opt_show_mission"))
+    parser.add_argument("--thumbnail", default=None, help=tr("opt_show_thumbnail"))
+    parser.add_argument("--icon", default=None, help=tr("opt_show_icon"))
+    parser.add_argument("--flag", default=[], type=str, action='append', help=tr("opt_flag_positions"))
+    parser.add_argument("--grid", default=False, action='store_true', help=tr("opt_add_a_utm_grid"))
+    parser.add_argument("--verbose", action='store_true', default=False, help=tr("opt_show_mount_actions"))
+    parser.add_argument("--terrain-source", type=str, default="SRTM1", choices=["SRTM1", "SRTM3", "None"], help=tr("opt_elevation_model"))
     args = parser.parse_args()
     
     from MAVProxy.modules.mavproxy_map import mp_slipmap
@@ -389,7 +391,7 @@ if __name__ == "__main__":
     yaw_delta = args.yaw_delta
     elevation_model = mp_elevation.ElevationModel(database=args.terrain_source)
     alt_amsl = args.alt_agl + elevation_model.GetElevation(lat, lon,timeout=10)
-    print("Camera alt: %.1f" % alt_amsl)
+    print(tr("camera_alt") % alt_amsl)
 
     C1 = CameraParams(xresolution=2560, yresolution=1440, FOV=88.0)
     C2 = CameraParams(xresolution=640, yresolution=512, FOV=24.2)
@@ -420,5 +422,5 @@ if __name__ == "__main__":
                 lat = obj.latlon[0]
                 lon = obj.latlon[1]
                 alt_amsl = args.alt_agl + elevation_model.GetElevation(lat, lon,timeout=10)
-        print("Pitch %.1f  Yaw %.1f" % (pitch, yaw))
+        print(tr("pitch_yaw") % (pitch, yaw))
         time.sleep(0.1)

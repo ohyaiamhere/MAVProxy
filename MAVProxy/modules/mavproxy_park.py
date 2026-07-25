@@ -11,6 +11,7 @@ from pymavlink import mavutil
 import time
 from MAVProxy.modules.lib import mp_module
 from MAVProxy.modules.lib import mp_util
+from MAVProxy.modules.lib.mp_i18n import tr
 
 
 class park(mp_module.MPModule):
@@ -37,7 +38,7 @@ class park(mp_module.MPModule):
                      " distance in meters (3D) from parked position, when exceeded an alarm is raised."
 #        self.park_settings = mp_settings.MPSettings(
 #            [('verbose', bool, False),('versee', bool, True),])
-        self.add_command('park', self.cmd_park, "park module")
+        self.add_command('park', self.cmd_park, tr("cmd_park_module"))
 
     def cmd_park(self, args):
         """control behaviour of the module"""
@@ -51,7 +52,7 @@ class park(mp_module.MPModule):
             self.park_off()
         elif args[0] == "radius":
             if len(args) < 2:
-                print("Usage: park radius <RADIUS>")
+                print(tr("usage_park_radius_radius"))
                 return
             self.radius = float(args[1])
         else:
@@ -60,9 +61,9 @@ class park(mp_module.MPModule):
     def status(self):
         """returns information about module"""
         if self.parked:
-            print("Parked at lat:", self.lat, "lon:", self.lon, "alt:", self.alt, "max radius", self.radius, "m")
+            print(tr("parked_at_lat"), self.lat, "lon:", self.lon, "alt:", self.alt, "max radius", self.radius, "m")
         else:
-            print("Not parked")
+            print(tr("not_parked"))
             
     def park_on(self):
         """set park"""
@@ -70,12 +71,12 @@ class park(mp_module.MPModule):
         self.lonp = self.lon
         self.altp = self.alt
         self.parked = True
-        print("Parked at lat:", self.lat, "lon:", self.lon, "alt:", self.alt,
+        print(tr("parked_at_lat"), self.lat, "lon:", self.lon, "alt:", self.alt,
               "you will be notified if it moves >", self.radius, "m")
 
     def park_off(self):
         self.parked = False
-        print("Park warning is off")
+        print(tr("park_warning_is_off"))
 
     def idle_task(self):
         """called frequently by mavproxy"""

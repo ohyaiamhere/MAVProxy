@@ -11,6 +11,7 @@ import time
 
 from MAVProxy.modules.lib import mp_module
 from MAVProxy.modules.lib import mp_settings
+from MAVProxy.modules.lib.mp_i18n import tr
 
 
 class system_time(mp_module.MPModule):
@@ -28,7 +29,7 @@ class system_time(mp_module.MPModule):
              ('interval', int, 10)])
         self.add_command('system_time',
                          self.cmd_system_time,
-                         "system_time module",
+                         tr("cmd_system_time_module"),
                          ['status', 'set (LOGSETTING)'])
 
     def usage(self):
@@ -62,7 +63,7 @@ class system_time(mp_module.MPModule):
             self.last_sent = now
             time_us = time.time() * 1000000
             if self.system_time_settings.verbose:
-                print("ST: Sending system time: (%u/%u)" %
+                print(tr("st_sending_system_time_u_u") %
                       (time_us, self.uptime(),))
             self.master.mav.system_time_send(int(time_us),
                                              self.uptime())
@@ -73,7 +74,7 @@ class system_time(mp_module.MPModule):
             time_ns = time.time() * 1000000000
             time_ns += 1234
             if self.system_time_settings.verbose:
-                print("ST: Sending timesync request")
+                print(tr("st_sending_timesync_request"))
             self.master.mav.timesync_send(0, int(time_ns))
             self.last_sent_ts1 = time_ns
 
@@ -81,7 +82,7 @@ class system_time(mp_module.MPModule):
         '''handle mavlink packets'''
         if m.get_type() == 'SYSTEM_TIME':
             if self.system_time_settings.verbose:
-                print("ST: Received from (%u/%u): %s" %
+                print(tr("st_received_from_u_u") %
                       (m.get_srcSystem(), m.get_srcComponent(), m))
         if m.get_type() == 'TIMESYNC':
             if m.tc1 == 0:
@@ -90,7 +91,7 @@ class system_time(mp_module.MPModule):
                 time_ns += 1234
                 if True or self.system_time_settings.verbose:
                     if self.system_time_settings.verbose:
-                        print("ST: received timesync; sending response: %u" %
+                        print(tr("st_received_timesync_sending_response_u") %
                               (time_ns))
                     self.master.mav.timesync_send(int(time_ns),
                                                   m.ts1)
@@ -100,7 +101,7 @@ class system_time(mp_module.MPModule):
                     now_ns = time.time() * 1000000000
                     now_ns += 1234
                     if self.system_time_settings.verbose:
-                        print("ST: timesync response: sysid=%u latency=%fms" %
+                        print(tr("st_timesync_response_sysid_u_latency") %
                               (m.get_srcSystem(),
                                (now_ns-self.last_sent_ts1)/1000000.0))
 

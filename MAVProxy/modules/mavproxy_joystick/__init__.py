@@ -10,6 +10,7 @@ from MAVProxy.modules.lib import mp_util
 from MAVProxy.modules.lib import mp_settings
 
 from MAVProxy.modules.mavproxy_joystick import controls
+from MAVProxy.modules.lib.mp_i18n import tr
 
 
 class Joystick(mp_module.MPModule):
@@ -23,7 +24,7 @@ class Joystick(mp_module.MPModule):
     def __init__(self, mpstate):
         """Initialise module"""
         super(Joystick, self).__init__(mpstate, 'joystick',
-                                       'A flexible joystick driver')
+                                       tr("mod_a_flexible_joystick_driver"))
 
         self.joystick = None
 
@@ -37,7 +38,7 @@ class Joystick(mp_module.MPModule):
         if self.mpstate.settings.moddebug < level:
             return
 
-        print('{}: {}'.format(__name__, msg))
+        print(tr("msg_20").format(__name__, msg))
 
     def init_pygame(self):
         self.log('Initializing pygame', 2)
@@ -50,7 +51,7 @@ class Joystick(mp_module.MPModule):
     def init_commands(self):
         self.log('Initializing commands', 2)
         self.add_command('joystick', self.cmd_joystick,
-                         "A flexible joystick drvier",
+                         tr("cmd_a_flexible_joystick_drvier"),
                          ['status',  'probe'])
 
     def load_definitions(self):
@@ -84,7 +85,7 @@ class Joystick(mp_module.MPModule):
 
         # now look for joystick definitions shipped with MAVProxy:
         with importlib.resources.path(__package__, 'joysticks') as p:
-            print(f"Joystick directory path: {p}")
+            print(tr("joystick_directory_path") % (p,))
             for joypath in p.iterdir():
                 with open(joypath, 'r') as fd:
                     joydef = yaml.safe_load(fd)
@@ -110,7 +111,7 @@ class Joystick(mp_module.MPModule):
                         self.joystick = controls.Joystick(joy, joydef)
                         return
 
-        print('{}: Failed to find matching joystick.'.format(__name__))
+        print(tr("failed_to_find_matching_joystick").format(__name__))
 
     def usage(self):
         '''show help on command line options'''
@@ -127,8 +128,8 @@ class Joystick(mp_module.MPModule):
             self.cmd_help()
 
     def cmd_help(self):
-        print('joystick probe -- reload and match joystick definitions')
-        print('joystick status -- show currently loaded definition, if any')
+        print(tr("joystick_probe_reload_and_match_joystick"))
+        print(tr("joystick_status_show_currently_loaded_definition"))
 
     def cmd_probe(self):
         self.log('Re-detecting available joysticks', 0)
@@ -136,11 +137,11 @@ class Joystick(mp_module.MPModule):
 
     def cmd_status(self):
         if self.joystick is None:
-            print('No active joystick')
+            print(tr("no_active_joystick"))
         else:
-            print('Active joystick:')
-            print('Path: {path}'.format(**self.joystick.controls))
-            print('Description: {description}'.format(
+            print(tr("active_joystick"))
+            print(tr("path").format(**self.joystick.controls))
+            print(tr("description").format(
                 **self.joystick.controls))
 
     def idle_task(self):

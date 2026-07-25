@@ -15,6 +15,7 @@ import time, math, os
 from MAVProxy.modules.lib import mp_util
 from MAVProxy.modules.lib import win_layout
 from MAVProxy.modules.mavproxy_misseditor import me_event
+from MAVProxy.modules.lib.mp_i18n import tr
 MissionEditorEvent = me_event.MissionEditorEvent
 
 from MAVProxy.modules.mavproxy_misseditor import me_defines
@@ -393,7 +394,7 @@ class MissionEditorFrame(wx.Frame):
             try:
                 self.process_gui_event(event)
             except Exception as e:
-                print("Caught exception (%s)" % str(e))
+                print(tr("caught_exception_2") % str(e))
 
         self.gui_event_queue_lock.release()
 
@@ -659,23 +660,23 @@ class MissionEditorFrame(wx.Frame):
     def split_pushed(self, event):  # wxGlade: MissionEditorFrame.<event_handler>
         row_selected = self.grid_mission.GetGridCursorRow()
         if (row_selected < 2):
-            print("Invalid row selected")
+            print(tr("invalid_row_selected"))
             event.Skip()
             return
 
         if self.grid_mission.GetCellValue(row_selected, ME_COMMAND_COL) != "NAV_WAYPOINT":
-            print("Bad command (need NAV_WAYPOINT)")
+            print(tr("bad_command_need_nav_waypoint"))
             event.Skip()
             return
 
         if self.grid_mission.GetCellValue(row_selected-1, ME_COMMAND_COL) != "NAV_WAYPOINT":
-            print("Bad previous command (need NAV_WAYPOINT)")
+            print(tr("bad_previous_command_need_nav_waypoint"))
             event.Skip()
             return
 
         if (self.grid_mission.GetCellValue(row_selected, ME_FRAME_COL) !=
             self.grid_mission.GetCellValue(row_selected-1, ME_FRAME_COL)):
-            print("Items differ in frame")
+            print(tr("items_differ_in_frame"))
             event.Skip()
             return
 

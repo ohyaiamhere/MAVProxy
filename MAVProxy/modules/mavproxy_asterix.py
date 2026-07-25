@@ -13,6 +13,7 @@ from MAVProxy.modules.lib import mp_util
 from pymavlink import mavutil
 
 import asterix, socket, time, os, struct
+from MAVProxy.modules.lib.mp_i18n import tr
 
 class Track:
     def __init__(self, adsb_pkt):
@@ -52,11 +53,11 @@ class VehiclePos(object):
 class AsterixModule(mp_module.MPModule):
 
     def __init__(self, mpstate):
-        super(AsterixModule, self).__init__(mpstate, "asterix", "asterix SDPS data support")
+        super(AsterixModule, self).__init__(mpstate, "asterix", tr("mod_asterix_sdps_data_support"))
         self.threat_vehicles = {}
         self.active_threat_ids = []  # holds all threat ids the vehicle is evading
 
-        self.add_command('asterix', self.cmd_asterix, "asterix control",
+        self.add_command('asterix', self.cmd_asterix, tr("cmd_asterix_control"),
                          ["<start|stop>","set (ASTERIXSETTING)"])
 
         # filter_dist is distance in metres
@@ -92,13 +93,13 @@ class AsterixModule(mp_module.MPModule):
         self.console.set_status('ASTX', 'ASTX --/--', row=6)
 
     def print_status(self):
-        print("ADSB packets sent: %u" % self.adsb_packets_sent)
-        print("ADSB packets not sent: %u" % self.adsb_packets_not_sent)
-        print("ADSB bitrate: %u bytes/s" % int(self.adsb_byterate))
+        print(tr("adsb_packets_sent_u") % self.adsb_packets_sent)
+        print(tr("adsb_packets_not_sent_u") % self.adsb_packets_not_sent)
+        print(tr("adsb_bitrate_u_bytes_s") % int(self.adsb_byterate))
 
     def cmd_asterix(self, args):
         '''asterix command parser'''
-        usage = "usage: asterix <set|start|stop|restart|status>"
+        usage = tr("usage_usage_asterix_set_start_stop_restart_status")
         if len(args) == 0:
             print(usage)
             return
@@ -124,7 +125,7 @@ class AsterixModule(mp_module.MPModule):
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.sock.bind(('', self.asterix_settings.port))
         self.sock.setblocking(False)
-        print("Started on port %u" % self.asterix_settings.port)
+        print(tr("started_on_port_u") % self.asterix_settings.port)
 
     def stop_listener(self):
         '''stop listening for packets'''
@@ -211,7 +212,7 @@ class AsterixModule(mp_module.MPModule):
             self.pkt_count += 1
             self.console.set_status('ASTX', 'ASTX %u/%u' % (self.pkt_count, self.adsb_packets_sent), row=6)
         except Exception:
-            print("bad packet")
+            print(tr("bad_packet"))
             return
         try:
             logpkt = b'AST:' + struct.pack('<dI', time.time(), len(pkt)) + pkt
@@ -345,7 +346,7 @@ if __name__ == '__main__':
     while True:
         header = logf.read(16)
         if header[0:4] != 'AST:':
-            print("Bad header", header[0:4])
+            print(tr("bad_header"), header[0:4])
             break
         (t,len) = struct.unpack('<dI', header[4:16])
         pkt = logf.read(len)

@@ -17,6 +17,7 @@ from MAVProxy.modules.lib import mp_util
 
 from signal import signal
 from subprocess import PIPE, Popen
+from MAVProxy.modules.lib.mp_i18n import tr
 
 
 class RepeatCommand(object):
@@ -66,7 +67,7 @@ def run_command(args, cwd=None, shell=False, timeout=None, env=None):
         if retcode is not None:
             break
         if timeout is not None and time.time() > tstart + timeout:
-            print("timeout in process %u" % p.pid)
+            print(tr("timeout_in_process_u") % p.pid)
             try:
                 os.kill(p.pid, signal.SIGKILL)
             except OSError:
@@ -77,48 +78,48 @@ def run_command(args, cwd=None, shell=False, timeout=None, env=None):
 
 class MiscModule(mp_module.MPModule):
     def __init__(self, mpstate):
-        super(MiscModule, self).__init__(mpstate, "misc", "misc commands", public=True)
-        self.add_command('alt', self.cmd_alt, "show altitude information")
-        self.add_command('up', self.cmd_up, "adjust pitch trim by up to 5 degrees")
-        self.add_command('reboot', self.cmd_reboot, "reboot autopilot")
-        self.add_command('time', self.cmd_time, "show autopilot time")
-        self.add_command('shell', self.cmd_shell, "run shell command")
-        self.add_command('changealt', self.cmd_changealt, "change target altitude")
-        self.add_command('changealt_abs', self.cmd_changealt_abs, "change target absolute altitude")
-        self.add_command('land', self.cmd_land, "auto land")
-        self.add_command('repeat', self.cmd_repeat, "repeat a command at regular intervals",
+        super(MiscModule, self).__init__(mpstate, "misc", tr("mod_misc_commands"), public=True)
+        self.add_command('alt', self.cmd_alt, tr("cmd_show_altitude_information"))
+        self.add_command('up', self.cmd_up, tr("cmd_adjust_pitch_trim_by_up_to_5_degrees"))
+        self.add_command('reboot', self.cmd_reboot, tr("cmd_reboot_autopilot"))
+        self.add_command('time', self.cmd_time, tr("cmd_show_autopilot_time"))
+        self.add_command('shell', self.cmd_shell, tr("cmd_run_shell_command"))
+        self.add_command('changealt', self.cmd_changealt, tr("cmd_change_target_altitude"))
+        self.add_command('changealt_abs', self.cmd_changealt_abs, tr("cmd_change_target_absolute_altitude"))
+        self.add_command('land', self.cmd_land, tr("cmd_auto_land"))
+        self.add_command('repeat', self.cmd_repeat, tr("cmd_repeat_a_command_at_regular_intervals"),
                          ["<add|remove|clear>"])
-        self.add_command('version', self.cmd_version, "fetch autopilot version")
-        self.add_command('capabilities', self.cmd_capabilities, "fetch autopilot capabilities")
-        self.add_command('rcbind', self.cmd_rcbind, "bind RC receiver")
-        self.add_command('led', self.cmd_led, "control board LED")
-        self.add_command('oreoled', self.cmd_oreoled, "control OreoLEDs")
-        self.add_command('playtune', self.cmd_playtune, "play tune remotely")
-        self.add_command('devid', self.cmd_devid, "show device names from parameter IDs")
-        self.add_command('gethome', self.cmd_gethome, "get HOME_POSITION")
-        self.add_command('flashbootloader', self.cmd_flashbootloader, "flash bootloader (dangerous)")
-        self.add_command('wipe_parameters', self.cmd_wipe_parameters, "wipe autopilot parameters")
-        self.add_command('lockup_autopilot', self.cmd_lockup_autopilot, "lockup autopilot")
-        self.add_command('corrupt_params', self.cmd_corrupt_param, "corrupt param storage")
-        self.add_command('hardfault_autopilot', self.cmd_hardfault_autopilot, "hardfault autopilot")
-        self.add_command('panic_autopilot', self.cmd_panic_autopilot, "panic autopilot")
-        self.add_command('longloop_autopilot', self.cmd_longloop_autopilot, "cause long loop in autopilot")
-        self.add_command('configerror_autopilot', self.cmd_config_error_autopilot, "ask autopilot to jump to its config error loop")  # noqa:E501
-        self.add_command('internalerror_autopilot', self.cmd_internalerror_autopilot, "cause internal error in autopilot")
-        self.add_command('dfu_boot', self.cmd_dfu_boot, "boot into DFU mode")
-        self.add_command('deadlock', self.cmd_deadlock, "trigger deadlock")
-        self.add_command('nullptr_read', self.cmd_nullptr_read, "read from a very low address")
-        self.add_command('nullptr_write', self.cmd_nullptr_write, "write to a very low address")
-        self.add_command('batreset', self.cmd_battery_reset, "reset battery remaining")
-        self.add_command('setorigin', self.cmd_setorigin, "set global origin")
-        self.add_command('magsetfield', self.cmd_magset_field, "set expected mag field by field")
-        self.add_command('magresetofs', self.cmd_magreset_ofs, "reset offsets for all compasses")
-        self.add_command('namedvaluefloat', self.cmd_namedvaluefloat, "send a NAMED_VALUE_FLOAT")
-        self.add_command('scripting', self.cmd_scripting, "control onboard scripting", ["<stop|restart>"])
-        self.add_command('formatsdcard', self.cmd_formatsdcard, "format SD card")
-        self.add_command('canforward', self.cmd_canforward, "enable CAN forwarding")
+        self.add_command('version', self.cmd_version, tr("cmd_fetch_autopilot_version"))
+        self.add_command('capabilities', self.cmd_capabilities, tr("cmd_fetch_autopilot_capabilities"))
+        self.add_command('rcbind', self.cmd_rcbind, tr("cmd_bind_rc_receiver"))
+        self.add_command('led', self.cmd_led, tr("cmd_control_board_led"))
+        self.add_command('oreoled', self.cmd_oreoled, tr("cmd_control_oreoleds"))
+        self.add_command('playtune', self.cmd_playtune, tr("cmd_play_tune_remotely"))
+        self.add_command('devid', self.cmd_devid, tr("cmd_show_device_names_from_parameter_ids"))
+        self.add_command('gethome', self.cmd_gethome, tr("cmd_get_home_position"))
+        self.add_command('flashbootloader', self.cmd_flashbootloader, tr("cmd_flash_bootloader_dangerous"))
+        self.add_command('wipe_parameters', self.cmd_wipe_parameters, tr("cmd_wipe_autopilot_parameters"))
+        self.add_command('lockup_autopilot', self.cmd_lockup_autopilot, tr("cmd_lockup_autopilot"))
+        self.add_command('corrupt_params', self.cmd_corrupt_param, tr("cmd_corrupt_param_storage"))
+        self.add_command('hardfault_autopilot', self.cmd_hardfault_autopilot, tr("cmd_hardfault_autopilot"))
+        self.add_command('panic_autopilot', self.cmd_panic_autopilot, tr("cmd_panic_autopilot"))
+        self.add_command('longloop_autopilot', self.cmd_longloop_autopilot, tr("cmd_cause_long_loop_in_autopilot"))
+        self.add_command('configerror_autopilot', self.cmd_config_error_autopilot, tr("cmd_ask_autopilot_to_jump_to_its_config_error"))  # noqa:E501
+        self.add_command('internalerror_autopilot', self.cmd_internalerror_autopilot, tr("cmd_cause_internal_error_in_autopilot"))
+        self.add_command('dfu_boot', self.cmd_dfu_boot, tr("cmd_boot_into_dfu_mode"))
+        self.add_command('deadlock', self.cmd_deadlock, tr("cmd_trigger_deadlock"))
+        self.add_command('nullptr_read', self.cmd_nullptr_read, tr("cmd_read_from_a_very_low_address"))
+        self.add_command('nullptr_write', self.cmd_nullptr_write, tr("cmd_write_to_a_very_low_address"))
+        self.add_command('batreset', self.cmd_battery_reset, tr("cmd_reset_battery_remaining"))
+        self.add_command('setorigin', self.cmd_setorigin, tr("cmd_set_global_origin"))
+        self.add_command('magsetfield', self.cmd_magset_field, tr("cmd_set_expected_mag_field_by_field"))
+        self.add_command('magresetofs', self.cmd_magreset_ofs, tr("cmd_reset_offsets_for_all_compasses"))
+        self.add_command('namedvaluefloat', self.cmd_namedvaluefloat, tr("cmd_send_a_named_value_float"))
+        self.add_command('scripting', self.cmd_scripting, tr("cmd_control_onboard_scripting"), ["<stop|restart>"])
+        self.add_command('formatsdcard', self.cmd_formatsdcard, tr("cmd_format_sd_card"))
+        self.add_command('canforward', self.cmd_canforward, tr("cmd_enable_can_forwarding"))
 
-        self.add_command('gear', self.cmd_landing_gear, "landing gear control")
+        self.add_command('gear', self.cmd_landing_gear, tr("cmd_landing_gear_control"))
 
         self.repeats = []
 
@@ -142,14 +143,14 @@ class MiscModule(mp_module.MPModule):
 
     def cmd_alt(self, args):
         '''show altitude'''
-        print("Altitude:  %.1f" % self.status.altitude)
+        print(tr("altitude") % self.status.altitude)
         qnh_pressure = self.get_mav_param('AFS_QNH_PRESSURE', None)
         if qnh_pressure is not None and qnh_pressure > 0:
             ground_temp = self.get_mav_param('GND_TEMP', 21)
             pressure = self.master.field('SCALED_PRESSURE', 'press_abs', 0)
             qnh_alt = self.altitude_difference(qnh_pressure, pressure, ground_temp)
-            print("QNH Alt: %u meters %u feet for QNH pressure %.1f" % (qnh_alt, qnh_alt*3.2808, qnh_pressure))
-        print("QNH Estimate: %.1f millibars" % self.qnh_estimate())
+            print(tr("qnh_alt_u_meters_u_feet") % (qnh_alt, qnh_alt*3.2808, qnh_pressure))
+        print(tr("qnh_estimate_millibars") % self.qnh_estimate())
 
     def cmd_shell(self, args):
         '''shell command'''
@@ -163,13 +164,13 @@ class MiscModule(mp_module.MPModule):
             adjust = float(args[0])
         old_trim = self.get_mav_param('TRIM_PITCH_CD', None)
         if old_trim is None:
-            print("Existing trim value unknown!")
+            print(tr("existing_trim_value_unknown"))
             return
         new_trim = int(old_trim + (adjust*100))
         if math.fabs(new_trim - old_trim) > 1000:
-            print("Adjustment by %d too large (from %d to %d)" % (adjust*100, old_trim, new_trim))
+            print(tr("adjustment_by_too_large_from_to") % (adjust*100, old_trim, new_trim))
             return
-        print("Adjusting TRIM_PITCH_CD from %d to %d" % (old_trim, new_trim))
+        print(tr("adjusting_trim_pitch_cd_from_to") % (old_trim, new_trim))
         self.param_set('TRIM_PITCH_CD', new_trim)
 
     def cmd_reboot(self, args):
@@ -224,7 +225,7 @@ class MiscModule(mp_module.MPModule):
         '''helper function for the following commands which do unpleasant
         things to the autopilot'''
         if len(args) > 0 and args[0] == 'IREALLYMEANIT':
-            print("Sending %s command" % description)
+            print(tr("sending_command") % description)
             self.master.mav.command_long_send(
                 self.settings.target_system,
                 self.settings.target_component,
@@ -237,7 +238,7 @@ class MiscModule(mp_module.MPModule):
                 0,
                 0)
         else:
-            print("Invalid %s command" % description)
+            print(tr("invalid_command") % description)
 
     def cmd_lockup_autopilot(self, args):
         '''lockup autopilot for watchdog testing'''
@@ -299,9 +300,9 @@ class MiscModule(mp_module.MPModule):
         '''show autopilot time'''
         tusec = self.master.field('SYSTEM_TIME', 'time_unix_usec', 0)
         if tusec == 0:
-            print("No SYSTEM_TIME time available")
+            print(tr("no_system_time_time_available"))
             return
-        print("%s (%s)\n" % (time.ctime(tusec * 1.0e-6), time.ctime()))
+        print(tr("msg_7") % (time.ctime(tusec * 1.0e-6), time.ctime()))
 
     def _cmd_changealt(self, alt, frame):
         '''send commands.  May send both if we don't know which is the
@@ -322,7 +323,7 @@ class MiscModule(mp_module.MPModule):
                 0,
                 0
             )
-            print(f"Sent change altitude command for {alt:.2f} meters")
+            print(tr("sent_change_altitude_command_for_meters") % (alt,))
 
         if supports is True:
             return
@@ -334,12 +335,12 @@ class MiscModule(mp_module.MPModule):
                                           mavutil.mavlink.MAV_CMD_NAV_WAYPOINT,
                                           3, 1, 0, 0, 0, 0,
                                           0, 0, alt)
-        print("Sent change altitude mission item command for %.1f meters" % alt)
+        print(tr("sent_change_altitude_mission_item_command") % alt)
 
     def cmd_changealt(self, args):
         '''change target altitude'''
         if len(args) < 1:
-            print("usage: changealt <relaltitude>")
+            print(tr("usage_changealt_relaltitude"))
             return
         relalt = float(args[0])
         self._cmd_changealt(relalt, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT)
@@ -347,7 +348,7 @@ class MiscModule(mp_module.MPModule):
     def cmd_changealt_abs(self, args):
         '''change target altitude'''
         if len(args) < 1:
-            print("usage: changealt_abs <absaltitude>")
+            print(tr("usage_changealt_abs_absaltitude"))
             return
         absalt = float(args[0])
         self._cmd_changealt(absalt, mavutil.mavlink.MAV_FRAME_GLOBAL)
@@ -365,7 +366,7 @@ class MiscModule(mp_module.MPModule):
                                               mavutil.mavlink.MAV_CMD_DO_GO_AROUND,
                                               0, 0, 0, 0, 0, 0, 0, 0)
         else:
-            print("Usage: land [abort]")
+            print(tr("usage_land_abort"))
 
     def request_message(self, message_id, p1=0):
         self.master.mav.command_long_send(
@@ -386,7 +387,7 @@ class MiscModule(mp_module.MPModule):
     def cmd_rcbind(self, args):
         '''start RC bind'''
         if len(args) < 1:
-            print("Usage: rcbind <dsmmode>")
+            print(tr("usage_rcbind_dsmmode"))
             return
         self.master.mav.command_long_send(self.settings.target_system,
                                           self.settings.target_component,
@@ -404,7 +405,7 @@ class MiscModule(mp_module.MPModule):
     def cmd_led(self, args):
         '''send LED pattern as override'''
         if len(args) < 3:
-            print("Usage: led RED GREEN BLUE <RATE>")
+            print(tr("usage_led_red_green_blue_rate"))
             return
         pattern = [0] * 24
         pattern[0] = int(args[0])
@@ -424,7 +425,7 @@ class MiscModule(mp_module.MPModule):
     def cmd_scripting(self, args):
         '''control onboard scripting'''
         if len(args) < 1:
-            print("Usage: scripting <stop|restart>")
+            print(tr("usage_scripting_stop_restart"))
             return
 
         if args[0] == 'restart':
@@ -432,7 +433,7 @@ class MiscModule(mp_module.MPModule):
         elif args[0] == 'stop':
             cmd = mavutil.mavlink.SCRIPTING_CMD_STOP
         else:
-            print("Usage: scripting <stop|restart>")
+            print(tr("usage_scripting_stop_restart"))
             return
 
         # MAVProxy command to stop and re-start is: command_int 0 42701 0 0 3 0 0 0 0 0 0
@@ -458,7 +459,7 @@ class MiscModule(mp_module.MPModule):
     def cmd_oreoled(self, args):
         '''send LED pattern as override, using OreoLED conventions'''
         if len(args) < 4:
-            print("Usage: oreoled LEDNUM RED GREEN BLUE <RATE>")
+            print(tr("usage_oreoled_lednum_red_green_blue"))
             return
         lednum = int(args[0])
         pattern = [0] * 24
@@ -487,7 +488,7 @@ class MiscModule(mp_module.MPModule):
     def cmd_playtune(self, args):
         '''send PLAY_TUNE message'''
         if len(args) < 1:
-            print("Usage: playtune TUNE")
+            print(tr("usage_playtune_tune"))
             return
         tune = args[0]
         str1 = tune[0:30]
@@ -504,39 +505,39 @@ class MiscModule(mp_module.MPModule):
         '''repeat a command at regular intervals'''
         if len(args) == 0:
             if len(self.repeats) == 0:
-                print("No repeats")
+                print(tr("no_repeats"))
                 return
             for i in range(len(self.repeats)):
                 print("%u: %s" % (i, self.repeats[i]))
             return
         if args[0] == 'add':
             if len(args) < 3:
-                print("Usage: repeat add PERIOD CMD")
+                print(tr("usage_repeat_add_period_cmd"))
                 return
             self.repeats.append(RepeatCommand(float(args[1]), " ".join(args[2:])))
         elif args[0] == 'remove':
             if len(args) < 2:
-                print("Usage: repeat remove INDEX")
+                print(tr("usage_repeat_remove_index"))
                 return
             i = int(args[1])
             if i < 0 or i >= len(self.repeats):
-                print("Invalid index %d" % i)
+                print(tr("invalid_index") % i)
                 return
             self.repeats.pop(i)
             return
         elif args[0] == 'toggle':
             if len(args) < 2:
-                print("Usage: repeat toggle INDEX..")
+                print(tr("usage_repeat_toggle_index"))
                 return
 
             for i in range(1, len(args)):
                 try:
                     i = int(args[i])
                 except ValueError:
-                    print(f"Unable to toggle: Index {args[i]} is not a number")
+                    print(tr("unable_to_toggle_index_is_not") % (args[i],))
                     continue
                 if i < 0 or i >= len(self.repeats):
-                    print(f"Unable to toggle: Invalid index {i}")
+                    print(tr("unable_to_toggle_invalid_index") % (i,))
                     continue
                 self.repeats[i].enabled = not self.repeats[i].enabled
                 print(f"{i}: {self.repeats[i]}")
@@ -544,7 +545,7 @@ class MiscModule(mp_module.MPModule):
         elif args[0] == 'clean':
             self.repeats = []
         else:
-            print("Usage: repeat <add|remove|clean>")
+            print(tr("usage_repeat_add_remove_clean"))
 
     def cmd_devid(self, args):
         '''decode device IDs from parameters'''
@@ -564,12 +565,12 @@ class MiscModule(mp_module.MPModule):
     def cmd_setorigin(self, args):
         '''set global origin'''
         if len(args) < 3:
-            print("Usage: setorigin LAT(deg) LON(deg) ALT(m)")
+            print(tr("usage_setorigin_lat_deg_lon_deg"))
             return
         lat = float(args[0])
         lon = float(args[1])
         alt = float(args[2])
-        print("Setting origin to: ", lat, lon, alt)
+        print(tr("setting_origin_to"), lat, lon, alt)
         self.master.mav.set_gps_global_origin_send(
             self.settings.target_system,
             int(lat*10000000), # lat
@@ -579,7 +580,7 @@ class MiscModule(mp_module.MPModule):
     def cmd_magset_field(self, args):
         '''set compass offsets by field'''
         if len(args) < 3:
-            print("Usage: magsetfield MagX MagY MagZ")
+            print(tr("usage_magsetfield_magx_magy_magz"))
             return
         magX = int(args[0])
         magY = int(args[1])
@@ -644,7 +645,7 @@ class MiscModule(mp_module.MPModule):
     def cmd_namedvaluefloat(self, args):
         '''send a NAMED_VALUE_FLOAT'''
         if len(args) < 2:
-            print("Usage: namedvaluefloat NAME value")
+            print(tr("usage_namedvaluefloat_name_value"))
             return
         tnow_ms = int((time.time() - self.mpstate.start_time_s)*1000)
         name = args[0]
@@ -653,7 +654,7 @@ class MiscModule(mp_module.MPModule):
 
     def cmd_canforward(self, args):
         if len(args) < 1:
-            print("Usage: canforward bus")
+            print(tr("usage_canforward_bus"))
             return
         bus = int(args[0])
         self.master.mav.command_long_send(
@@ -670,8 +671,7 @@ class MiscModule(mp_module.MPModule):
             0)
 
     def cmd_landing_gear(self, args):
-        usage = '''Usage: gear <up|down> [ID]
-Alt: gear <extend|retract> [ID]'''
+        usage = tr("usage_usage_gear_up_down_id_alt_gear_extend")
         if len(args) == 0 or args[0] not in ['up', 'down', 'extend', 'retract']:
             print(usage)
             return

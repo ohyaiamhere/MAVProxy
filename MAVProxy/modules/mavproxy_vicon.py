@@ -16,6 +16,7 @@ from pymavlink import mavutil
 from pymavlink import mavextra
 
 from pyvicon import pyvicon
+from MAVProxy.modules.lib.mp_i18n import tr
 
 
 class ViconModule(mp_module.MPModule):
@@ -35,7 +36,7 @@ class ViconModule(mp_module.MPModule):
              ('gps_nsats', float, 16),
              ('object_name', str, None)
              ])
-        self.add_command('vicon', self.cmd_vicon, 'VICON control',
+        self.add_command('vicon', self.cmd_vicon, tr("cmd_vicon_control"),
                          ["<start>",
                           "<stop>",
                           "set (VICONSETTING)"])
@@ -66,7 +67,7 @@ class ViconModule(mp_module.MPModule):
         if segment_name is None:
             # Object we're looking for can't be found
             return None, None
-        print("Connected to subject '%s' segment '%s'" % (object_name, segment_name))
+        print(tr("connected_to_subject_segment") % (object_name, segment_name))
         return object_name, segment_name
 
     def get_vicon_pose(self, object_name, segment_name):
@@ -114,7 +115,7 @@ class ViconModule(mp_module.MPModule):
                 frame_dt = 1.0/frame_rate
                 last_rate = time.time()
                 frame_count = 0
-                print("Vicon frame rate %.1f" % frame_rate)
+                print(tr("vicon_frame_rate") % frame_rate)
 
             if self.vicon_settings.gps_rate > 0:
                 gps_period_ms = 1000 // self.vicon_settings.gps_rate
@@ -218,9 +219,9 @@ class ViconModule(mp_module.MPModule):
     def cmd_start(self):
         """start vicon"""
         vicon = pyvicon.PyVicon()
-        print("Opening Vicon connection to %s" % self.vicon_settings.host)
+        print(tr("opening_vicon_connection_to") % self.vicon_settings.host)
         vicon.connect(self.vicon_settings.host)
-        print("Configuring vicon")
+        print(tr("configuring_vicon"))
         vicon.set_stream_mode(pyvicon.StreamMode.ClientPull)
         vicon.enable_marker_data()
         vicon.enable_segment_data()
@@ -230,13 +231,13 @@ class ViconModule(mp_module.MPModule):
         # Set the axis mapping to the ardupilot convention (North, East, Down)
         vicon.set_axis_mapping(pyvicon.Direction.Forward, pyvicon.Direction.Right, pyvicon.Direction.Down)
         print(vicon.get_axis_mapping())
-        print("vicon ready")
+        print(tr("vicon_ready"))
         self.vicon = vicon
 
     def cmd_vicon(self, args):
         """command processing"""
         if len(args) == 0:
-            print("Usage: vicon <set|start|stop>")
+            print(tr("usage_vicon_set_start_stop"))
             return
         if args[0] == "start":
             self.cmd_start()

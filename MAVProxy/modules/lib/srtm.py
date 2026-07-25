@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from MAVProxy.modules.lib.mp_i18n import tr, ensure_language_from_argv
 # Pylint: Disable name warnings
 # pylint: disable-msg=C0103
 
@@ -83,20 +84,20 @@ class SRTMDownloader():
 
         # User migration to new folder struct (SRTM -> SRTM3)
         if directory == "SRTM3" and not os.path.exists(cachedir) and os.path.exists(cachedir[:-1]):
-            print("Migrating old SRTM folder")
+            print(tr("migrating_old_srtm_folder"))
             os.rename(cachedir[:-1], cachedir)
         
         self.debug = debug
         self.offline = offline
         self.offlinemessageshown = 0
         if self.offline == 1 and self.debug:
-            print("Map Module in Offline mode")
+            print(tr("map_module_in_offline_mode"))
         self.first_failure = False
         self.server = server
         self.directory = "/" + directory +"/"
         self.cachedir = cachedir
         if self.debug:
-            print("SRTMDownloader - server=%s, directory=%s." % (self.server, self.directory))
+            print(tr("srtmdownloader_server_directory") % (self.server, self.directory))
         if not os.path.exists(cachedir):
             mp_util.mkdir_p(cachedir)
         self.filelist = {}
@@ -153,7 +154,7 @@ class SRTMDownloader():
                 if r1.status in [301, 302, 303, 307]:
                     location = r1.getheader('Location')
                     if self.debug:
-                        print("redirect from %s to %s" % (url, location))
+                        print(tr("redirect_from_to") % (url, location))
                     url = location
                     conn.close()
                     tries += 1
@@ -179,7 +180,7 @@ class SRTMDownloader():
         """
         mp_util.child_close_fds()
         if self.debug:
-            print("Connecting to %s" % self.server, self.directory)
+            print(tr("connecting_to") % self.server, self.directory)
         try:
             data = self.getURIWithRedirect(self.directory)
         except Exception:
@@ -197,20 +198,20 @@ class SRTMDownloader():
         else:
             # tiles in subfolders
             if self.debug:
-                print('continents: ', continents)
+                print(tr("continents"), continents)
 
             for continent in continents:
                 if not continent[0].isalpha() or continent.startswith('README'):
                     continue
                 if self.debug:
-                    print("Downloading file list for: ", continent)
+                    print(tr("downloading_file_list_for"), continent)
                 url = "%s%s" % (self.directory,continent)
                 if self.debug:
-                    print("fetching %s" % url)
+                    print(tr("fetching") % url)
                 try:
                     data = self.getURIWithRedirect(url)
                 except Exception as ex:
-                    print("Failed to download %s : %s" % (url, ex))
+                    print(tr("failed_to_download") % (url, ex))
                     continue
                 parser = parseHTMLDirectoryListing()
                 parser.feed(data)
@@ -237,7 +238,7 @@ class SRTMDownloader():
             except Exception:
                 pass
         if self.debug:
-            print("created file list with %u entries" % len(self.filelist))
+            print(tr("created_file_list_with_u_entries") % len(self.filelist))
 
     def parseFilename(self, filename):
         """Get lat/lon values from filename."""
@@ -263,14 +264,14 @@ class SRTMDownloader():
         mypid = os.getpid()
         if mypid in childFileListDownload and childFileListDownload[mypid].is_alive():
             if self.debug:
-                print("still getting file list")
+                print(tr("still_getting_file_list"))
             return 0
         elif not os.path.isfile(self.filelist_file) and filelistDownloadActive == 0:
             self.createFileList()
             return 0
         elif not self.filelist:
             if self.debug:
-                print("Filelist download complete, loading data ", self.filelist_file)
+                print(tr("filelist_download_complete_loading_data"), self.filelist_file)
             data = open(self.filelist_file, 'rb')
             self.filelist = pickle.load(data)
             data.close()
@@ -322,7 +323,7 @@ class SRTMDownloader():
                 self.ftpfile = None
         except Exception as e:
             if not self.first_failure:
-                print("SRTM Download failed %s on server %s" % (filepath, self.server))
+                print(tr("srtm_download_failed_on_server") % (filepath, self.server))
                 self.first_failure = True
             pass
 
@@ -495,7 +496,8 @@ class parseHTMLDirectoryListing(HTMLParser):
 #DEBUG ONLY
 if __name__ == '__main__':
     from argparse import ArgumentParser
-    parser = ArgumentParser(description='srtm test')
+    ensure_language_from_argv()
+    parser = ArgumentParser(description=tr("opt_srtm_test"))
 
     parser.add_argument("--lat", type=float, default=-35.363261)
     parser.add_argument("--lon", type=float, default=149.165230)
@@ -515,6 +517,6 @@ if __name__ == '__main__':
     while time.time() - start < 30:
         tile = downloader.getTile(int(floor(args.lat)), int(floor(args.lon)))
         if tile:
-            print("Download took %.1fs alt=%.1f" % (time.time()-start, tile.getAltitudeFromLatLon(args.lat, args.lon)))
+            print(tr("download_took_s_alt") % (time.time()-start, tile.getAltitudeFromLatLon(args.lat, args.lon)))
             break
         time.sleep(0.2)

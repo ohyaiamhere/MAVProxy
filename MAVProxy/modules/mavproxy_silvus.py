@@ -20,10 +20,11 @@ import threading
 from MAVProxy.modules.lib import mp_module
 from MAVProxy.modules.lib import mp_settings
 from pymavlink import mavutil
+from MAVProxy.modules.lib.mp_i18n import tr
 
 class SilvusModule(mp_module.MPModule):
     def __init__(self, mpstate):
-        super(SilvusModule, self).__init__(mpstate, "Silvus", "Silvus output")
+        super(SilvusModule, self).__init__(mpstate, "Silvus", tr("mod_silvus_output"))
         # filter_dist is distance in metres
         self.silvus_settings = mp_settings.MPSettings([("gnd_ip", str, ""),
                                                        ("air_ip", str, ""),
@@ -38,7 +39,7 @@ class SilvusModule(mp_module.MPModule):
                                                        ])
         self.add_completion_function('(SILVUSSETTING)',
                                      self.silvus_settings.completion)
-        self.add_command('silvus', self.cmd_silvus, "silvus control",
+        self.add_command('silvus', self.cmd_silvus, tr("cmd_silvus_control"),
                          ["status", "set (SILVUSSETTING)"])
         self.last_nmea_send = time.time()
         self.last_log_time = time.time()
@@ -65,7 +66,7 @@ class SilvusModule(mp_module.MPModule):
         '''send a NMEA packet to a radio, so the radio knows its position for logging and display'''
 
         if not self.silvus_settings.nmea_ip or self.silvus_settings.nmea_port <= 0:
-            print("no setup")
+            print(tr("no_setup"))
             return
 
         now_time = time.time()
@@ -106,13 +107,13 @@ class SilvusModule(mp_module.MPModule):
         output = output + rmc + self.nmea_checkstr(rmc)
 
         if self.silvus_settings.debug > 1:
-            print("NMEA: %s" % output)
+            print(tr("nmea") % output)
 
         try:
             sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
             sock.sendto(output.encode("UTF-8"), (self.silvus_settings.nmea_ip, self.silvus_settings.nmea_port))
         except Exception as ex:
-            print("Silvus NMEA send fail: %s" % ex)
+            print(tr("silvus_nmea_send_fail") % ex)
 
     def url(self, nodeip, api):
         return "http://%s/%s" % (nodeip, api)
@@ -235,7 +236,7 @@ class SilvusModule(mp_module.MPModule):
 
     def cmd_status(self):
         for f in sorted(self.values.keys()):
-            print("%20s %.1f" % (f, self.values[f]))
+            print(tr("msg_13") % (f, self.values[f]))
 
     def thread_loop(self):
         while True:

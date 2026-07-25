@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from MAVProxy.modules.lib.mp_i18n import tr
 """
   MAVProxy default console
 """
@@ -48,7 +49,7 @@ if __name__ == "__main__":
     import time
     console = SimpleConsole()
     while console.is_alive():
-        console.write('Tick', fg='red')
-        console.write(" %s " % time.asctime())
-        console.writeln('tock', bg='yellow')
+        console.write(tr("tick"), fg='red')
+        console.write(tr("msg_18") % time.asctime())
+        console.writeln(tr("tock"), bg='yellow')
         time.sleep(0.5)

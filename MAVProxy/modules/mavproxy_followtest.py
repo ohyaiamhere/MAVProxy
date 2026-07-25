@@ -11,13 +11,14 @@ from MAVProxy.modules.lib import mp_util
 from MAVProxy.modules.lib import mp_settings
 from MAVProxy.modules.mavproxy_map import mp_slipmap
 from pymavlink import mavutil
+from MAVProxy.modules.lib.mp_i18n import tr
 if mp_util.has_wxpython:
     from MAVProxy.modules.lib.mp_menu import *
 
 class FollowTestModule(mp_module.MPModule):
     def __init__(self, mpstate):
-        super(FollowTestModule, self).__init__(mpstate, "followtest", "followtest module")
-        self.add_command('followtest', self.cmd_followtest, "followtest control",
+        super(FollowTestModule, self).__init__(mpstate, "followtest", tr("mod_followtest_module"))
+        self.add_command('followtest', self.cmd_followtest, tr("cmd_followtest_control"),
                          ['set (FOLLOWSETTING)'])
         self.follow_settings = mp_settings.MPSettings([("radius", float, 100.0),
                                                        ("altitude", float, 50.0),
@@ -32,7 +33,7 @@ class FollowTestModule(mp_module.MPModule):
         
     def cmd_followtest(self, args):
         '''followtest command parser'''
-        usage = "usage: followtest <set>"
+        usage = tr("usage_usage_followtest_set")
         if len(args) == 0:
             print(usage)
             return

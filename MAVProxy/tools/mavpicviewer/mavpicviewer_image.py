@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from MAVProxy.modules.lib.mp_i18n import tr
 '''
 MAV Picture Viewer
 
@@ -473,7 +474,7 @@ class mavpicviewer_image:
             alt = float(exif_dict["GPS"][piexif.GPSIFD.GPSAltitude][0])/float(exif_dict["GPS"][piexif.GPSIFD.GPSAltitude][1])
             terr_alt = self.elevation_model.GetElevation(lat, lon)
             if terr_alt is None:
-                print("WARNING: failed terrain lookup for %f %f" % (lat, lon))
+                print(tr("warning_failed_terrain_lookup_for") % (lat, lon))
                 terr_alt = 0
         else:
             lat = 0
@@ -527,7 +528,7 @@ class mavpicviewer_image:
         pixel_x and pixel_y are in image pixel coordinates with 0,0 at the top left
         '''
         if self.cam1_params is None:
-            print("picviewer: failed to calc lat,lon because camera params not set")
+            print(tr("picviewer_failed_to_calc_lat_lon"))
             return None
 
         return self.cam1_projection.get_latlonalt_for_pixel(int(pixel_x), int(pixel_y),

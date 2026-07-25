@@ -8,6 +8,7 @@ from MAVProxy.modules.lib import mp_module
 from MAVProxy.modules.lib import mp_util
 from MAVProxy.modules.lib import mp_settings
 from MAVProxy.modules.mavproxy_optitrack import NatNetClient
+from MAVProxy.modules.lib.mp_i18n import tr
 
 class optitrack(mp_module.MPModule):
     def __init__(self, mpstate):
@@ -21,7 +22,7 @@ class optitrack(mp_module.MPModule):
             ('print_lv', int, 0),
             ('multicast', bool, True)]
         )
-        self.add_command('optitrack', self.cmd_optitrack, "optitrack control", ['<start>', '<stop>', 'set (OPTITRACKSETTING)'])
+        self.add_command('optitrack', self.cmd_optitrack, tr("cmd_optitrack_control"), ['<start>', '<stop>', 'set (OPTITRACKSETTING)'])
         self.streaming_client = NatNetClient.NatNetClient()
         # Configure the streaming client to call our rigid body handler on the emulator to send data out.
         self.streaming_client.rigid_body_listener = self.receive_rigid_body_frame

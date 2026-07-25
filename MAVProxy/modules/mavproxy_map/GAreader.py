@@ -8,6 +8,7 @@ AP_FLAKE8_CLEAN
 
 import numpy
 import os
+from MAVProxy.modules.lib.mp_i18n import tr
 
 
 class ERMap:
@@ -91,11 +92,11 @@ class ERMap:
 
     def printBoundingBox(self):
         '''Print the bounding box that this DEM covers'''
-        print("Bounding Latitude: ")
+        print(tr("bounding_latitude"))
         print(self.startlatitude)
         print(self.endlatitude)
 
-        print("Bounding Longitude: ")
+        print(tr("bounding_longitude"))
         print(self.startlongitude)
         print(self.endlongitude)
 
@@ -109,7 +110,7 @@ class ERMap:
             else:
                 nonblank = nonblank + 1
 
-        print("Blank tiles =  ", blank, "out of ", (nonblank+blank))
+        print(tr("blank_tiles"), blank, "out of ", (nonblank+blank))
 
     def getAltitudeAtPoint(self, latty, longy):
         '''Return the altitude at a particular long/lat'''
@@ -169,7 +170,7 @@ class ERMap:
 
 if __name__ == '__main__':
 
-    print("./Canberra/GSNSW_P756demg")
+    print(tr("canberra_gsnsw_p756demg"))
     mappy = ERMap()
     mappy.read_ermapper(os.path.join(os.environ['HOME'], './Documents/Elevation/Canberra/GSNSW_P756demg'))
 

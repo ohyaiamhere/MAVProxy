@@ -18,6 +18,7 @@ from MAVProxy.modules.lib.mp_image import MPImageFrameCounter
 from MAVProxy.modules.mavproxy_map import mp_slipmap
 from MAVProxy.modules.lib import mp_util
 import numpy as np
+from MAVProxy.modules.lib.mp_i18n import tr
 
 EXPECTED_DATA_SIZE = 640 * 512 * 2
 C_TO_KELVIN = 273.15
@@ -150,7 +151,7 @@ class RawThermal:
         '''display an image'''
         a = np.frombuffer(data, dtype='>u2')
         if len(a) != 640 * 512:
-            print("Bad size %u" % len(a))
+            print(tr("bad_size_u") % len(a))
             return
         # get in Kelvin
         a = (a / 64.0)
@@ -356,7 +357,7 @@ class RawThermal:
             if isinstance(event, MPMenuItem):
                 if event.returnkey.startswith("Mode:"):
                     self.siyi.click_mode = event.returnkey[5:]
-                    print("ViewMode: %s" % self.siyi.click_mode)
+                    print(tr("viewmode") % self.siyi.click_mode)
                 elif event.returnkey.startswith("Marker:"):
                     self.siyi.handle_marker(event.returnkey[7:])
                 elif event.returnkey == "fitWindow":
@@ -400,7 +401,7 @@ class RawThermal:
 
 if __name__ == '__main__':
     from optparse import OptionParser
-    parser = OptionParser("camera_view.py [options]")
+    parser = OptionParser(tr("opt_usage_camera_view_py_options"))
     (opts, args) = parser.parse_args()
 
     c = RawThermal(None, (640, 512))

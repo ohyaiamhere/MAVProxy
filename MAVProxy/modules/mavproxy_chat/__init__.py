@@ -17,16 +17,17 @@ from MAVProxy.modules.mavproxy_chat import chat_window
 from pymavlink import mavutil
 from threading import Thread
 import time
+from MAVProxy.modules.lib.mp_i18n import tr
 
 
 class chat(mp_module.MPModule):
     def __init__(self, mpstate):
 
         # call parent class
-        super(chat, self).__init__(mpstate, "chat", "OpenAI chat support")
+        super(chat, self).__init__(mpstate, "chat", tr("mod_openai_chat_support"))
 
         # register module and commands
-        self.add_command('chat', self.cmd_chat, "chat module", ["show"])
+        self.add_command('chat', self.cmd_chat, tr("cmd_chat_module"), ["show"])
 
         # keep reference to mpstate
         self.mpstate = mpstate
@@ -46,7 +47,7 @@ class chat(mp_module.MPModule):
             # create chat window
             self.chat_window = chat_window.chat_window(self.mpstate, self.wait_for_command_ack)
         else:
-            print("chat: wx support required")
+            print(tr("chat_wx_support_required"))
 
     # show help on command line options
     def usage(self):

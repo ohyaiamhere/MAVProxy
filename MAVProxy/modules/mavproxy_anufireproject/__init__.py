@@ -14,6 +14,7 @@ import time
 
 from MAVProxy.modules.lib import mp_module
 from MAVProxy.modules.lib import mp_util
+from MAVProxy.modules.lib.mp_i18n import tr
 
 
 class ANUFireProject(mp_module.MPModule):
@@ -30,7 +31,7 @@ class ANUFireProject(mp_module.MPModule):
         self.add_command(
             'anufp',
             self.cmd,
-            "ANU FireProject utility functions",
+            tr("cmd_anu_fireproject_utility_functions"),
             ["<burnkml>", "<burnkml> (BURNID)"],
         )
 
@@ -85,7 +86,7 @@ class ANUFireProject(mp_module.MPModule):
 
         if len(args) != 1:
             print(self.usage())
-            print("BURNID is usually of the form FBxxx e.g. FB511")
+            print(tr("burnid_is_usually_of_the_form"))
             return
         burn_name = args[0]
 
@@ -148,7 +149,7 @@ class ANUFireProject(mp_module.MPModule):
 
     def message(self, msg):
         '''simply emit msg prefixed with an identifying string'''
-        print(f"anufp: {msg}")
+        print(tr("anufp") % (msg,))
 
     def refresh_burn_json(self):
         '''downloads content from ACT Government URL, caches it in the

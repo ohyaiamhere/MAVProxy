@@ -5,6 +5,7 @@ import copy
 
 from MAVProxy.modules.lib import mp_module
 from pymavlink import mavutil
+from MAVProxy.modules.lib.mp_i18n import tr
 
 # note that the number of bits here is contrained by the float
 # transport mechanism.  25 bits is the limit.  Given the transport
@@ -47,11 +48,11 @@ full_arming_mask = 0b1111111111111111111111110
 
 class ArmModule(mp_module.MPModule):
     def __init__(self, mpstate):
-        super(ArmModule, self).__init__(mpstate, "arm", "arm/disarm handling", public=True)
+        super(ArmModule, self).__init__(mpstate, "arm", tr("mod_arm_disarm_handling"), public=True)
         self.add_command(
             'arm',
             self.cmd_arm,
-            'arm motors', [
+            tr("cmd_arm_motors"), [
                 'check ' + self.checkables(),
                 'uncheck ' + self.checkables(),
                 'skip ' + self.skip_checkables(),
@@ -64,7 +65,7 @@ class ArmModule(mp_module.MPModule):
                 'bits',
                 'prearms',
             ])
-        self.add_command('disarm', self.cmd_disarm,   'disarm motors')
+        self.add_command('disarm', self.cmd_disarm,   tr("cmd_disarm_motors"))
         self.was_armed = False
 
         # support for setting safety switch position via COMMAND_*
@@ -79,7 +80,7 @@ class ArmModule(mp_module.MPModule):
 
     def cmd_arm(self, args):
         '''arm commands'''
-        usage = "usage: arm <check|uncheck|skip|unskip|list|throttle|safetyon|safetyoff|safetystatus|bits|prearms>"
+        usage = tr("usage_usage_arm_check_uncheck_skip_unskip_list_throttle")
 
         if len(args) <= 0:
             print(usage)
@@ -98,7 +99,7 @@ class ArmModule(mp_module.MPModule):
 
             arming_mask = self.get_mav_param("ARMING_CHECK")
             if arming_mask is None:
-                print("ARMING_CHECK parameter not available")
+                print(tr("arming_check_parameter_not_available"))
                 return
             arming_mask = int(arming_mask)
             name = args[1].lower()
@@ -107,7 +108,7 @@ class ArmModule(mp_module.MPModule):
             elif name in arming_masks:
                 arming_mask |= arming_masks[name]
             else:
-                print("unrecognized arm check:", name)
+                print(tr("unrecognized_arm_check"), name)
                 return
             if (arming_mask & ~0x1) == full_arming_mask:
                 arming_mask = 0x1
@@ -121,7 +122,7 @@ class ArmModule(mp_module.MPModule):
 
             arming_mask = self.get_mav_param("ARMING_CHECK")
             if arming_mask is None:
-                print("ARMING_CHECK parameter not available")
+                print(tr("arming_check_parameter_not_available"))
                 return
             arming_mask = int(arming_mask)
             name = args[1].lower()
@@ -132,7 +133,7 @@ class ArmModule(mp_module.MPModule):
                     arming_mask = full_arming_mask
                 arming_mask &= ~arming_masks[name]
             else:
-                print("unrecognized arm check:", args[1])
+                print(tr("unrecognized_arm_check"), args[1])
                 return
 
             self.param_set("ARMING_CHECK", arming_mask)
@@ -149,7 +150,7 @@ class ArmModule(mp_module.MPModule):
 
         if args[0] == "bits":
             for mask in sorted(arming_masks, key=lambda x : arming_masks[x]):
-                print("%s" % mask)
+                print(tr("msg_3") % mask)
             return
 
         if args[0] == "prearms":
@@ -203,12 +204,12 @@ class ArmModule(mp_module.MPModule):
             try:
                 sys_status = self.master.messages['SYS_STATUS']
             except KeyError:
-                print("Unknown; no SYS_STATUS")
+                print(tr("unknown_no_sys_status"))
                 return
             if sys_status.onboard_control_sensors_enabled & mavutil.mavlink.MAV_SYS_STATUS_SENSOR_MOTOR_OUTPUTS:
-                print("Safety is OFF (vehicle is dangerous)")
+                print(tr("safety_is_off_vehicle_is_dangerous"))
             else:
-                print("Safety is ON (vehicle allegedly safe)")
+                print(tr("safety_is_on_vehicle_allegedly_safe"))
             return
 
         if args[0] == "safetyoff":
@@ -230,7 +231,7 @@ class ArmModule(mp_module.MPModule):
     def arming_list_ARMING_CHECK(self):
         arming_mask = int(self.get_mav_param("ARMING_CHECK"))
         if arming_mask == 0:
-            print("NONE")
+            print(tr("none"))
         for name in sorted(arming_masks, key=lambda x : arming_masks[x]):
             if arming_masks[name] & arming_mask:
                 print(name)
@@ -245,17 +246,17 @@ class ArmModule(mp_module.MPModule):
 
     def _arm_skip(self, what, args):
         if (len(args) != 1):
-            print(f"usage: arm {what} {self.skip_checkables()}")
+            print(tr("usage_arm") % (what, self.skip_checkables()))
             return
 
         arming_skip = self.get_mav_param("ARMING_SKIPCHK")
         if arming_skip is None:
-            print("ARMING_SKIPCHK parameter not available")
+            print(tr("arming_skipchk_parameter_not_available"))
             return
         arming_skip = int(arming_skip)
         name = args[0].lower()
         if name not in arming_masks:
-            print(f"unrecognized arm check: {name}")
+            print(tr("unrecognized_arm_check_2") % (name,))
             return
         if what == "skip":
             arming_skip |= arming_masks[name]
@@ -337,7 +338,7 @@ class ArmModule(mp_module.MPModule):
             if armed != self.was_armed:
                 self.was_armed = armed
                 if armed and not self.all_checks_enabled():
-                    self.say("Arming checks disabled")
+                    self.say(tr("arming_checks_disabled"))
                 ice_enable = self.get_mav_param('ICE_ENABLE', 0)
                 if ice_enable == 1:
                     rc = self.master.messages["RC_CHANNELS"]
@@ -346,7 +347,7 @@ class ArmModule(mp_module.MPModule):
                         return
                     v = getattr(rc, 'chan%u_raw' % v)
                     if v <= 1300:
-                        self.say("ICE Disabled")
+                        self.say(tr("ice_disabled"))
             return
 
         if mtype == "COMMAND_ACK":

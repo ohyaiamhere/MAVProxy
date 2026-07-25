@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from MAVProxy.modules.lib.mp_i18n import tr
 """
   MAVProxy horizon indicator.
 """
@@ -50,5 +51,5 @@ if __name__ == "__main__":
     multiproc.freeze_support()
     horizon = HorizonIndicator()
     while horizon.is_alive():
-        print('test')
+        print(tr("test"))
         time.sleep(0.5)

@@ -5,6 +5,7 @@ decode ftp parameter protocol data
 
 import struct
 import sys
+from MAVProxy.modules.lib.mp_i18n import tr
 
 class ParamData(object):
     def __init__(self):
@@ -31,7 +32,7 @@ def ftp_param_decode(data):
         return None
     magic2,num_params,total_params = struct.unpack("<HHH", data[0:6])
     if magic != magic2 and magic_defaults != magic2:
-        print("paramftp: bad magic 0x%x expected 0x%x" % (magic2, magic))
+        print(tr("paramftp_bad_magic_0x_expected_0x") % (magic2, magic))
         return None
     with_defaults = magic2 == magic_defaults
     data = data[6:]
@@ -67,7 +68,7 @@ def ftp_param_decode(data):
         ptype &= 0x0F
 
         if not ptype in data_types:
-            print("paramftp: bad type 0x%x" % ptype)
+            print(tr("paramftp_bad_type_0x") % ptype)
             return None
 
         (type_len, type_format) = data_types[ptype]
@@ -94,7 +95,7 @@ def ftp_param_decode(data):
         count += 1
 
     if count != total_params:
-        print("paramftp: bad count %u should be %u" % (count, total_params))
+        print(tr("paramftp_bad_count_u_should_be") % (count, total_params))
         return None
 
     return pdata
@@ -103,10 +104,10 @@ if __name__ == "__main__":
     import sys
     fname = sys.argv[1]
     data = open(fname,'rb').read()
-    print("Decoding file of length %u" % len(data))
+    print(tr("decoding_file_of_length_u") % len(data))
     pdata = ftp_param_decode(data)
     if pdata is None:
-        print("Decode failed")
+        print(tr("decode_failed"))
         sys.exit(1)
     for (name,value,ptype) in pdata.params:
         print(name.decode('utf-8'), value)

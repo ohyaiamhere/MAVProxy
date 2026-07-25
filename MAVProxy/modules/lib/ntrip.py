@@ -15,6 +15,7 @@ from MAVProxy.modules.lib import rtcm3
 import ssl
 from optparse import OptionParser
 from pynmeagps import NMEAMessage, GET
+from MAVProxy.modules.lib.mp_i18n import tr, ensure_language_from_argv, I18nOptionParser
 
 version = 0.2
 useragent = "NTRIP MAVProxy/%.1f" % version
@@ -246,7 +247,7 @@ class NtripClient(object):
             data = self.read()
             if data is None:
                 continue
-            print("got: ", len(data))
+            print(tr("got"), len(data))
 
     def send_gga(self):
         gga = self.getGGAByteString()
@@ -258,18 +259,19 @@ class NtripClient(object):
             self.socket = None
 
 if __name__ == '__main__':
-    usage = "NtripClient.py [options] [caster] [port] mountpoint"
-    parser = OptionParser(version=version, usage=usage)
-    parser.add_option("-u", "--user", type="string", dest="user", default="IBS", help="The Ntripcaster username.  Default: %default")
-    parser.add_option("-p", "--password", type="string", dest="password", default="IBS", help="The Ntripcaster password. Default: %default")
-    parser.add_option("-o", "--org", type="string", dest="org", help="Use IBSS and the provided organization for the user. Caster and Port are not needed in this case Default: %default")
-    parser.add_option("-b", "--baseorg", type="string", dest="baseorg", help="The org that the base is in. IBSS Only, assumed to be the user org")
-    parser.add_option("-t", "--latitude", type="float", dest="lat", default=50.09, help="Your latitude.  Default: %default")
-    parser.add_option("-g", "--longitude", type="float", dest="lon", default=8.66, help="Your longitude.  Default: %default")
-    parser.add_option("-e", "--height", type="float", dest="height", default=1200, help="Your ellipsoid height.  Default: %default")
-    parser.add_option("-s", "--ssl", action="store_true", dest="ssl", default=False, help="Use SSL for the connection")
-    parser.add_option("-H", "--host", action="store_true", dest="host", default=False, help="Include host header, should be on for IBSS")
-    parser.add_option("-2", "--V2", action="store_true", dest="V2", default=False, help="Make a NTRIP V2 Connection")
+    usage = tr("usage_ntripclient_py_options_caster_port_mountpoint")
+    ensure_language_from_argv()
+    parser = I18nOptionParser(version=version, usage=usage)
+    parser.add_option("-u", "--user", type="string", dest="user", default="IBS", help=tr("opt_the_ntripcaster_username_default_efault"))
+    parser.add_option("-p", "--password", type="string", dest="password", default="IBS", help=tr("opt_the_ntripcaster_password_default_efault"))
+    parser.add_option("-o", "--org", type="string", dest="org", help=tr("opt_use_ibss_and_the_provided_organization_for_the"))
+    parser.add_option("-b", "--baseorg", type="string", dest="baseorg", help=tr("opt_the_org_that_the_base_is_in_ibss"))
+    parser.add_option("-t", "--latitude", type="float", dest="lat", default=50.09, help=tr("opt_your_latitude_default_efault"))
+    parser.add_option("-g", "--longitude", type="float", dest="lon", default=8.66, help=tr("opt_your_longitude_default_efault"))
+    parser.add_option("-e", "--height", type="float", dest="height", default=1200, help=tr("opt_your_ellipsoid_height_default_efault"))
+    parser.add_option("-s", "--ssl", action="store_true", dest="ssl", default=False, help=tr("opt_use_ssl_for_the_connection"))
+    parser.add_option("-H", "--host", action="store_true", dest="host", default=False, help=tr("opt_include_host_header_should_be_on_for_ibss"))
+    parser.add_option("-2", "--V2", action="store_true", dest="V2", default=False, help=tr("opt_make_a_ntrip_v2_connection"))
 
     (options, args) = parser.parse_args()
     ntripArgs = {}
@@ -287,7 +289,7 @@ if __name__ == '__main__':
 
     if options.org:
         if len(args) != 1:
-            print("Incorrect number of arguments for IBSS\n")
+            print(tr("incorrect_number_of_arguments_for_ibss"))
             parser.print_help()
             sys.exit(1)
         ntripArgs['user'] = options.user+"." + options.org + ":" + options.password
@@ -302,7 +304,7 @@ if __name__ == '__main__':
         ntripArgs['mountpoint'] = args[0]
     else:
         if len(args) != 3:
-            print("Incorrect number of arguments for NTRIP\n")
+            print(tr("incorrect_number_of_arguments_for_ntrip"))
             parser.print_help()
             sys.exit(1)
         ntripArgs['user'] = options.user+":"+options.password

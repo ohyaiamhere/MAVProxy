@@ -8,12 +8,13 @@ import os
 import time
 
 from MAVProxy.modules.lib import mp_module
+from MAVProxy.modules.lib.mp_i18n import tr
 
 
 class LogModule(mp_module.MPModule):
     def __init__(self, mpstate):
-        super(LogModule, self).__init__(mpstate, "log", "log transfer")
-        self.add_command('log', self.cmd_log, "log file handling", ['<download|status|erase|resume|cancel|list>'])
+        super(LogModule, self).__init__(mpstate, "log", tr("mod_log_transfer"))
+        self.add_command('log', self.cmd_log, tr("cmd_log_file_handling"), ['<download|status|erase|resume|cancel|list>'])
         self.reset()
 
     def reset(self):
@@ -43,10 +44,10 @@ class LogModule(mp_module.MPModule):
         else:
             tstring = time.ctime(m.time_utc)
         if m.num_logs == 0:
-            print("No logs")
+            print(tr("no_logs"))
             return
         self.entries[m.id] = m
-        print("Log %u  numLogs %u lastLog %u size %u %s" % (m.id, m.num_logs, m.last_log_num, m.size, tstring))
+        print(tr("log_u_numlogs_u_lastlog_u") % (m.id, m.num_logs, m.last_log_num, m.size, tstring))
 
     def handle_log_data(self, m):
         '''handling incoming log data'''
@@ -131,7 +132,7 @@ class LogModule(mp_module.MPModule):
     def log_status(self, console=False):
         '''show download status'''
         if self.download_filename is None:
-            print("No download")
+            print(tr("no_download"))
             return
         dt = time.time() - self.download_start
         if dt == 0:
@@ -169,14 +170,14 @@ class LogModule(mp_module.MPModule):
         latest = self.download_queue.pop()
         filename = self.default_log_filename(latest)
         if os.path.isfile(filename) and os.path.getsize(filename) == self.entries.get(latest).to_dict()["size"]:
-            print("Skipping existing %s" % (filename))
+            print(tr("skipping_existing") % (filename))
             self.log_download_next()
         else:
             self.log_download(latest, filename)
 
     def log_download_all(self):
         if len(self.entries.keys()) == 0:
-            print("Please use log list first")
+            print(tr("please_use_log_list_first"))
             return
         self.download_queue = sorted(self.entries, key=lambda id: self.entries[id].time_utc)
         self.log_download_next()
@@ -188,7 +189,7 @@ class LogModule(mp_module.MPModule):
 
     def log_download_from(self, fromnum=0):
         if len(self.entries.keys()) == 0:
-            print("Please use log list first")
+            print(tr("please_use_log_list_first"))
             return
         self.download_queue = sorted(self.entries, key=lambda id: self.entries[id].time_utc)
         self.download_queue = self.download_queue[fromnum:len(self.download_queue)]
@@ -196,7 +197,7 @@ class LogModule(mp_module.MPModule):
 
     def log_download(self, log_num, filename):
         '''download a log file'''
-        print("Downloading log %u as %s" % (log_num, filename))
+        print(tr("downloading_log_u_as") % (log_num, filename))
         self.download_lognum = log_num
         self.download_file = open(filename, "wb")
         self.master.mav.log_request_data_send(
@@ -218,7 +219,7 @@ class LogModule(mp_module.MPModule):
 
     def cmd_log(self, args):
         '''log commands'''
-        usage = "usage: log <list|download|erase|resume|status|cancel>"
+        usage = tr("usage_usage_log_list_download_erase_resume_status_cancel")
         if len(args) < 1:
             print(usage)
             return
@@ -226,7 +227,7 @@ class LogModule(mp_module.MPModule):
         if args[0] == "status":
             self.log_status()
         elif args[0] == "list":
-            print("Requesting log list")
+            print(tr("requesting_log_list"))
             self.download_set = set()
             self.master.mav.log_request_list_send(
                 self.target_system,
@@ -254,7 +255,7 @@ class LogModule(mp_module.MPModule):
 
         elif args[0] == "download":
             if len(args) < 2:
-                print("usage: log download all | log download <lognumber> <filename> | log download from <lognumber>|log download range FIRST LAST") # noqa:E501
+                print(tr("usage_log_download_all_log_download")) # noqa:E501
                 return
             if args[1] == 'all':
                 self.log_download_all()
@@ -266,13 +267,13 @@ class LogModule(mp_module.MPModule):
                 return
             if args[1] == 'range':
                 if len(args) < 2:
-                    print("Usage: log download range FIRST LAST")
+                    print(tr("usage_log_download_range_first_last"))
                     return
                 self.log_download_range(int(args[2]), int(args[3]))
                 return
             if args[1] == 'latest':
                 if len(self.entries.keys()) == 0:
-                    print("Please use log list first")
+                    print(tr("please_use_log_list_first"))
                     return
                 log_num = sorted(self.entries, key=lambda id: self.entries[id].time_utc)[-1]
             else:

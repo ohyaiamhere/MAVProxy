@@ -8,29 +8,30 @@ import sys, os, serial, time
 from MAVProxy.modules.lib import mp_module
 from MAVProxy.modules.lib import mp_settings
 from MAVProxy.modules.lib import mp_util
+from MAVProxy.modules.lib.mp_i18n import tr
 
 try:
     import pynmea2
 except ImportError as e:
-    print('please install pynmea2 package with "sudo apt install python3-nmea2" or "python -m pip install pynmea2"')
+    print(tr("please_install_pynmea2_package_with_sudo"))
 
 class NMEAGPSModule(mp_module.MPModule):
     def __init__(self, mpstate):
-        super(NMEAGPSModule, self).__init__(mpstate, "NMEAGPS", "NMEA input")
+        super(NMEAGPSModule, self).__init__(mpstate, "NMEAGPS", tr("mod_nmea_input"))
         self.nmeagps_settings = mp_settings.MPSettings([
             ("port", str, None),
             ("baudrate", int, 9600),
             ])
         self.add_completion_function('(NMEAGPSSETTING)',
                                      self.nmeagps_settings.completion)
-        self.add_command('nmeagps', self.cmd_nmeagps, "nmea GPS input control",
+        self.add_command('nmeagps', self.cmd_nmeagps, tr("cmd_nmea_gps_input_control"),
                          ["<status|connect|disconnect>", "set (NMEAGPSSETTING)"])
         self.port = None
         self.position = mp_util.mp_position()
 
     def cmd_nmeagps(self, args):
         '''nmeagps commands'''
-        usage = "nmeagps <set|connect|disconnect|status>"
+        usage = tr("usage_nmeagps_set_connect_disconnect_status")
         if len(args) == 0:
             print(usage)
             return
@@ -50,7 +51,7 @@ class NMEAGPSModule(mp_module.MPModule):
         try:
             self.port = serial.Serial(self.nmeagps_settings.port, self.nmeagps_settings.baudrate)
         except Exception as ex:
-            print("Failed to open %s : %s" % (self.nmeagps_settings.port, ex))
+            print(tr("failed_to_open_2") % (self.nmeagps_settings.port, ex))
 
     def cmd_disconnect(self):
         '''disconnect from GPS'''
@@ -58,15 +59,15 @@ class NMEAGPSModule(mp_module.MPModule):
             self.port.close()
             self.port = None
         else:
-            print("GPS not connected")
+            print(tr("gps_not_connected"))
 
     def cmd_status(self):
         '''status'''
         if self.port is None:
-            print("GPS not connected")
+            print(tr("gps_not_connected"))
             return
         if self.position.timestamp is None:
-            print("No position")
+            print(tr("no_position"))
             return
         print(self.position)
 

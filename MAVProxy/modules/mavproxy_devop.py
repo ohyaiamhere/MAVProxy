@@ -5,11 +5,12 @@ import time, os, sys
 from pymavlink import mavutil
 
 from MAVProxy.modules.lib import mp_module
+from MAVProxy.modules.lib.mp_i18n import tr
 
 class DeviceOpModule(mp_module.MPModule):
     def __init__(self, mpstate):
         super(DeviceOpModule, self).__init__(mpstate, "DeviceOp")
-        self.add_command('devop', self.cmd_devop, "device operations",
+        self.add_command('devop', self.cmd_devop, tr("cmd_device_operations"),
                          ["<read|write> <spi|i2c>"])
         self.request_id = 1
 
@@ -22,7 +23,7 @@ class DeviceOpModule(mp_module.MPModule):
 
     def cmd_devop(self, args):
         '''device operations'''
-        usage = "Usage: devop <read|write> <spi|i2c> name bus address"
+        usage = tr("usage_usage_devop_read_write_spi_i2c_name_bus")
         if len(args) < 5:
             print(usage)
             return
@@ -44,7 +45,7 @@ class DeviceOpModule(mp_module.MPModule):
     def devop_read(self, args, bustype):
         '''read from device'''
         if len(args) < 5:
-            print("Usage: devop read <spi|i2c> name bus address regstart count")
+            print(tr("usage_devop_read_spi_i2c_name"))
             return
         name = args[0]
         bus = int(args[1],base=0)
@@ -66,7 +67,7 @@ class DeviceOpModule(mp_module.MPModule):
 
     def devop_write(self, args, bustype):
         '''write to a device'''
-        usage = "Usage: devop write <spi|i2c> name bus address regstart count <bytes>"
+        usage = tr("usage_usage_devop_write_spi_i2c_name_bus_address")
         if len(args) < 5:
             print(usage)
             return
@@ -132,22 +133,22 @@ class DeviceOpModule(mp_module.MPModule):
         mtype = m.get_type()
         if mtype == "DEVICE_OP_READ_REPLY":
             if m.result != 0:
-                print("Operation %u failed: %u (%s)" %
+                print(tr("operation_u_failed_u") %
                       (m.request_id,
                        m.result,
                        self.failure_strings.get(m.result, '????')))
             else:
-                print("Operation %u OK: %u bytes" % (m.request_id, m.count))
+                print(tr("operation_u_ok_u_bytes") % (m.request_id, m.count))
                 self.read_show_reply(m)
 
         if mtype == "DEVICE_OP_WRITE_REPLY":
             if m.result != 0:
-                print("Operation %u failed: %u (%s)" %
+                print(tr("operation_u_failed_u") %
                       (m.request_id,
                        m.result,
                        self.failure_strings.get(m.result, '????')))
             else:
-                print("Operation %u OK" % m.request_id)
+                print(tr("operation_u_ok") % m.request_id)
 
 def init(mpstate):
     '''initialise module'''

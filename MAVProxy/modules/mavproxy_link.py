@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from MAVProxy.modules.lib.mp_i18n import tr
 '''enable run-time addition and removal of master link, just like --master on the cnd line
 
 AP_FLAKE8_CLEAN
@@ -77,17 +78,17 @@ preferred_ports = [
 class LinkModule(mp_module.MPModule):
 
     def __init__(self, mpstate):
-        super(LinkModule, self).__init__(mpstate, "link", "link control", public=True, multi_vehicle=True)
-        self.add_command('link', self.cmd_link, "link control",
+        super(LinkModule, self).__init__(mpstate, "link", tr("mod_link_control"), public=True, multi_vehicle=True)
+        self.add_command('link', self.cmd_link, tr("mod_link_control"),
                          ["<list|ports|resetstats>",
                           'add (SERIALPORT)',
                           'attributes (LINK) (ATTRIBUTES)',
                           'remove (LINKS)',
                           'dataratelogging (DLSTATE)',
                           'hl (HLSTATE)'])
-        self.add_command('vehicle', self.cmd_vehicle, "vehicle control")
-        self.add_command('alllinks', self.cmd_alllinks, "send command on all links", ["(COMMAND)"])
-        self.add_command('ping', self.cmd_ping, "ping mavlink nodes")
+        self.add_command('vehicle', self.cmd_vehicle, tr("cmd_vehicle_control"))
+        self.add_command('alllinks', self.cmd_alllinks, tr("cmd_send_command_on_all_links"), ["(COMMAND)"])
+        self.add_command('ping', self.cmd_ping, tr("cmd_ping_mavlink_nodes"))
         self.no_fwd_types = set()
         self.no_fwd_types.add("BAD_DATA")
         self.add_completion_function('(SERIALPORT)', self.complete_serial_ports)
@@ -206,7 +207,7 @@ class LinkModule(mp_module.MPModule):
                     ret.append(m.label)
             return ret
         except Exception as e:
-            print("Caught exception: %s" % str(e))
+            print(tr("caught_exception") % str(e))
 
     def cmd_link(self, args):
         '''handle link commands'''
@@ -220,27 +221,27 @@ class LinkModule(mp_module.MPModule):
             self.cmd_dl(args[1:])
         elif args[0] == "add":
             if len(args) != 2:
-                print("Usage: link add LINK")
-                print('Usage: e.g. link add 127.0.0.1:9876')
-                print('Usage: e.g. link add 127.0.0.1:9876:{"label":"rfd900"}')
+                print(tr("usage_link_add_link"))
+                print(tr("usage_e_g_link_add_127"))
+                print(tr("usage_e_g_link_add_127_2"))
                 return
             self.cmd_link_add(args[1:])
         elif args[0] == "attributes":
             if len(args) != 3:
-                print("Usage: link attributes LINK ATTRIBUTES")
-                print('Usage: e.g. link attributes rfd900 {"label":"bob"}')
+                print(tr("usage_link_attributes_link_attributes"))
+                print(tr("usage_e_g_link_attributes_rfd900"))
                 return
             self.cmd_link_attributes(args[1:])
         elif args[0] == "label":
             if len(args) != 3:
-                print("Usage: link label LINK LABEL")
+                print(tr("usage_link_label_link_label"))
                 return
             self.cmd_link_label(args[1:])
         elif args[0] == "ports":
             self.cmd_link_ports()
         elif args[0] == "remove":
             if len(args) != 2:
-                print("Usage: link remove LINK")
+                print(tr("usage_link_remove_link"))
                 return
             self.cmd_link_remove(args[1:])
         elif args[0] == "resetstats":
@@ -248,7 +249,7 @@ class LinkModule(mp_module.MPModule):
         elif args[0] == "ping":
             self.cmd_ping(args[1:])
         else:
-            print("usage: link <list|add|remove|attributes|hl|dataratelogging|resetstats>")
+            print(tr("usage_link_list_add_remove_attributes"))
 
     def cmd_dl(self, args):
         '''Toggle datarate logging'''
@@ -262,10 +263,10 @@ class LinkModule(mp_module.MPModule):
             with open(self.datarate_logging, 'w') as logfile:
                 logfile.write("time, linkname, linkid, packetsreceived, bytesreceived, delaysec, lostpercent\n")
         elif args[0] == "off":
-            print("Datarate Logging OFF")
+            print(tr("datarate_logging_off"))
             self.datarate_logging = None
         else:
-            print("usage: dataratelogging <on|off>")
+            print(tr("usage_dataratelogging_on_off"))
 
     def cmd_hl(self, args):
         '''Toggle high latency mode'''
@@ -273,7 +274,7 @@ class LinkModule(mp_module.MPModule):
             print("High latency mode is " + str(self.high_latency))
             return
         elif args[0] == "on":
-            print("High latency mode ON")
+            print(tr("high_latency_mode_on"))
             self.high_latency = True
             # Tell ArduPilot to start sending HIGH_LATENCY2 messages
             self.master.mav.command_long_send(
@@ -290,7 +291,7 @@ class LinkModule(mp_module.MPModule):
                 0) # param7
             return
         elif args[0] == "off":
-            print("High latency mode OFF")
+            print(tr("high_latency_mode_off"))
             self.high_latency = False
             self.master.mav.command_long_send(
                 self.target_system,  # target_system
@@ -306,7 +307,7 @@ class LinkModule(mp_module.MPModule):
                 0) # param7
             return
         else:
-            print("usage: hl <on|off>")
+            print(tr("usage_hl_on_off"))
 
     def show_link(self):
         '''show link information'''
@@ -329,7 +330,7 @@ class LinkModule(mp_module.MPModule):
             except AttributeError:
                 # some mav objects may not have a "signing" attribute
                 pass
-            print("link %s %s (%u packets, %u bytes, %.2fs delay, %u lost, %.1f%% loss, rate:%uB/s%s)" % (
+            print(tr("link_u_packets_u_bytes_s") % (
                 self.link_label(master),
                 status,
                 self.status.counters['MasterIn'][master.linknum],
@@ -352,7 +353,7 @@ class LinkModule(mp_module.MPModule):
     def cmd_alllinks(self, args):
         '''send command on all links'''
         saved_target = self.mpstate.settings.target_system
-        print("Sending to: ", self.vehicle_list)
+        print(tr("sending_to"), self.vehicle_list)
         for v in sorted(self.vehicle_list):
             self.cmd_vehicle([str(v)])
             self.mpstate.functions.process_stdin(' '.join(args), True)
@@ -360,11 +361,11 @@ class LinkModule(mp_module.MPModule):
 
     def cmd_link_list(self):
         '''list links'''
-        print("%u links" % len(self.mpstate.mav_master))
+        print(tr("u_links") % len(self.mpstate.mav_master))
         for i in range(len(self.mpstate.mav_master)):
             conn = self.mpstate.mav_master[i]
             if hasattr(conn, 'label'):
-                print("%u (%s): %s" % (i, conn.label, conn.address))
+                print(tr("u") % (i, conn.label, conn.address))
             else:
                 print("%u: %s" % (i, conn.address))
 
@@ -373,7 +374,7 @@ class LinkModule(mp_module.MPModule):
         try:
             return json.loads(some_json)
         except ValueError:
-            print('Invalid JSON argument: {0}'.format(some_json))
+            print(tr("invalid_json_argument_2").format(some_json))
         return {}
 
     def parse_link_descriptor(self, descriptor):
@@ -390,7 +391,7 @@ class LinkModule(mp_module.MPModule):
 
     def apply_link_attributes(self, conn, optional_attributes):
         for attr in optional_attributes:
-            print("Applying attribute to link: %s = %s" % (attr, optional_attributes[attr]))
+            print(tr("applying_attribute_to_link") % (attr, optional_attributes[attr]))
             setattr(conn, attr, optional_attributes[attr])
 
     def link_add(self, descriptor, force_connected=False, retries=3):
@@ -407,7 +408,7 @@ class LinkModule(mp_module.MPModule):
                         self.settings.baudrate = int(device.split(':')[1])
                         device = device.split(':')[0]
                         break
-            print("Connect %s source_system=%d" % (device, self.settings.source_system))
+            print(tr("connect_source_system") % (device, self.settings.source_system))
             try:
                 conn = mavutil.mavlink_connection(device, autoreconnect=True,
                                                   source_system=self.settings.source_system,
@@ -423,7 +424,7 @@ class LinkModule(mp_module.MPModule):
                                                   retries=retries)
             conn.mav.srcComponent = self.settings.source_component
         except Exception as msg:
-            print("Failed to connect to %s : %s" % (descriptor, msg))
+            print(tr("failed_to_connect_to") % (descriptor, msg))
             return False
         if self.settings.rtscts:
             conn.set_rtscts(True)
@@ -457,13 +458,13 @@ class LinkModule(mp_module.MPModule):
     def cmd_link_add(self, args):
         '''add new link'''
         descriptor = args[0]
-        print("Adding link %s" % descriptor)
+        print(tr("adding_link") % descriptor)
         self.link_add(descriptor)
 
     def link_attributes(self, link, attributes):
         i = self.find_link(link)
         if i is None:
-            print("Connection (%s) not found" % (link,))
+            print(tr("connection_not_found") % (link,))
             return
         conn = self.mpstate.mav_master[i]
         atts = self.parse_link_attributes(attributes)
@@ -473,7 +474,7 @@ class LinkModule(mp_module.MPModule):
         '''change optional link attributes'''
         link = args[0]
         attributes = args[1]
-        print("Setting link %s attributes (%s)" % (link, attributes))
+        print(tr("setting_link_attributes") % (link, attributes))
         self.link_attributes(link, attributes)
 
     def cmd_link_label(self, args):
@@ -502,13 +503,13 @@ class LinkModule(mp_module.MPModule):
         '''remove an link'''
         device = args[0]
         if len(self.mpstate.mav_master) <= 1:
-            print("Not removing last link")
+            print(tr("not_removing_last_link"))
             return
         i = self.find_link(device)
         if i is None:
             return
         conn = self.mpstate.mav_master[i]
-        print("Removing link %s" % conn.address)
+        print(tr("removing_link") % conn.address)
         try:
             try:
                 mp_util.child_fd_list_remove(conn.port.fileno())
@@ -582,8 +583,8 @@ class LinkModule(mp_module.MPModule):
         highest_msec_key = (sysid, compid)
         highest = master.highest_msec.get(highest_msec_key, 0)
         if msec + 30000 < highest:
-            self.say('Time has wrapped')
-            print('Time has wrapped', msec, highest)
+            self.say(tr("time_has_wrapped"))
+            print(tr("time_has_wrapped"), msec, highest)
             self.status.highest_msec[highest_msec_key] = msec
             for mm in self.mpstate.mav_master:
                 mm.link_delayed = False
@@ -617,7 +618,7 @@ class LinkModule(mp_module.MPModule):
         try:
             return severity_colors[severity]
         except Exception as e:
-            print("Exception: %s" % str(e))
+            print(tr("exception") % str(e))
             return ('white', 'red')
 
     def report_altitude(self, altitude):
@@ -637,14 +638,14 @@ class LinkModule(mp_module.MPModule):
                 int(self.settings.altreadout)):
             self.last_altitude_announce = altitude_converted
             rounded_alt = int(self.settings.altreadout) * ((self.settings.altreadout/2 + int(altitude_converted)) / int(self.settings.altreadout))  # noqa
-            self.say("height %u" % rounded_alt, priority='notification')
+            self.say(tr("height_u") % rounded_alt, priority='notification')
 
     def emit_accumulated_statustext(self, key, id, pending):
         out = pending.accumulated_statustext()
         if out != self.status.last_apm_msg or time.time() > self.status.last_apm_msg_time+2:
             (fg, bg) = self.colors_for_severity(pending.severity)
             out = pending.accumulated_statustext()
-            self.mpstate.console.writeln("AP: %s" % out, bg=bg, fg=fg)
+            self.mpstate.console.writeln(tr("ap") % out, bg=bg, fg=fg)
             self.status.last_apm_msg = out
             self.status.last_apm_msg_time = time.time()
         del self.status.statustexts_by_sysidcompid[key][id]
@@ -780,7 +781,7 @@ class LinkModule(mp_module.MPModule):
 
         if self.settings.target_component != 0 and master.target_component != self.settings.target_component:
             # keep the pymavlink level target component aligned with the MAVProxy setting
-            print("change target_component %u" % self.settings.target_component)
+            print(tr("change_target_component_u") % self.settings.target_component)
             master.target_component = self.settings.target_component
 
         mtype = m.get_type()
@@ -789,17 +790,17 @@ class LinkModule(mp_module.MPModule):
             if self.settings.target_system == 0 and self.settings.target_system != m.get_srcSystem():
                 self.settings.target_system = m.get_srcSystem()
                 self.settings.target_component = m.get_srcComponent()
-                self.say("online system %u" % self.settings.target_system, 'message')
+                self.say(tr("online_system_u") % self.settings.target_system, 'message')
                 for mav in self.mpstate.mav_master:
                     mav.target_system = self.settings.target_system
                     mav.target_component = self.settings.target_component
 
             if self.status.heartbeat_error:
                 self.status.heartbeat_error = False
-                self.say("heartbeat OK")
+                self.say(tr("heartbeat_ok"))
             if master.linkerror:
                 master.linkerror = False
-                self.say("link %s OK" % (self.link_label(master)))
+                self.say(tr("link_ok") % (self.link_label(master)))
             self.status.last_heartbeat = time.time()
             master.last_heartbeat = self.status.last_heartbeat
 
@@ -807,9 +808,9 @@ class LinkModule(mp_module.MPModule):
             if armed != self.status.armed:
                 self.status.armed = armed
                 if armed:
-                    self.say("ARMED")
+                    self.say(tr("armed"))
                 else:
-                    self.say("DISARMED")
+                    self.say(tr("disarmed"))
 
             if master.flightmode != self.status.flightmode:
                 self.status.flightmode = master.flightmode
@@ -919,16 +920,16 @@ class LinkModule(mp_module.MPModule):
             elif 'GPS_RAW_INT' in self.status.msgs and self.status.msgs['GPS_RAW_INT'].fix_type == 3:
                 have_gps_lock = True
             if have_gps_lock and not self.status.have_gps_lock and m.alt != 0:
-                self.say("GPS lock at %u meters" % m.alt, priority='notification')
+                self.say(tr("gps_lock_at_u_meters") % m.alt, priority='notification')
                 self.status.have_gps_lock = True
 
         elif mtype == "GPS_RAW":
             if self.status.have_gps_lock:
                 if m.fix_type != 2 and not self.status.lost_gps_lock and (time.time() - self.status.last_gps_lock) > 3:
-                    self.say("GPS fix lost")
+                    self.say(tr("gps_fix_lost"))
                     self.status.lost_gps_lock = True
                 if m.fix_type == 2 and self.status.lost_gps_lock:
-                    self.say("GPS OK")
+                    self.say(tr("gps_ok"))
                     self.status.lost_gps_lock = False
                 if m.fix_type == 2:
                     self.status.last_gps_lock = time.time()
@@ -936,10 +937,10 @@ class LinkModule(mp_module.MPModule):
         elif mtype == "GPS_RAW_INT":
             if self.status.have_gps_lock:
                 if m.fix_type < 3 and not self.status.lost_gps_lock and (time.time() - self.status.last_gps_lock) > 3:
-                    self.say("GPS fix lost")
+                    self.say(tr("gps_fix_lost"))
                     self.status.lost_gps_lock = True
                 if m.fix_type >= 3 and self.status.lost_gps_lock:
-                    self.say("GPS OK")
+                    self.say(tr("gps_ok"))
                     self.status.lost_gps_lock = False
                 if m.fix_type >= 3:
                     self.status.last_gps_lock = time.time()
@@ -948,7 +949,7 @@ class LinkModule(mp_module.MPModule):
             rounded_dist = int(m.wp_dist/self.mpstate.settings.distreadout)*self.mpstate.settings.distreadout
             if math.fabs(rounded_dist - self.status.last_distance_announce) >= self.mpstate.settings.distreadout:
                 if rounded_dist != 0:
-                    self.say("%u" % rounded_dist, priority="progress")
+                    self.say(tr("u_2") % rounded_dist, priority="progress")
             self.status.last_distance_announce = rounded_dist
 
         elif mtype == "GLOBAL_POSITION_INT":
@@ -974,33 +975,33 @@ class LinkModule(mp_module.MPModule):
                 res = mavutil.mavlink.enums["MAV_RESULT"][m.result].name
                 res = res[11:]
                 if self.should_show_command_ack(m):
-                    self.mpstate.console.writeln("Got COMMAND_ACK: %s: %s" % (cmd, res))  # noqa
+                    self.mpstate.console.writeln(tr("got_command_ack") % (cmd, res))  # noqa
             except KeyError:
-                self.mpstate.console.writeln("Got MAVLink msg: %s" % m)
+                self.mpstate.console.writeln(tr("got_mavlink_msg") % m)
 
             if m.command == mavutil.mavlink.MAV_CMD_PREFLIGHT_CALIBRATION:
                 if m.result == mavutil.mavlink.MAV_RESULT_ACCEPTED:
-                    self.say("Calibrated")
+                    self.say(tr("calibrated"))
                 elif m.result == mavutil.mavlink.MAV_RESULT_FAILED:
-                    self.say("Calibration failed")
+                    self.say(tr("calibration_failed"))
                 elif m.result == mavutil.mavlink.MAV_RESULT_UNSUPPORTED:
-                    self.say("Calibration unsupported")
+                    self.say(tr("calibration_unsupported"))
                 elif m.result == mavutil.mavlink.MAV_RESULT_IN_PROGRESS:
                     # don't bother the user with this
                     pass
                 elif m.result == mavutil.mavlink.MAV_RESULT_TEMPORARILY_REJECTED:
-                    self.say("Calibration temporarily rejected")
+                    self.say(tr("calibration_temporarily_rejected"))
                 else:
-                    self.say("Calibration response (%u)" % m.result)
+                    self.say(tr("calibration_response_u") % m.result)
         elif mtype == "MISSION_ACK":
             try:
                 t = mavutil.mavlink.enums["MAV_MISSION_TYPE"][m.mission_type].name
                 t = t[12:]
                 res = mavutil.mavlink.enums["MAV_MISSION_RESULT"][m.type].name
                 res = res[12:]
-                self.mpstate.console.writeln("Got MISSION_ACK: %s: %s" % (t, res))
+                self.mpstate.console.writeln(tr("got_mission_ack") % (t, res))
             except Exception:
-                self.mpstate.console.writeln("Got MAVLink msg: %s" % m)
+                self.mpstate.console.writeln(tr("got_mavlink_msg") % m)
         else:
             # self.mpstate.console.writeln("Got MAVLink msg: %s" % m)
             pass
@@ -1028,7 +1029,7 @@ class LinkModule(mp_module.MPModule):
                 self.vehicle_list.add(sysid)
             if (sysid, compid) not in self.mpstate.vehicle_link_map[master.linknum]:
                 self.mpstate.vehicle_link_map[master.linknum].add((sysid, compid))
-                print("Detected vehicle {0}:{1} on link {2}".format(sysid, compid, master.linknum))
+                print(tr("detected_vehicle_on_link").format(sysid, compid, master.linknum))
 
         # see if it is handled by a specialised sysid connection
         if sysid in self.mpstate.sysid_outputs:
@@ -1085,7 +1086,7 @@ class LinkModule(mp_module.MPModule):
         if mtype in activityPackets:
             if master.linkerror:
                 master.linkerror = False
-                self.say("link %s OK" % (self.link_label(master)))
+                self.say(tr("link_ok") % (self.link_label(master)))
             self.status.last_message = time.time()
             master.last_message = self.status.last_message
 
@@ -1149,7 +1150,7 @@ class LinkModule(mp_module.MPModule):
     def cmd_vehicle(self, args):
         '''handle vehicle commands'''
         if len(args) < 1:
-            print("Usage: vehicle SYSID[:COMPID]")
+            print(tr("usage_vehicle_sysid_compid"))
             return
         a = args[0].split(':')
         self.mpstate.settings.target_system = int(a[0])
@@ -1171,7 +1172,7 @@ class LinkModule(mp_module.MPModule):
                     best_timestamp = stamp
             m.link_delayed = False
         self.mpstate.settings.link = best_link + 1
-        print("Set vehicle %s (link %u)" % (args[0], best_link+1))
+        print(tr("set_vehicle_link_u") % (args[0], best_link+1))
 
     class TimeSyncRequest():
         '''send and receive TIMESYNC mavlink messages, printing results'''
@@ -1213,7 +1214,7 @@ class LinkModule(mp_module.MPModule):
             now_ns = time.time() * 1e9
             out_link = m.ts1 & 0b1111  # out link encoded in bottom four bits
             if self.console is not None:
-                self.console.writeln(f"ping response: {(now_ns-m.ts1)*1e-6:.3f}ms from={m.get_srcSystem()}/{m.get_srcComponent()} in-link={master.linknum} out-link={out_link}")  # noqa
+                self.console.writeln(tr("ping_response_ms_from_in_link") % ((now_ns-m.ts1)*1e-6, m.get_srcSystem(), m.get_srcComponent(), master.linknum, out_link))  # noqa
 
     def cmd_ping(self, args):
         '''create TimeSyncRequest objects to ping on each link'''

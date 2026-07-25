@@ -13,6 +13,7 @@ import time
 import math
 import cv2
 import sc_config
+from MAVProxy.modules.lib.mp_i18n import tr
 
 class SmartCameraWebCam:
 
@@ -40,7 +41,7 @@ class SmartCameraWebCam:
 
         # check we can connect to camera
         if not self.camera.isOpened():
-            print("failed to open webcam %d" % self.instance)
+            print(tr("failed_to_open_webcam") % self.instance)
 
     # __str__ - print position vector as string
     def __str__(self):
@@ -63,7 +64,7 @@ class SmartCameraWebCam:
     #   returns True on success
     def take_picture(self):
         # setup video capture
-        print("Taking Picture")
+        print(tr("taking_picture"))
         self.camera = cv2.VideoCapture(self.instance)
         self.camera.set(cv2.cv.CV_CAP_PROP_FRAME_WIDTH,self.img_width)
         self.camera.set(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT,self.img_height)
@@ -96,7 +97,7 @@ class SmartCameraWebCam:
                 # display image
                 cv2.imshow ('image_display', self.get_latest_image())
             else:
-                print("no image")
+                print(tr("no_image"))
 
             # check for ESC key being pressed
             k = cv2.waitKey(5) & 0xFF

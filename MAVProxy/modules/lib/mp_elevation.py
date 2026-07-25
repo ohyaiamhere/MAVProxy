@@ -12,6 +12,7 @@ import time
 import numpy
 
 from MAVProxy.modules.lib import srtm
+from MAVProxy.modules.lib.mp_i18n import tr, ensure_language_from_argv
 
 # SRTM1 = 1 arc-second resolution data (~30m)
 # SRTM3 = 3 arc-second resolution data (~90m)
@@ -74,11 +75,12 @@ class ElevationModel():
 if __name__ == "__main__":
 
     from argparse import ArgumentParser
-    parser = ArgumentParser("mp_elevation.py [options]")
-    parser.add_argument("--lat", type=float, default=-35.052544, help="start latitude")
-    parser.add_argument("--lon", type=float, default=149.509165, help="start longitude")
-    parser.add_argument("--database", type=str, default='SRTM3', help="elevation database", choices=["SRTM1", "SRTM3"])
-    parser.add_argument("--debug", action='store_true', help="enabled debugging")
+    ensure_language_from_argv()
+    parser = ArgumentParser(tr("opt_usage_mp_elevation_py_options"))
+    parser.add_argument("--lat", type=float, default=-35.052544, help=tr("opt_start_latitude"))
+    parser.add_argument("--lon", type=float, default=149.509165, help=tr("opt_start_longitude"))
+    parser.add_argument("--database", type=str, default='SRTM3', help=tr("opt_elevation_database"), choices=["SRTM1", "SRTM3"])
+    parser.add_argument("--debug", action='store_true', help=tr("opt_enabled_debugging"))
 
     args = parser.parse_args()
 
@@ -93,24 +95,24 @@ if __name__ == "__main__":
     t0 = time.time()
     alt = EleModel.GetElevation(lat, lon, timeout=10)
     if alt is None:
-        print("Tile not available")
+        print(tr("tile_not_available"))
         sys.exit(1)
     t1 = time.time()+.000001
-    print("Altitude at (%.6f, %.6f) is %u m. Pulled at %.1f FPS" % (lat, lon, alt, 1/(t1-t0)))
+    print(tr("altitude_at_is_u_m_pulled") % (lat, lon, alt, 1/(t1-t0)))
 
     lat = args.lat+0.001
     lon = args.lon+0.001
     t0 = time.time()
     alt = EleModel.GetElevation(lat, lon, timeout=10)
     t1 = time.time()+.000001
-    print("Altitude at (%.6f, %.6f) is %u m. Pulled at %.1f FPS" % (lat, lon, alt, 1/(t1-t0)))
+    print(tr("altitude_at_is_u_m_pulled") % (lat, lon, alt, 1/(t1-t0)))
 
     lat = args.lat-0.001
     lon = args.lon-0.001
     t0 = time.time()
     alt = EleModel.GetElevation(lat, lon, timeout=10)
     t1 = time.time()+.000001
-    print("Altitude at (%.6f, %.6f) is %u m. Pulled at %.1f FPS" % (lat, lon, alt, 1/(t1-t0)))
+    print(tr("altitude_at_is_u_m_pulled") % (lat, lon, alt, 1/(t1-t0)))
 
 
 

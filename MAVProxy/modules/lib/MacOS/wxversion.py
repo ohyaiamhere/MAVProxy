@@ -1,3 +1,4 @@
+from MAVProxy.modules.lib.mp_i18n import tr
 #----------------------------------------------------------------------
 # Name:        wxversion
 # Purpose:     Allows a wxPython program to search for alternate 
@@ -427,7 +428,7 @@ if __name__ == '__main__':
 
         #test
         select(version, optionsRequired)
-        print("Asked for %s, (%s):\t got: %s" % (version, optionsRequired, sys.path[0]))
+        print(tr("asked_for_got") % (version, optionsRequired, sys.path[0]))
 
         # reset
         sys.path = savepath[:]
@@ -441,7 +442,7 @@ if __name__ == '__main__':
 
         #test
         ensureMinimal(version, optionsRequired)
-        print("EM: Asked for %s, (%s):\t got: %s" % (version, optionsRequired, sys.path[0]))
+        print(tr("em_asked_for_got") % (version, optionsRequired, sys.path[0]))
 
         # reset
         sys.path = savepath[:]
@@ -472,7 +473,7 @@ if __name__ == '__main__':
     print(checkInstalled("2.4"))
     print(checkInstalled("2.5-unicode"))
     print(checkInstalled("2.99-bogus"))
-    print("Current sys.path:")
+    print(tr("current_sys_path"))
     pprint.pprint(sys.path)
     print("")
     
@@ -501,14 +502,14 @@ if __name__ == '__main__':
         # expecting an error on this one
         test("2.9")
     except VersionError as e:
-        print("Asked for 2.9:\t got Exception:", e)
+        print(tr("asked_for_2_9_got_exception"), e)
 
     # check for exception when incompatible versions are requested
     try:
         select("2.4")
         select("2.5")
     except     VersionError as e:
-        print("Asked for incompatible versions, got Exception:", e)
+        print(tr("asked_for_incompatible_versions_got_exception"), e)
 
     _EM_DEBUG=1
     testEM("2.6")
@@ -517,7 +518,7 @@ if __name__ == '__main__':
     try:
         testEM("2.9")
     except     VersionError as e:
-        print("EM: Asked for 2.9:\t got Exception:", e)
+        print(tr("em_asked_for_2_9_got"), e)
 
     # cleanup
     for name in names:

@@ -3,6 +3,7 @@ import json
 import os.path
 import thread
 import urlparse
+from MAVProxy.modules.lib.mp_i18n import tr
 
 DOC_DIR = os.path.join(os.path.dirname(__file__), 'mmap_app')
 
@@ -54,7 +55,7 @@ class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
       else:
         self.send_response(404)
         self.end_headers()
-        self.wfile.write('Error: %s' % (error,))
+        self.wfile.write(tr("error") % (error,))
 
 
 def start_server(address, port, module_state):

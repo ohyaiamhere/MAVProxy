@@ -8,15 +8,16 @@ from pymavlink import mavutil
 from MAVProxy.modules.lib import mp_util
 from MAVProxy.modules.lib import mp_module
 from MAVProxy.modules.lib import mp_settings
+from MAVProxy.modules.lib.mp_i18n import tr
 
 class GasHeliModule(mp_module.MPModule):
     def __init__(self, mpstate):
-        super(GasHeliModule, self).__init__(mpstate, "gas_heli", "Gas Heli", public=False)
+        super(GasHeliModule, self).__init__(mpstate, "gas_heli", tr("mod_gas_heli"), public=False)
         self.console.set_status('IGN', 'IGN', row=4)
         self.console.set_status('THR', 'THR', row=4)
         self.console.set_status('RPM', 'RPM: 0', row=4)
         self.add_command('gasheli', self.cmd_gasheli,
-                         'gas helicopter control',
+                         tr("cmd_gas_helicopter_control"),
                          ['<start|stop>',
                           'set (GASHELISETTINGS)'])
         self.gasheli_settings = mp_settings.MPSettings(
@@ -73,10 +74,10 @@ class GasHeliModule(mp_module.MPModule):
     def valid_starter_settings(self):
         '''check starter settings'''
         if self.gasheli_settings.ignition_chan <= 0 or self.gasheli_settings.ignition_chan > 8:
-            print("Invalid ignition channel %d" % self.gasheli_settings.ignition_chan)
+            print(tr("invalid_ignition_channel") % self.gasheli_settings.ignition_chan)
             return False
         if self.gasheli_settings.starter_chan <= 0 or self.gasheli_settings.starter_chan > 14:
-            print("Invalid starter channel %d" % self.gasheli_settings.starter_chan)
+            print(tr("invalid_starter_channel") % self.gasheli_settings.starter_chan)
             return False
         return True
 
@@ -119,7 +120,7 @@ class GasHeliModule(mp_module.MPModule):
                                           1,
                                           self.gasheli_settings.starter_time*2,
                                           0, 0, 0)
-        print("Starting motor")
+        print(tr("starting_motor"))
 
     def stop_motor(self):
         '''stop motor'''
@@ -130,11 +131,11 @@ class GasHeliModule(mp_module.MPModule):
         self.stopping_motor = True
         self.old_override = self.module('rc').get_override_chan(self.gasheli_settings.ignition_chan-1)
         self.module('rc').set_override_chan(self.gasheli_settings.ignition_chan-1, 1000)
-        print("Stopping motor")
+        print(tr("stopping_motor"))
 
     def cmd_gasheli(self, args):
         '''gas help commands'''
-        usage = "Usage: gasheli <start|stop|set>"
+        usage = tr("usage_usage_gasheli_start_stop_set")
         if len(args) < 1:
             print(usage)
             return

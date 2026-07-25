@@ -11,6 +11,7 @@ from MAVProxy.modules.lib import mp_util
 from MAVProxy.modules.lib import mp_settings
 from cuav.lib import cuav_util
 from cuav.camera.cam_params import CameraParams
+from MAVProxy.modules.lib.mp_i18n import tr
 
 # documented in common.xml, can't find these constants in code
 scale_latlon = 1e-7
@@ -22,7 +23,7 @@ from MAVProxy.modules.lib import mp_module
 class CameraViewModule(mp_module.MPModule):
     def __init__(self, mpstate):
         super(CameraViewModule, self).__init__(mpstate, "cameraview")
-        self.add_command('cameraview', self.cmd_cameraview, "camera view")
+        self.add_command('cameraview', self.cmd_cameraview, tr("cmd_camera_view"))
         self.roll = 0
         self.pitch = 0
         self.yaw = 0
@@ -55,7 +56,7 @@ class CameraViewModule(mp_module.MPModule):
                 state.view_settings.set(args[1], args[2])
                 state.update_col()
         else:
-            print('usage: cameraview set')
+            print(tr("usage_cameraview_set"))
 
     def unload(self):
         '''unload module'''
@@ -109,7 +110,7 @@ class CameraViewModule(mp_module.MPModule):
                 # using master() gives the right coordinates
                 # (i.e. matches GLOBAL_POSITION_INT coords, and $IMHOME in sim_arduplane.sh)
                 # and wploader is a bit off
-                print('home height changed from',old,'to',state.home_height)
+                print(tr("home_height_changed_from"),old,'to',state.home_height)
         elif mtype == 'SERVO_OUTPUT_RAW':
             for (axis, attr) in [('ROLL', 'mount_roll'), ('TILT', 'mount_pitch'), ('PAN', 'mount_yaw')]:
                 channel = int(self.get_mav_param('MNT_RC_IN_{0}'.format(axis), 0))

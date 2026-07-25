@@ -4,6 +4,7 @@ Event class and enums for Mission Editor
 Michael Day
 June 2014
 '''
+from MAVProxy.modules.lib.mp_i18n import tr
 #MissionEditorEvents come FROM the GUI (with a few exceptions where the Mission Editor Module sends a message to itself, e.g., MEE_TIME_TO_QUIT)
 #MissionEditorGUIEvents go TO the GUI
 #enum for MissionEditorEvent types
@@ -46,6 +47,6 @@ class MissionEditorEvent:
 
     def get_arg(self, key):
         if not key in self.arg_dict:
-            print("No key %s in %s" % (key, str(self.type)))
+            print(tr("no_key_in") % (key, str(self.type)))
             return None
         return self.arg_dict[key]

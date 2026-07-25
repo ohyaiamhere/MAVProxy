@@ -14,12 +14,13 @@ from MAVProxy.modules.lib.wxsaildash import SailingDashboard
 from MAVProxy.modules.lib.wxsaildash_util import WindReference, SpeedUnit, WindAngleAndSpeed, WaterSpeedAndHeading
 
 import time
+from MAVProxy.modules.lib.mp_i18n import tr
 
 class SailModule(mp_module.MPModule):
     '''SailModule provides a dashboard to display sailing instrument data'''
 
     def __init__(self, mpstate):
-        super(SailModule, self).__init__(mpstate, "sail", "sailing module")
+        super(SailModule, self).__init__(mpstate, "sail", tr("mod_sailing_module"))
 
         # dashboard GUI
         self.sail_dash = SailingDashboard(title="Sailing Dashboard")
@@ -44,7 +45,7 @@ class SailModule(mp_module.MPModule):
         self._send_delay = (1.0/self._fps) * 0.9
 
         # commands
-        self.add_command('sail', self.cmd_sail, "sailing dashboard")
+        self.add_command('sail', self.cmd_sail, tr("cmd_sailing_dashboard"))
 
     def cmd_sail(self, args):
         '''Control behaviour of the module'''

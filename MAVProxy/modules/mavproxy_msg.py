@@ -13,6 +13,7 @@ import time
 from MAVProxy.modules.lib import mp_module
 from MAVProxy.modules.lib import mp_util
 from MAVProxy.modules.lib import mp_settings
+from MAVProxy.modules.lib.mp_i18n import tr
 
 
 class msg(mp_module.MPModule):
@@ -30,7 +31,7 @@ class msg(mp_module.MPModule):
         self.msg_settings = mp_settings.MPSettings(
             [ ('verbose', bool, False),
           ])
-        self.add_command('msg', self.cmd_msg, "statustext sending", [])
+        self.add_command('msg', self.cmd_msg, tr("cmd_statustext_sending"), [])
 
     def usage(self):
         '''show help on command line options'''

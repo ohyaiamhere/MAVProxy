@@ -4,6 +4,7 @@
 import time, os
 
 from MAVProxy.modules.lib import mp_module
+from MAVProxy.modules.lib.mp_i18n import tr
 
 tune_options = {
     'None':             '0',
@@ -46,8 +47,8 @@ tune_options = {
 
 class TuneoptModule(mp_module.MPModule):
     def __init__(self, mpstate):
-        super(TuneoptModule, self).__init__(mpstate, "tuneopt", "tuneopt command handling")
-        self.add_command('tuneopt', self.cmd_tuneopt,  'Select option for Tune Pot on Channel 6 (quadcopter only)')
+        super(TuneoptModule, self).__init__(mpstate, "tuneopt", tr("mod_tuneopt_command_handling"))
+        self.add_command('tuneopt', self.cmd_tuneopt,  tr("cmd_select_option_for_tune_pot_on_channel_6"))
 
     def tune_show(self):
         opt_num = str(int(self.get_mav_param('TUNE')))
@@ -61,7 +62,7 @@ class TuneoptModule(mp_module.MPModule):
             return
         low = self.get_mav_param('TUNE_LOW')
         high = self.get_mav_param('TUNE_HIGH')
-        print("TUNE is currently set to %s LOW=%f HIGH=%f" % (option, low/1000, high/1000))
+        print(tr("tune_is_currently_set_to_low") % (option, low/1000, high/1000))
 
     def tune_option_validate(self, option):
         for k in tune_options:
@@ -72,9 +73,9 @@ class TuneoptModule(mp_module.MPModule):
     # TODO: Check/show the limits of LOW and HIGH
     def cmd_tuneopt(self, args):
         '''Select option for Tune Pot on Channel 6 (quadcopter only)'''
-        usage = "usage: tuneopt <set|show|reset|list>"
+        usage = tr("usage_usage_tuneopt_set_show_reset_list")
         if self.mpstate.vehicle_type != 'copter':
-            print("This command is only available for copter")
+            print(tr("this_command_is_only_available_for"))
             return
         if len(args) < 1:
             print(usage)
@@ -83,7 +84,7 @@ class TuneoptModule(mp_module.MPModule):
             self.param_set('TUNE', '0')
         elif args[0].lower() == 'set':
             if len(args) < 4:
-                print('Usage: tuneopt set OPTION LOW HIGH')
+                print(tr("usage_tuneopt_set_option_low_high"))
                 return
             option = self.tune_option_validate(args[1])
             if not option:
@@ -97,7 +98,7 @@ class TuneoptModule(mp_module.MPModule):
         elif args[0].lower() == 'show':
             self.tune_show()
         elif args[0].lower() == 'list':
-            print("Options available:")
+            print(tr("options_available"))
             for s in sorted(tune_options.keys()):
                 print('  ' + s)
         else:

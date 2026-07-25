@@ -9,6 +9,7 @@ import requests
 
 from MAVProxy.modules.lib import mp_util
 from MAVProxy.modules.lib import mp_module
+from MAVProxy.modules.lib.mp_i18n import tr
 if mp_util.has_wxpython:
     import wx
     from MAVProxy.modules.lib.mp_menu import MPMenuItem
@@ -19,9 +20,9 @@ if mp_util.has_wxpython:
 
 class HelpModule(mp_module.MPModule):
     def __init__(self, mpstate):
-        super(HelpModule, self).__init__(mpstate, "mavhelp", "Help and version information", public = True)  # noqa
+        super(HelpModule, self).__init__(mpstate, "mavhelp", tr("mod_help_and_version_information"), public = True)  # noqa
         self.enabled = False
-        self.add_command('mavhelp', self.cmd_help, "help and version information", "<about|site>")
+        self.add_command('mavhelp', self.cmd_help, tr("cmd_help_and_version_information"), "<about|site>")
         self.have_list = False
 
         import importlib.metadata
@@ -118,7 +119,7 @@ class HelpModule(mp_module.MPModule):
         if args[0] == "about":
             print(self.about_string())
         elif args[0] == "site":
-            print("See https://ardupilot.org/mavproxy/index.html for documentation")
+            print(tr("see_https_ardupilot_org_mavproxy_index"))
         else:
             self.print_usage()
 
@@ -126,7 +127,7 @@ class HelpModule(mp_module.MPModule):
         '''handle and incoming mavlink packets'''
 
     def print_usage(self):
-        print("usage: mavhelp <about|site>")
+        print(tr("usage_mavhelp_about_site"))
 
 
 def init(mpstate):

@@ -16,10 +16,11 @@ import errno
 import time
 import math
 import serial
+from MAVProxy.modules.lib.mp_i18n import tr
 try:
     import pynmea2
 except ImportError as e:
-    print("\n!!! missing package !!! do: 'sudo apt install python-nmea2' -movinghome will not work without it")
+    print(tr("missing_package_do_sudo_apt_install"))
 from MAVProxy.modules.lib import mp_module
 from MAVProxy.modules.lib import mp_util
 from MAVProxy.modules.lib import mp_settings
@@ -48,15 +49,15 @@ class movinghome(mp_module.MPModule):
         self.dist = 0
         self.last_decode_error_print = 0
 
-        print("\nDefault NMEA source is: %s at %s baud, change if needed before turning on." % (self.device , self.baud))
-        self.add_command('movinghome', self.cmd_movinghome, "movinghome module")
+        print(tr("default_nmea_source_is_at_baud") % (self.device , self.baud))
+        self.add_command('movinghome', self.cmd_movinghome, tr("cmd_movinghome_module"))
 
             
 
     def cmd_movinghome(self, args):
         '''control behaviour of the module'''
         if len(args) == 0:
-            print("Usage: movinghome <status|on|off|radius|device|baud>\n On/Off: enable position update.\n Radius defines the threshold in meters (2D) from last position, when exceeded, home position is updated.\n device and baud is the serial port setup for NMEA device.")
+            print(tr("usage_movinghome_status_on_off_radius"))
         elif args[0] == "status":
             self.status()
         elif args[0] == "on":
@@ -65,17 +66,17 @@ class movinghome(mp_module.MPModule):
             self.movinghome_off()
         elif args[0] == "radius":
             if len(args) < 2:
-                print("Usage: moving base minimum travel radius <RADIUS>")
+                print(tr("usage_moving_base_minimum_travel_radius"))
                 return
             self.radius=float(args[1])
         elif args[0] == "device":
             if len(args) < 2:
-                print("Usage: device name; device /dev/ttyUSB2")
+                print(tr("usage_device_name_device_dev_ttyusb2"))
                 return
             self.device=args[1]
         elif args[0] == "baud":
             if len(args) < 2:
-                print("Usage: baud rate; baud 9600")
+                print(tr("usage_baud_rate_baud_9600"))
                 return
             self.baud=args[1]
         else:
@@ -84,14 +85,14 @@ class movinghome(mp_module.MPModule):
     def status(self):
         #Returns information about module'''
         if self.updating == True:
-            print("Last known GCS position lat %(lat)f lon=%(lon)f  max radius=%(max).1fm" %
+            print(tr("last_known_gcs_position_lat_lon") %
                    {"lat": self.lath,
                     "lon": self.lonh,
                     "max": self.radius,
                    })
         else:
-            print("Not updating home")
-        print("Radius is %sm \nInterval is %ss \nDevice is %s at %s baud\n" % (self.radius, self.check_interval, self.device, self.baud ))
+            print(tr("not_updating_home"))
+        print(tr("radius_is_m_interval_is_s") % (self.radius, self.check_interval, self.device, self.baud ))
 
 
     def movinghome_on(self):
@@ -99,13 +100,13 @@ class movinghome(mp_module.MPModule):
         self.ser = serial.Serial(self.device,self.baud)
         self.updating=True
         self.lath = 0 # ensure push of current home.
-        print("Home position will be updated if GCS moves > %(max).1fm" %
+        print(tr("home_position_will_be_updated_if") %
                {"max": self.radius,
                })
 
     def movinghome_off(self):
         self.updating = False
-        print("Home position will not be updated.")
+        print(tr("home_position_will_not_be_updated"))
 
     def idle_task(self):
         #Called frequently by mavproxy
@@ -117,7 +118,7 @@ class movinghome(mp_module.MPModule):
                 # this is probably a baudrate issue
                 now = time.time()
                 if now - self.last_decode_error_print > 10:
-                    print("movinghome: decode error; baudrate issue?")
+                    print(tr("movinghome_decode_error_baudrate_issue"))
                     self.last_decode_error_print = now
                 return
             if (data.startswith("$GPGGA")):
@@ -143,7 +144,7 @@ class movinghome(mp_module.MPModule):
                     self.dist = self.haversine(self.lon, self.lat, self.alt, self.lonh, self.lath, self.alth)
                     if self.dist > self.radius:
                         if self.fresh == True:
-                            self.say("GCS position set as home")    
+                            self.say(tr("gcs_position_set_as_home"))    
                             self.fresh = False
                         else:
                             message = "GCS moved "
@@ -151,7 +152,7 @@ class movinghome(mp_module.MPModule):
                             self.say("%s: %s" % (self.name,message2))
                             message2_enc = message2.encode(bytes)
                             self.master.mav.statustext_send(mavutil.mavlink.MAV_SEVERITY_NOTICE, message2)
-                        self.console.writeln("home position updated")
+                        self.console.writeln(tr("home_position_updated"))
 
                         self.master.mav.command_int_send(
                         self.settings.target_system, self.settings.target_component,
@@ -170,7 +171,7 @@ class movinghome(mp_module.MPModule):
                         self.lath = self.lat
                         self.lonh = self.lon
                         #print data
-                        self.console.writeln("%s: %s %s GNSS Quality %s Sats %s "% (self.name,self.lat,self.lon,msg.gps_qual,msg.num_sats))
+                        self.console.writeln(tr("gnss_quality_sats")% (self.name,self.lat,self.lon,msg.gps_qual,msg.num_sats))
 
 
     def haversine(self, lon1, lat1, alt1, lon2, lat2, alt2):

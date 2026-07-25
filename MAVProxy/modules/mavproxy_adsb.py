@@ -11,6 +11,7 @@ from MAVProxy.modules.lib import mp_settings
 from MAVProxy.modules.lib import mp_util
 from pymavlink import mavutil
 from PIL import ImageColor
+from MAVProxy.modules.lib.mp_i18n import tr
 
 obc_icons = {
      99 : 'flag.png',
@@ -105,11 +106,11 @@ class ADSBVehicle(object):
 class ADSBModule(mp_module.MPModule):
 
     def __init__(self, mpstate):
-        super(ADSBModule, self).__init__(mpstate, "adsb", "ADS-B data support", public = True)
+        super(ADSBModule, self).__init__(mpstate, "adsb", tr("mod_ads_b_data_support"), public = True)
         self.threat_vehicles = {}
         self.active_threat_ids = []  # holds all threat ids the vehicle is evading
 
-        self.add_command('adsb', self.cmd_ADSB, "adsb control",
+        self.add_command('adsb', self.cmd_ADSB, tr("cmd_adsb_control"),
                          ["<status>", "set (ADSBSETTING)"])
 
         self.ADSB_settings = mp_settings.MPSettings([("timeout", int, 5),  # seconds
@@ -134,16 +135,16 @@ class ADSBModule(mp_module.MPModule):
 
     def cmd_ADSB(self, args):
         '''adsb command parser'''
-        usage = "usage: adsb <set>"
+        usage = tr("usage_usage_adsb_set")
         if len(args) == 0:
             print(usage)
             return
         if args[0] == "status":
-            print("total threat count: %u  active threat count: %u" %
+            print(tr("total_threat_count_u_active_threat") %
                   (len(self.threat_vehicles), len(self.active_threat_ids)))
 
             for id in self.threat_vehicles.keys():
-                print("id: %s  distance: %.2f m callsign: %s  alt: %.2f" % (id,
+                print(tr("id_distance_m_callsign_alt") % (id,
                                                                             self.threat_vehicles[id].distance,
                                                                             self.threat_vehicles[id].state['callsign'],
                                                                             self.threat_vehicles[id].state['altitude']))
@@ -307,7 +308,7 @@ class ADSBModule(mp_module.MPModule):
                     tnow = self.get_time()
                     if self.ADSB_settings.traffic_warning and tnow - self.last_traffic > 5:
                         self.last_traffic = tnow
-                        self.say("traffic")
+                        self.say(tr("traffic"))
                     color = ImageColor.getrgb(self.ADSB_settings.alt_color2)
 
             mp.map.set_position(id, (lat_deg, lon_deg), rotation=heading*0.01, label=label, colour=color)

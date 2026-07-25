@@ -5,6 +5,7 @@ import time
 from MAVProxy.modules.lib import mp_module
 from MAVProxy.modules.lib import mp_settings
 from MAVProxy.modules.lib import mp_util
+from MAVProxy.modules.lib.mp_i18n import tr
 
 if mp_util.has_wxpython:
     from MAVProxy.modules.lib.mp_menu import *
@@ -19,7 +20,7 @@ class FakeGPSModule(mp_module.MPModule):
                                                         ("alt", float, 584.0),
                                                         ("yaw", float, 0.0),
                                                         ("rate", float, 5)])
-        self.add_command('fakegps', self.cmd_FakeGPS, "fakegps control",
+        self.add_command('fakegps', self.cmd_FakeGPS, tr("cmd_fakegps_control"),
                          ["<status>", "set (FAKEGPSSETTING)"])
         self.add_completion_function('(FAKEGPSSETTING)',
                                      self.FakeGPS_settings.completion)
@@ -42,7 +43,7 @@ class FakeGPSModule(mp_module.MPModule):
 
     def cmd_FakeGPS(self, args):
         '''fakegps command parser'''
-        usage = "usage: fakegps <set>"
+        usage = tr("usage_usage_fakegps_set")
         if len(args) == 0:
             print(usage)
             return
@@ -65,7 +66,7 @@ class FakeGPSModule(mp_module.MPModule):
         '''set pos from map'''
         latlon = self.mpstate.click_location
         if latlon is None:
-            print("No map click position available")
+            print(tr("no_map_click_position_available"))
             return
         (lat,lon) = latlon
         self.FakeGPS_settings.lat = lat

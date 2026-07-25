@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 '''Decode RTCM v3 messages'''
 
+from MAVProxy.modules.lib.mp_i18n import tr, ensure_language_from_argv
 RTCMv3_PREAMBLE = 0xD3
 POLYCRC24 = 0x1864CFB
 
@@ -37,7 +38,7 @@ class RTCM3:
         crc2 = self.crc24(self.pkt[:-3])
         if crc1 != crc2:
             if self.debug:
-                print("crc fail len=%u" % len(self.pkt))
+                print(tr("crc_fail_len_u") % len(self.pkt))
             # look for preamble
             idx = self.pkt[1:].find(bytearray([RTCMv3_PREAMBLE]))
             if idx >= 0:
@@ -107,11 +108,12 @@ class RTCM3:
 if __name__ == '__main__':
     from argparse import ArgumentParser
     import time
-    parser = ArgumentParser(description='RTCM3 parser')
+    ensure_language_from_argv()
+    parser = ArgumentParser(description=tr("opt_rtcm3_parser"))
 
-    parser.add_argument("filename", type=str, help="input file")
-    parser.add_argument("--debug", action='store_true', help="show errors")
-    parser.add_argument("--follow", action='store_true', help="continue reading on EOF")
+    parser.add_argument("filename", type=str, help=tr("opt_input_file"))
+    parser.add_argument("--debug", action='store_true', help=tr("opt_show_errors"))
+    parser.add_argument("--follow", action='store_true', help=tr("opt_continue_reading_on_eof"))
     args = parser.parse_args()
 
     rtcm3 = RTCM3(args.debug)
@@ -124,4 +126,4 @@ if __name__ == '__main__':
                 continue
             break
         if rtcm3.read(b):
-            print("packet len %u ID %u" % (len(rtcm3.get_packet()), rtcm3.get_packet_ID()))
+            print(tr("packet_len_u_id_u") % (len(rtcm3.get_packet()), rtcm3.get_packet_ID()))

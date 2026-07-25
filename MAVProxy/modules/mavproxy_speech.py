@@ -5,6 +5,7 @@ import time, os
 from MAVProxy.modules.lib import mp_module
 from MAVProxy.modules.lib import multiproc
 from MAVProxy.modules.lib import mp_util
+from MAVProxy.modules.lib.mp_i18n import tr
 
 class SpeechCommandSay(object):
     def __init__(self, text, priority):
@@ -55,12 +56,12 @@ class SpeechBackend():
             try:
                 backend("")
                 self.say_backend = backend
-                print("Using speech backend '%s'" % backend_name)
+                print(tr("using_speech_backend") % backend_name)
                 break
             except Exception:
                 pass
         if self.say_backend is None:
-            print("No speech available")
+            print(tr("no_speech_available"))
 
         while True:
             time.sleep(0.1)
@@ -132,7 +133,7 @@ class SpeechBackend():
             vlist = [ v.name for v in self.pyttsx3_engine.getProperty('voices') ]
             print(vlist)
         else:
-            print("Backend can't list voices")
+            print(tr("backend_can_t_list_voices"))
 
     def kill_speech_dispatcher(self):
         '''kill speech dispatcher processs'''
@@ -145,7 +146,7 @@ class SpeechBackend():
                 import signal
                 pid = int(open(pidpath).read())
                 if pid > 1 and os.kill(pid, 0) is None:
-                    print("Killing speech dispatcher pid %u" % pid)
+                    print(tr("killing_speech_dispatcher_pid_u") % pid)
                     os.kill(pid, signal.SIGINT)
                     time.sleep(1)
             except Exception as e:
@@ -154,8 +155,8 @@ class SpeechBackend():
         
 class SpeechModule(mp_module.MPModule):
     def __init__(self, mpstate):
-        super(SpeechModule, self).__init__(mpstate, "speech", "speech output")
-        self.add_command('speech', self.cmd_speech, "text-to-speech", ['<say|list_voices>'])
+        super(SpeechModule, self).__init__(mpstate, "speech", tr("mod_speech_output"))
+        self.add_command('speech', self.cmd_speech, tr("cmd_text_to_speech"), ['<say|list_voices>'])
 
         self.old_mpstate_say_function = self.mpstate.functions.say
         self.mpstate.functions.say = self.say
@@ -202,14 +203,14 @@ class SpeechModule(mp_module.MPModule):
 
     def cmd_speech(self, args):
         '''speech commands'''
-        usage = "usage: speech <say>"
+        usage = tr("usage_usage_speech_say")
         if len(args) < 1:
             print(usage)
             return
 
         if args[0] == "say":
             if len(args) < 2:
-                print("usage: speech say <text to say>")
+                print(tr("usage_speech_say_text_to_say"))
                 return
             self.say(" ".join(args[1::]))
         if args[0] == "list_voices":
@@ -228,7 +229,7 @@ class SpeechModule(mp_module.MPModule):
                 self.settings.set_callback(self.settings_callback)
                 self.settings_set_callback_installed = True
             except Exception as ex:
-                print("Caught exception (%s)" % str(ex))
+                print(tr("caught_exception_2") % str(ex))
 
 def init(mpstate):
     '''initialise module'''

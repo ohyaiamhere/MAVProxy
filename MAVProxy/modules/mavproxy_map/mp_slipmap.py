@@ -14,6 +14,7 @@ from MAVProxy.modules.lib import mp_util
 from MAVProxy.modules.lib import win_layout
 from MAVProxy.modules.lib import multiproc
 from MAVProxy.modules.mavproxy_map.mp_slipmap_util import *
+from MAVProxy.modules.lib.mp_i18n import tr
 
 
 class MPSlipMap():
@@ -201,22 +202,22 @@ if __name__ == "__main__":
     multiproc.freeze_support()
 
     from argparse import ArgumentParser
-    parser = ArgumentParser("mp_slipmap.py [options]")
-    parser.add_argument("--lat", type=float, default=-26.582218, help="start latitude")
-    parser.add_argument("--lon", type=float, default=151.840113, help="start longitude")
-    parser.add_argument("--service", default="MicrosoftSat", help="tile service")
-    parser.add_argument("--offline", action='store_true', default=False, help="no download")
-    parser.add_argument("--delay", type=float, default=0.3, help="tile download delay")
-    parser.add_argument("--max-zoom", type=int, default=19, help="maximum tile zoom")
-    parser.add_argument("--debug", action='store_true', default=False, help="show debug info")
-    parser.add_argument("--boundary", default=None, help="show boundary")
-    parser.add_argument("--mission", default=[], action='append', help="show mission")
-    parser.add_argument("--thumbnail", default=None, help="show thumbnail")
-    parser.add_argument("--icon", default=None, help="show icon")
-    parser.add_argument("--flag", default=[], type=str, action='append', help="flag positions")
-    parser.add_argument("--grid", default=False, action='store_true', help="add a UTM grid")
-    parser.add_argument("--verbose", action='store_true', default=False, help="show mount actions")
-    parser.add_argument("--elevation", type=str, default="SRTM3", choices=["SRTM1", "SRTM3", "None"], help="Elevation model")
+    parser = ArgumentParser(tr("opt_usage_mp_slipmap_py_options"))
+    parser.add_argument("--lat", type=float, default=-26.582218, help=tr("opt_start_latitude"))
+    parser.add_argument("--lon", type=float, default=151.840113, help=tr("opt_start_longitude"))
+    parser.add_argument("--service", default="MicrosoftSat", help=tr("opt_tile_service"))
+    parser.add_argument("--offline", action='store_true', default=False, help=tr("opt_no_download"))
+    parser.add_argument("--delay", type=float, default=0.3, help=tr("opt_tile_download_delay"))
+    parser.add_argument("--max-zoom", type=int, default=19, help=tr("opt_maximum_tile_zoom"))
+    parser.add_argument("--debug", action='store_true', default=False, help=tr("opt_show_debug_info"))
+    parser.add_argument("--boundary", default=None, help=tr("opt_show_boundary"))
+    parser.add_argument("--mission", default=[], action='append', help=tr("opt_show_mission"))
+    parser.add_argument("--thumbnail", default=None, help=tr("opt_show_thumbnail"))
+    parser.add_argument("--icon", default=None, help=tr("opt_show_icon"))
+    parser.add_argument("--flag", default=[], type=str, action='append', help=tr("opt_flag_positions"))
+    parser.add_argument("--grid", default=False, action='store_true', help=tr("opt_add_a_utm_grid"))
+    parser.add_argument("--verbose", action='store_true', default=False, help=tr("opt_show_mount_actions"))
+    parser.add_argument("--elevation", type=str, default="SRTM3", choices=["SRTM1", "SRTM3", "None"], help=tr("opt_elevation_model"))
     args = parser.parse_args()
 
     sm = MPSlipMap(lat=args.lat,
@@ -272,9 +273,9 @@ if __name__ == "__main__":
             if not args.verbose:
                 continue
             if isinstance(obj, SlipMouseEvent):
-                print("Mouse event at %s (X/Y=%u/%u) for %u objects" % (obj.latlon,
+                print(tr("mouse_event_at_x_y_u") % (obj.latlon,
                                                                         obj.event.X, obj.event.Y,
                                                                         len(obj.selected)))
             if isinstance(obj, SlipKeyEvent):
-                print("Key event at %s for %u objects" % (obj.latlon, len(obj.selected)))
+                print(tr("key_event_at_for_u_objects") % (obj.latlon, len(obj.selected)))
         time.sleep(0.1)

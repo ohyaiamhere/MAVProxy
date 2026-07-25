@@ -9,6 +9,7 @@ import time
 
 from MAVProxy.modules.lib import mp_module
 from MAVProxy.modules.lib import mp_settings
+from MAVProxy.modules.lib.mp_i18n import tr
 
 
 class message(mp_module.MPModule):
@@ -25,7 +26,7 @@ class message(mp_module.MPModule):
 
         self.message_settings = mp_settings.MPSettings(
             [('verbose', bool, False)])
-        self.add_command('message', self.cmd_message, "message module", [])
+        self.add_command('message', self.cmd_message, tr("cmd_message_module"), [])
 
     def usage(self):
         '''show help on command line options'''
@@ -41,7 +42,7 @@ class message(mp_module.MPModule):
             try:
                 method = getattr(self.master.mav, methodname)
             except AttributeError:
-                print("Unable to find %s" % methodname)
+                print(tr("unable_to_find") % methodname)
                 return
             method(*transformed)
 

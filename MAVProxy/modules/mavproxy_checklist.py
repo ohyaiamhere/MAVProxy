@@ -9,10 +9,11 @@ import math, sys, os, time
 from MAVProxy.modules.lib import mp_checklist
 from MAVProxy.modules.lib import mp_module
 from pymavlink import mavutil
+from MAVProxy.modules.lib.mp_i18n import tr
 
 class ChecklistModule(mp_module.MPModule):
     def __init__(self, mpstate):
-        super(ChecklistModule, self).__init__(mpstate, "checklist", "checklist module")
+        super(ChecklistModule, self).__init__(mpstate, "checklist", tr("mod_checklist_module"))
         checklist_file = None
         if mpstate.aircraft_dir is not None:
             path = os.path.join(mpstate.aircraft_dir, "checklist.txt")

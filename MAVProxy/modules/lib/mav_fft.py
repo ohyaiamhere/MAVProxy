@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from MAVProxy.modules.lib.mp_i18n import tr
 '''
 extract ISBH and ISBD messages from AP_Logging files and produce FFT plots
 '''
@@ -59,13 +60,13 @@ def mavfft_display(mlog, timestamp_in_range):
 
         def add_fftd(self, fftd):
             if fftd.N != self.fftnum:
-                print("Skipping ISBD with wrong fftnum (%u vs %u)\n" % (fftd.fftnum, self.fftnum))
+                print(tr("skipping_isbd_with_wrong_fftnum_u") % (fftd.fftnum, self.fftnum))
                 return
             if self.holes:
-                print("Skipping ISBD(%u) for ISBH(%u) with holes in it" % (fftd.seqno, self.fftnum))
+                print(tr("skipping_isbd_u_for_isbh_u") % (fftd.seqno, self.fftnum))
                 return
             if fftd.seqno != self.seqno+1:
-                print("ISBH(%u) has holes in it" % fftd.N)
+                print(tr("isbh_u_has_holes_in_it") % fftd.N)
                 self.holes = True
                 return
             self.seqno += 1
@@ -87,7 +88,7 @@ def mavfft_display(mlog, timestamp_in_range):
         def __str__(self):
             return "%s[%u]" % (self.prefix(), self.instance)
 
-    print("Processing log for ISBH and ISBD messages")
+    print(tr("processing_log_for_isbh_and_isbd"))
 
     things_to_plot = []
     plotdata = None
@@ -118,10 +119,10 @@ def mavfft_display(mlog, timestamp_in_range):
             plotdata.add_fftd(m)
 
     if len(things_to_plot) == 0:
-        print("No FFT data. Did you set INS_LOG_BAT_MASK?")
+        print(tr("no_fft_data_did_you_set"))
         return
     time_delta = time.time() - start_time
-    print("Extracted %u fft data sets" % len(things_to_plot))
+    print(tr("extracted_u_fft_data_sets") % len(things_to_plot))
 
     sum_fft = {}
     freqmap = {}
@@ -132,7 +133,7 @@ def mavfft_display(mlog, timestamp_in_range):
         for axis in [ "X","Y","Z" ]:
             d = numpy.array(thing_to_plot.data[axis])/float(thing_to_plot.multiplier)
             if len(d) == 0:
-                print("No data?!?!?!")
+                print(tr("no_data"))
                 continue
             
             avg = numpy.sum(d) / len(d)

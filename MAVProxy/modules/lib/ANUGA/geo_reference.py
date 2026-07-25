@@ -11,6 +11,7 @@ https://anuga.anu.edu.au/
 import types, sys
 import copy
 import numpy as num
+from MAVProxy.modules.lib.mp_i18n import tr
 
 
 DEFAULT_ZONE = -1
@@ -148,30 +149,30 @@ class Geo_reference:
             pass
 
         if self.false_easting != DEFAULT_FALSE_EASTING:
-            print("WARNING: False easting of %f specified." % self.false_easting)
-            print("Default false easting is %f." % DEFAULT_FALSE_EASTING)
-            print("ANUGA does not correct for differences in False Eastings.")
+            print(tr("warning_false_easting_of_specified") % self.false_easting)
+            print(tr("default_false_easting_is") % DEFAULT_FALSE_EASTING)
+            print(tr("anuga_does_not_correct_for_differences"))
 
         if self.false_northing != DEFAULT_FALSE_NORTHING:
-            print("WARNING: False northing of %f specified."
+            print(tr("warning_false_northing_of_specified")
                   % self.false_northing)
-            print("Default false northing is %f." % DEFAULT_FALSE_NORTHING)
-            print("ANUGA does not correct for differences in False Northings.")
+            print(tr("default_false_northing_is") % DEFAULT_FALSE_NORTHING)
+            print(tr("anuga_does_not_correct_for_differences_2"))
 
         if self.datum.upper() != DEFAULT_DATUM.upper():
-            print("WARNING: Datum of %s specified." % self.datum)
-            print("Default Datum is %s." % DEFAULT_DATUM)
-            print("ANUGA does not correct for differences in datums.")
+            print(tr("warning_datum_of_specified") % self.datum)
+            print(tr("default_datum_is") % DEFAULT_DATUM)
+            print(tr("anuga_does_not_correct_for_differences_3"))
 
         if self.projection.upper() != DEFAULT_PROJECTION.upper():
-            print("WARNING: Projection of %s specified." % self.projection)
-            print("Default Projection is %s." % DEFAULT_PROJECTION)
-            print("ANUGA does not correct for differences in Projection.")
+            print(tr("warning_projection_of_specified") % self.projection)
+            print(tr("default_projection_is") % DEFAULT_PROJECTION)
+            print(tr("anuga_does_not_correct_for_differences_4"))
 
         if self.units.upper() != DEFAULT_UNITS.upper():
-            print("WARNING: Units of %s specified." % self.units)
-            print("Default units is %s." % DEFAULT_UNITS)
-            print("ANUGA does not correct for differences in units.")
+            print(tr("warning_units_of_specified") % self.units)
+            print(tr("default_units_is") % DEFAULT_UNITS)
+            print(tr("anuga_does_not_correct_for_differences_5"))
 
 ################################################################################
 # ASCII files with geo-refs are currently not used

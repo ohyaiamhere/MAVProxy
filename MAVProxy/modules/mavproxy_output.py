@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 '''enable run-time addition and removal of UDP clients , just like --out on the cnd line'''
+from MAVProxy.modules.lib.mp_i18n import tr
 ''' TO USE:
     output add 10.11.12.13:14550
     output list
@@ -14,8 +15,8 @@ from MAVProxy.modules.lib import mp_util
 
 class OutputModule(mp_module.MPModule):
     def __init__(self, mpstate):
-        super(OutputModule, self).__init__(mpstate, "output", "output control", public=True)
-        self.add_command('output', self.cmd_output, "output control",
+        super(OutputModule, self).__init__(mpstate, "output", tr("mod_output_control"), public=True)
+        self.add_command('output', self.cmd_output, tr("mod_output_control"),
                          ["<list|add|remove|sysid>"])
 
     def cmd_output(self, args):
@@ -24,30 +25,30 @@ class OutputModule(mp_module.MPModule):
             self.cmd_output_list()
         elif args[0] == "add":
             if len(args) != 2:
-                print("Usage: output add OUTPUT")
+                print(tr("usage_output_add_output"))
                 return
             self.cmd_output_add(args[1:])
         elif args[0] == "remove":
             if len(args) != 2:
-                print("Usage: output remove OUTPUT")
+                print(tr("usage_output_remove_output"))
                 return
             self.cmd_output_remove(args[1:])
         elif args[0] == "sysid":
             if len(args) != 3:
-                print("Usage: output sysid SYSID OUTPUT")
+                print(tr("usage_output_sysid_sysid_output"))
                 return
             self.cmd_output_sysid(args[1:])
         else:
-            print("usage: output <list|add|remove|sysid>")
+            print(tr("usage_output_list_add_remove_sysid"))
 
     def cmd_output_list(self):
         '''list outputs'''
-        print("%u outputs" % len(self.mpstate.mav_outputs))
+        print(tr("u_outputs") % len(self.mpstate.mav_outputs))
         for i in range(len(self.mpstate.mav_outputs)):
             conn = self.mpstate.mav_outputs[i]
             print("%u: %s" % (i, conn.address))
         if len(self.mpstate.sysid_outputs) > 0:
-            print("%u sysid outputs" % len(self.mpstate.sysid_outputs))
+            print(tr("u_sysid_outputs") % len(self.mpstate.sysid_outputs))
             for sysid in self.mpstate.sysid_outputs:
                 conn = self.mpstate.sysid_outputs[sysid]
                 print("%u: %s" % (sysid, conn.address))
@@ -55,12 +56,12 @@ class OutputModule(mp_module.MPModule):
     def cmd_output_add(self, args):
         '''add new output'''
         device = args[0]
-        print("Adding output %s" % device)
+        print(tr("adding_output") % device)
         try:
             conn = mavutil.mavlink_connection(device, input=False, source_system=self.settings.source_system, autoreconnect=True)
             conn.mav.srcComponent = self.settings.source_component
         except Exception:
-            print("Failed to connect to %s" % device)
+            print(tr("failed_to_connect_to_2") % device)
             return
         self.mpstate.mav_outputs.append(conn)
         try:
@@ -72,12 +73,12 @@ class OutputModule(mp_module.MPModule):
         '''add new output for a specific MAVLink sysID'''
         sysid = int(args[0])
         device = args[1]
-        print("Adding output %s for sysid %u" % (device, sysid))
+        print(tr("adding_output_for_sysid_u") % (device, sysid))
         try:
             conn = mavutil.mavlink_connection(device, input=False, source_system=self.settings.source_system, autoreconnect=True)
             conn.mav.srcComponent = self.settings.source_component
         except Exception:
-            print("Failed to connect to %s" % device)
+            print(tr("failed_to_connect_to_2") % device)
             return
         try:
             mp_util.child_fd_list_add(conn.port.fileno())
@@ -93,7 +94,7 @@ class OutputModule(mp_module.MPModule):
         for i in range(len(self.mpstate.mav_outputs)):
             conn = self.mpstate.mav_outputs[i]
             if str(i) == device or conn.address == device:
-                print("Removing output %s" % conn.address)
+                print(tr("removing_output") % conn.address)
                 try:
                     mp_util.child_fd_list_add(conn.port.fileno())
                 except Exception:

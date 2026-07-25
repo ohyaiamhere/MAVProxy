@@ -39,6 +39,7 @@ from MAVProxy.modules.lib.mp_settings import MPSetting
 from sc_webcam import SmartCameraWebCam
 from sc_SonyQX1 import SmartCamera_SonyQX
 import sc_config
+from MAVProxy.modules.lib.mp_i18n import tr
 
 #****************************************************************************
 # LOCAL DEFINES
@@ -71,14 +72,14 @@ class SmartCameraModule(mp_module.MPModule):
 #****************************************************************************
 
     def __init__(self, mpstate):
-        super(SmartCameraModule, self).__init__(mpstate, "SmartCamera", "SmartCamera commands")
-        self.add_command('camtrigger', self.__vCmdCamTrigger, "Trigger camera")
-        self.add_command('connectcams', self.__vCmdConnectCameras, "Connect to Cameras")
-        self.add_command('setCamISO', self.__vCmdSetCamISO, "Set Camera ISO")
-        self.add_command('setCamAperture', self.__vCmdSetCamAperture, "Set Camera Aperture")
-        self.add_command('setCamShutterSpeed', self.__vCmdSetCamShutterSpeed, "Set Camera Shutter Speed")
-        self.add_command('setCamExposureMode', self.__vCmdSetCamExposureMode, "Set Camera Exposure Mode")
-        self.add_command('getAllPictures', self.__vCmdGetAllPictures, "Download all flight pictures, filename as argument optional")
+        super(SmartCameraModule, self).__init__(mpstate, "SmartCamera", tr("mod_smartcamera_commands"))
+        self.add_command('camtrigger', self.__vCmdCamTrigger, tr("cmd_trigger_camera"))
+        self.add_command('connectcams', self.__vCmdConnectCameras, tr("cmd_connect_to_cameras"))
+        self.add_command('setCamISO', self.__vCmdSetCamISO, tr("cmd_set_camera_iso"))
+        self.add_command('setCamAperture', self.__vCmdSetCamAperture, tr("cmd_set_camera_aperture"))
+        self.add_command('setCamShutterSpeed', self.__vCmdSetCamShutterSpeed, tr("cmd_set_camera_shutter_speed"))
+        self.add_command('setCamExposureMode', self.__vCmdSetCamExposureMode, tr("cmd_set_camera_exposure_mode"))
+        self.add_command('getAllPictures', self.__vCmdGetAllPictures, tr("cmd_download_all_flight_pictures_filename_as_argument_optio"))
         self.CamRetryScheduler = sched.scheduler(time.time, time.sleep)
         self.ProgramAuto = 1
         self.Aperture = 2
@@ -116,7 +117,7 @@ class SmartCameraModule(mp_module.MPModule):
 #****************************************************************************
 
     def __vKillHeartbeat(self):
-        print("Killing Heartbeat - Solo Workaround")
+        print(tr("killing_heartbeat_solo_workaround"))
         self.mpstate.settings.heartbeat = 0
 
  #****************************************************************************
@@ -139,15 +140,15 @@ class SmartCameraModule(mp_module.MPModule):
             new_camera = SmartCamera_SonyQX(u8CamNumber, self.WirelessPort)
             if new_camera.boValidCameraFound() is True:
                 self.camera_list = self.camera_list + [new_camera]
-                print("Found QX Camera")
+                print(tr("found_qx_camera"))
                 self.master.mav.statustext_send(6,"Camera Controller: Found QX Camera, Ready to Fly")
             else:
-                print("No Valid Camera Found, retry in 5 sec")
+                print(tr("no_valid_camera_found_retry_in"))
                 self.u8RetryTimeout = self.u8RetryTimeout + 1
                 self.CamRetryScheduler.enter(5, 1, self.__vRegisterQXCamera, [u8CamNumber])
                 self.CamRetryScheduler.run()
         else:
-            print("Max retries reached, No QX Camera Found")
+            print(tr("max_retries_reached_no_qx_camera"))
             self.master.mav.statustext_send(3,"Camera Controller: Warning! Camera not found")
             self.u8RetryTimeout = 0
 
@@ -183,7 +184,7 @@ class SmartCameraModule(mp_module.MPModule):
                 self.__vRegisterQXCamera(i)
 
         # display number of cameras found
-        print ("cameras found: %d" % len(self.camera_list))
+        print (tr("cameras_found") % len(self.camera_list))
 
 #****************************************************************************
 #   Method Name     : __vCmdCamTrigger
@@ -203,7 +204,7 @@ class SmartCameraModule(mp_module.MPModule):
         #print(self.camera_list)
         for cam in self.camera_list:
             cam.take_picture()
-            print("Trigger Cam %s" % cam)
+            print(tr("trigger_cam") % cam)
 
 #****************************************************************************
 #   Method Name     : __vCmdConnectCameras
@@ -222,7 +223,7 @@ class SmartCameraModule(mp_module.MPModule):
         '''ToDo: Validate the argument as a valid port'''
         if len(args) >= 1:
             self.WirelessPort = args[0]
-        print ("Connecting to Cameras on %s" % self.WirelessPort)
+        print (tr("connecting_to_cameras_on") % self.WirelessPort)
         self.__vRegisterCameras()
 
 #****************************************************************************
@@ -249,7 +250,7 @@ class SmartCameraModule(mp_module.MPModule):
             cam = self.camera_list[int(args[1])]
             cam.boSetExposureMode(args[0])
         else:
-            print ("Usage: setCamExposureMode MODE [CAMNUMBER], Valid values for MODE: Program Auto, Aperture, Shutter, Manual, Intelligent Auto, Superior Auto")
+            print (tr("usage_setcamexposuremode_mode_camnumber_valid_valu"))
 
 #****************************************************************************
 #   Method Name     : __vCmdSetCamAperture
@@ -273,7 +274,7 @@ class SmartCameraModule(mp_module.MPModule):
             cam = self.camera_list[int(args[1])]
             cam.boSetAperture(int(args[0]))
         else:
-            print ("Usage: setCamAperture APERTURE [CAMNUMBER], APERTURE is value x10")
+            print (tr("usage_setcamaperture_aperture_camnumber_aperture_i"))
 
 #****************************************************************************
 #   Method Name     : __vCmdSetCamShutterSpeed
@@ -297,7 +298,7 @@ class SmartCameraModule(mp_module.MPModule):
             cam = self.camera_list[int(args[1])]
             cam.boSetShutterSpeed(int(args[0]))
         else:
-            print ("Usage: setCamShutterSpeed SHUTTERVALUE [CAMNUMBER], Shutter value is the devisor in 1/x (only works for values smaller than 1)")
+            print (tr("usage_setcamshutterspeed_shuttervalue_camnumber_sh"))
 
 #****************************************************************************
 #   Method Name     : __vCmdSetCamISO
@@ -321,7 +322,7 @@ class SmartCameraModule(mp_module.MPModule):
             cam = self.camera_list[int(args[1])]
             cam.boSetISO(args[0])
         else:
-            print ("Usage: setCamISO ISOVALUE [CAMNUMBER]")
+            print (tr("usage_setcamiso_isovalue_camnumber"))
 
 #****************************************************************************
 #   Method Name     : __vCmdCamZoomIn
@@ -376,11 +377,11 @@ class SmartCameraModule(mp_module.MPModule):
         if len(args) >= 1:
             slogFileName = args[0]
             for cam in self.camera_list:
-                print("Init Picture Download for Cam %s from file %s" % cam, slogFileName)
+                print(tr("init_picture_download_for_cam_from") % cam, slogFileName)
                 cam.boGetAllSessionPictures(slogFileName)
         else:
             for cam in self.camera_list:
-                print("Init Picture Download for Cam %s" % cam)
+                print(tr("init_picture_download_for_cam") % cam)
                 cam.boGetAllSessionPictures(0)
     
 #****************************************************************************
@@ -398,7 +399,7 @@ class SmartCameraModule(mp_module.MPModule):
 
     def __vDecodeDIGICAMConfigure(self, mCommand_Long):
         if mCommand_Long.param1 != 0:
-            print ("Exposure Mode = %d" % mCommand_Long.param1)
+            print (tr("exposure_mode") % mCommand_Long.param1)
 
             if mCommand_Long.param1 == self.ProgramAuto:
                 self.__vCmdSetCamExposureMode(["Program Auto"])
@@ -411,22 +412,22 @@ class SmartCameraModule(mp_module.MPModule):
 
         '''Shutter Speed'''
         if mCommand_Long.param2 != 0:
-            print ("Shutter Speed= %d" % mCommand_Long.param2)
+            print (tr("shutter_speed") % mCommand_Long.param2)
             self.__vCmdSetCamShutterSpeed([mCommand_Long.param2])
 
         '''Aperture'''
         if mCommand_Long.param3 != 0:
-            print ("Aperture = %d" % mCommand_Long.param3)
+            print (tr("aperture") % mCommand_Long.param3)
             self.__vCmdSetCamAperture([mCommand_Long.param3])
 
         '''ISO'''
         if mCommand_Long.param4 != 0:
-            print ("ISO = %d" % mCommand_Long.param4)
+            print (tr("iso") % mCommand_Long.param4)
             self.__vCmdSetCamISO([mCommand_Long.param4])
 
         '''Exposure Type'''
         if mCommand_Long.param5 != 0:
-            print ("Exposure type= %d" % mCommand_Long.param5)
+            print (tr("exposure_type") % mCommand_Long.param5)
 
 
 #****************************************************************************
@@ -445,30 +446,30 @@ class SmartCameraModule(mp_module.MPModule):
     def __vDecodeDIGICAMControl(self, mCommand_Long):
         '''Session'''
         if mCommand_Long.param1 != 0:
-            print ("Session = %d" % mCommand_Long.param1)
+            print (tr("session") % mCommand_Long.param1)
 
         '''Zooming Step Value'''
         if mCommand_Long.param2 != 0:
-            print ("Zooming Step = %d" % mCommand_Long.param2)
+            print (tr("zooming_step") % mCommand_Long.param2)
 
         '''Zooming Step Value'''
         if mCommand_Long.param3 != 0:
-            print ("Zooming Value = %d" % mCommand_Long.param3)
+            print (tr("zooming_value") % mCommand_Long.param3)
 
             if (mCommand_Long.param3 == 1):
                 self.__vCmdCamZoomIn()
             elif (mCommand_Long.param3 == -1):
                 self.__vCmdCamZoomOut()
             else:
-                print ("Invalid Zoom Value")
+                print (tr("invalid_zoom_value"))
 
         '''Focus 0=Unlock/1=Lock/2=relock'''
         if mCommand_Long.param4 != 0:
-            print ("Focus = %d" % mCommand_Long.param4)
+            print (tr("focus") % mCommand_Long.param4)
 
         '''Trigger'''
         if mCommand_Long.param5 != 0:
-            print ("Trigger = %d" % mCommand_Long.param5)
+            print (tr("trigger") % mCommand_Long.param5)
             self.__vCmdCamTrigger(mCommand_Long)
 
 
@@ -497,16 +498,16 @@ class SmartCameraModule(mp_module.MPModule):
             for cam in self.camera_list:
                 cam.boSet_Attitude(m)
         if mtype == "CAMERA_STATUS":
-            print ("Got Message camera_status")
+            print (tr("got_message_camera_status"))
         if mtype == "CAMERA_FEEDBACK":
-            print ("Got Message camera_feedback")
+            print (tr("got_message_camera_feedback"))
             '''self.__vCmdCamTrigger(m)'''
         if mtype == "COMMAND_LONG":
             if m.command == mavutil.mavlink.MAV_CMD_DO_DIGICAM_CONFIGURE:
-                print ("Got Message Digicam_configure")
+                print (tr("got_message_digicam_configure"))
                 self.__vDecodeDIGICAMConfigure(m)
             elif m.command == mavutil.mavlink.MAV_CMD_DO_DIGICAM_CONTROL:
-                print ("Got Message Digicam_control")
+                print (tr("got_message_digicam_control"))
                 self.__vDecodeDIGICAMControl(m)
 
 #****************************************************************************

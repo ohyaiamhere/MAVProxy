@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from MAVProxy.modules.lib.mp_i18n import tr
 '''
 Proximity sensor module
 Peter Barker, August 2020
@@ -33,7 +34,7 @@ class proximity(mp_module.MPModule):
           ])
         self.add_command('proximity',
                          self.cmd_proximity,
-                         "proximity module",
+                         tr("cmd_proximity_module"),
                          ['set (PROXIMITYSETTING)',
                          ]
         )

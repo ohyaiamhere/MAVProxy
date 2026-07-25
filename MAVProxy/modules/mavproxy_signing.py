@@ -9,6 +9,7 @@ import os
 
 from MAVProxy.modules.lib import mp_module
 from MAVProxy.modules.lib import mp_util
+from MAVProxy.modules.lib.mp_i18n import tr
 
 if mp_util.has_wxpython:
     from MAVProxy.modules.lib.mp_menu import *
@@ -16,8 +17,8 @@ if mp_util.has_wxpython:
 class SigningModule(mp_module.MPModule):
 
     def __init__(self, mpstate):
-        super(SigningModule, self).__init__(mpstate, "signing", "signing control", public=True)
-        self.add_command('signing', self.cmd_signing, "signing control",
+        super(SigningModule, self).__init__(mpstate, "signing", tr("mod_signing_control"), public=True)
+        self.add_command('signing', self.cmd_signing, tr("mod_signing_control"),
                          ["<setup|remove|disable|key>"])
         self.allow = None
         self.saved_key = None
@@ -25,7 +26,7 @@ class SigningModule(mp_module.MPModule):
 
     def cmd_signing(self, args):
         '''handle link commands'''
-        usage = "signing: <setup|remove|disable|key> passphrase"
+        usage = tr("usage_signing_setup_remove_disable_key_passphrase")
         if len(args) == 0:
             print(usage)
         elif args[0] == 'setup':
@@ -51,10 +52,10 @@ class SigningModule(mp_module.MPModule):
     def cmd_signing_setup(self, args):
         '''setup signing key on board'''
         if len(args) == 0:
-            print("usage: signing setup passphrase")
+            print(tr("usage_signing_setup_passphrase"))
             return
         if not self.master.mavlink20():
-            print("You must be using MAVLink2 for signing")
+            print(tr("you_must_be_using_mavlink2_for"))
             return
         passphrase = args[0]
         key = self.passphrase_to_key(passphrase)
@@ -68,7 +69,7 @@ class SigningModule(mp_module.MPModule):
         initial_timestamp = self.get_signing_timestamp()
         self.master.mav.setup_signing_send(self.target_system, self.target_component,
                                            secret_key, initial_timestamp)
-        print("Sent secret_key")
+        print(tr("sent_secret_key"))
         self.cmd_signing_key([passphrase])
 
     def get_signing_timestamp(self):
@@ -143,33 +144,33 @@ class SigningModule(mp_module.MPModule):
     def cmd_signing_key(self, args):
         '''set signing key on connection'''
         if len(args) == 0:
-            print("usage: signing setup passphrase")
+            print(tr("usage_signing_setup_passphrase"))
             return
         if not self.master.mavlink20():
-            print("You must be using MAVLink2 for signing")
+            print(tr("you_must_be_using_mavlink2_for"))
             return
         passphrase = args[0]
         key = self.passphrase_to_key(passphrase)
         self.saved_key = key
         for m in self.mpstate.mav_master:
             self.setup_signing_link(m)
-        print("Setup signing key")
+        print(tr("setup_signing_key"))
 
     def cmd_signing_disable(self, args):
         '''disable signing locally'''
         self.saved_key = None
         self.master.disable_signing()
-        print("Disabled signing")
+        print(tr("disabled_signing"))
 
     def cmd_signing_remove(self, args):
         '''remove signing from server'''
         self.saved_key = None
         if not self.master.mavlink20():
-            print("You must be using MAVLink2 for signing")
+            print(tr("you_must_be_using_mavlink2_for"))
             return
         self.master.mav.setup_signing_send(self.target_system, self.target_component, [0]*32, 0)
         self.master.disable_signing()
-        print("Removed signing")
+        print(tr("removed_signing"))
 
     def idle_task(self):
         now = time.time()

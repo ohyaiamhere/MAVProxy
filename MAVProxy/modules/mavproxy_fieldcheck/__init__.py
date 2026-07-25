@@ -29,6 +29,7 @@ from pymavlink import mavutil
 from MAVProxy.modules.lib import mp_util
 
 import importlib.resources
+from MAVProxy.modules.lib.mp_i18n import tr
 
 if mp_util.has_wxpython:
     from MAVProxy.modules.lib.mp_menu import MPMenuItem
@@ -52,7 +53,7 @@ class FieldCheck(object):
 
     def close_to(self, loc1):
         ret = self.get_distance(loc1, self.location)
-        print("Distance to %s: %um" % (self.lc_name, ret))
+        print(tr("distance_to_um") % (self.lc_name, ret))
         return ret < 100
 
     # swiped from ArduPilot's common.py:
@@ -105,7 +106,7 @@ class FieldCheck(object):
         self.check_parameters(fix=True)
 
     def whinge(self, message):
-        self.console.writeln("FC:%s %s" % (self.lc_name, message,))
+        self.console.writeln(tr("fc") % (self.lc_name, message,))
 
     def check_parameters(self, fix=False):
         '''check key parameters'''
@@ -264,10 +265,10 @@ class FieldCheck(object):
         enabled = ((sys_status.onboard_control_sensors_enabled & bits) == bits)
         healthy = ((sys_status.onboard_control_sensors_health & bits) == bits)
         if not present or not enabled:
-            self.console.writeln('Fence should be enabled', fg='blue')
+            self.console.writeln(tr("fence_should_be_enabled"), fg='blue')
             return False
         if not healthy:
-            self.console.writeln('Fence unhealthy', fg='blue')
+            self.console.writeln(tr("fence_unhealthy"), fg='blue')
             return False
 
         return True
@@ -464,13 +465,13 @@ class FieldCheck(object):
                                        self.fc_settings.completion)
         self.x.add_command('fieldcheck',
                            self.cmd_fieldcheck,
-                           'field check control',
+                           tr("cmd_field_check_control"),
                            ['check',
                             'set (FIELDCHECKSETTING)'])
 
     def cmd_fieldcheck(self, args):
         '''handle fieldcheck commands'''
-        usage = 'Usage: fieldcheck <set>'
+        usage = tr("usage_usage_fieldcheck_set")
         if len(args) == 0:
             print(usage)
             return
@@ -515,7 +516,7 @@ class FieldCheckModule(mp_module.MPModule):
 
         super(FieldCheckModule, self).__init__(mpstate,
                                                "FieldCheck",
-                                               "FieldCheck Checks",
+                                               tr("mod_fieldcheck_checks"),
                                                public=True)
 
         self.fields = [
@@ -536,7 +537,7 @@ class FieldCheckModule(mp_module.MPModule):
         self.field.select()
 
     def whinge(self, message):
-        self.console.writeln("FC: %s" % (message,))
+        self.console.writeln(tr("fc_2") % (message,))
 
     def try_select_field(self, loc):
         for field in self.fields:

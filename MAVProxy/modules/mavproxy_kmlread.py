@@ -18,6 +18,7 @@ from MAVProxy.modules.lib import mp_module
 from MAVProxy.modules.mavproxy_map import mp_slipmap
 from MAVProxy.modules.lib import mp_util
 from MAVProxy.modules.lib import kmlread
+from MAVProxy.modules.lib.mp_i18n import tr
 
 if mp_util.has_wxpython:
     from MAVProxy.modules.lib.mp_menu import MPMenuCallFileDialog
@@ -29,8 +30,8 @@ if mp_util.has_wxpython:
 
 class KmlReadModule(mp_module.MPModule):
     def __init__(self, mpstate):
-        super(KmlReadModule, self).__init__(mpstate, "kmlread", "Add kml or kmz layers to map", public=True)
-        self.add_command('kml', self.cmd_param, "kml map handling",
+        super(KmlReadModule, self).__init__(mpstate, "kmlread", tr("mod_add_kml_or_kmz_layers_to_map"), public=True)
+        self.add_command('kml', self.cmd_param, tr("cmd_kml_map_handling"),
                          ["<clear|snapwp|snapfence>",
                           "<load> (FILENAME)", '<layers>'])
 
@@ -60,7 +61,7 @@ class KmlReadModule(mp_module.MPModule):
 
     def cmd_param(self, args):
         '''control kml reading'''
-        usage = "Usage: kml <clear | load (filename) | layers | toggle (layername) | colour (layername) (colour) | fence (inc|exc) (layername)> | snapfence | snapwp"  # noqa
+        usage = tr("usage_usage_kml_clear_load_filename_layers_toggle_layername")  # noqa
         if len(args) < 1:
             print(usage)
             return
@@ -72,7 +73,7 @@ class KmlReadModule(mp_module.MPModule):
             self.cmd_snap_fence(args[1:])
         elif args[0] == "load":
             if len(args) != 2:
-                print("usage: kml load <filename>")
+                print(tr("usage_kml_load_filename"))
                 return
             self.loadkml(args[1])
         elif args[0] == "layers":
@@ -113,12 +114,12 @@ class KmlReadModule(mp_module.MPModule):
                 if w.x != best[0] or w.y != best[1]:
                     w.x = best[0]
                     w.y = best[1]
-                    print("Snapping WP %u to %f %f" % (i, w.x, w.y))
+                    print(tr("snapping_wp_u_to") % (i, w.x, w.y))
                     wploader.set(w, i)
                     changed = True
             elif best is not None:
                 if best_dist <= (threshold+1)*3:
-                    print("Not snapping wp %u dist %.1f" % (i, best_dist))
+                    print(tr("not_snapping_wp_u_dist") % (i, best_dist))
         if changed:
             wpmod.send_all_waypoints()
 
@@ -131,7 +132,7 @@ class KmlReadModule(mp_module.MPModule):
 
         fencemod = self.module('fence')
         if fencemod is None:
-            print("fence module not loaded")
+            print(tr("fence_module_not_loaded"))
             return
 
         def fencepoint_snapper(offset, point_obj):
@@ -157,7 +158,7 @@ class KmlReadModule(mp_module.MPModule):
                 return
 
             if best_dist <= threshold:
-                print("Snapping fence point %u to %f %f" % (offset, best[0], best[1]))
+                print(tr("snapping_fence_point_u_to") % (offset, best[0], best[1]))
                 if isinstance(point_obj, mavutil.mavlink.MAVLink_mission_item_message):
                     point_obj.x = best[0]
                     point_obj.y = best[1]
@@ -170,7 +171,7 @@ class KmlReadModule(mp_module.MPModule):
                 return
 
             if best_dist <= (threshold+1)*3:
-                print("Not snapping fence point %u dist %.1f" % (offset, best_dist))
+                print(tr("not_snapping_fence_point_u_dist") % (offset, best_dist))
 
         self.snapped_fencepoint = False
         fencemod.apply_function_to_points(fencepoint_snapper)
@@ -179,16 +180,16 @@ class KmlReadModule(mp_module.MPModule):
 
     def cmd_colour(self, args):
         if len(args) < 2:
-            print("kml colour LAYERNAME 0xBBGGRR")
+            print(tr("kml_colour_layername_0xbbggrr"))
             return
         (layername, colour) = args
         layer = self.find_layer(layername)
         if layer is None:
-            print(f"No layer {layername}")
+            print(tr("no_layer") % (layername,))
             return
         m = re.match(r"(?:0x)?(?P<red>[0-9A-Fa-f]{2})(?P<green>[0-9A-Fa-f]{2})(?P<blue>[0-9A-Fa-f]{2})", colour)
         if m is None:
-            print("bad colour")
+            print(tr("bad_colour"))
             return
         (red, green, blue) = (int(m.group("red"), 16),
                               int(m.group("green"), 16),
@@ -228,7 +229,7 @@ class KmlReadModule(mp_module.MPModule):
         '''add an object to our stored list of objects, and the map
         module if it is loaded'''
         if obj.layer in self.map_objects and obj.key in self.map_objects[obj.layer]:
-            print(f"Already have self.map_objects[{obj.layer=}][{obj.key=}]")
+            print(tr("already_have_self_map_objects_obj") % (obj.layer, obj.key))
             return
         if obj.layer not in self.map_objects:
             self.map_objects[obj.layer] = {}
@@ -242,14 +243,14 @@ class KmlReadModule(mp_module.MPModule):
 
     def fencekml(self, args):
         '''create a geofence from a layername'''
-        usage = "kml fence inc|exc layername"
+        usage = tr("usage_kml_fence_inc_exc_layername")
         if len(args) != 2:
             print(usage)
             return
 
         fencemod = self.module('fence')
         if fencemod is None:
-            print("fence module not loaded")
+            print(tr("fence_module_not_loaded"))
             return
 
         (inc_or_exc, layername) = (args[0], args[1])
@@ -273,7 +274,7 @@ class KmlReadModule(mp_module.MPModule):
             fencemod.add_polyfence(fence_type, points_copy)
             return
 
-        print("Layer not found")
+        print(tr("layer_not_found"))
 
     def togglekml(self, layername):
         '''toggle the display of a kml'''
@@ -350,7 +351,7 @@ class KmlReadModule(mp_module.MPModule):
 
         # go through each object in the kml...
         if nodes is None:
-            print("No nodes found")
+            print(tr("no_nodes_found"))
             return
         for n in nodes:
             try:

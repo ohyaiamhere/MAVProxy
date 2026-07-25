@@ -10,6 +10,7 @@ from pymavlink import mavutil
 from pymavlink import mavwp
 
 from MAVProxy.modules.lib import mp_util
+from MAVProxy.modules.lib.mp_i18n import tr
 
 if mp_util.has_wxpython:
     from MAVProxy.modules.lib.mp_menu import MPMenuCallTextDialog
@@ -23,7 +24,7 @@ class RallyModule(mission_item_protocol.MissionItemProtocolModule):
         super(RallyModule, self).__init__(
             mpstate,
             "rally",
-            "rally point management",
+            tr("mod_rally_point_management"),
             public=True)
 
     def command_name(self):
@@ -36,7 +37,7 @@ class RallyModule(mission_item_protocol.MissionItemProtocolModule):
             return
         latlon = self.mpstate.click_location
         if latlon is None:
-            print("No click position available")
+            print(tr("no_click_position_available"))
             return
 
         if len(args) < 1:
@@ -147,7 +148,7 @@ def init(mpstate):
     try:
         mavwp.MissionItemProtocol_Rally
     except AttributeError:
-        print("pymavlink too old; using old %s module" % oldmodule)
+        print(tr("pymavlink_too_old_using_old_module") % oldmodule)
         mpstate.load_module(oldmodule)
         for (m, pm) in mpstate.modules:
             if m.name == "rally":

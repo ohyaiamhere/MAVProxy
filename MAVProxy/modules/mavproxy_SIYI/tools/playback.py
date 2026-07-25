@@ -14,20 +14,22 @@ from pymavlink import mavutil
 import math
 
 from argparse import ArgumentParser
+from MAVProxy.modules.lib.mp_i18n import tr, ensure_language_from_argv
+ensure_language_from_argv()
 parser = ArgumentParser(description=__doc__)
 
-parser.add_argument("video", help="video file")
-parser.add_argument("--seek", default=None, type=float, help="seek start percentage")
-parser.add_argument("--fps", default=None, type=float, help="max playback FPS")
-parser.add_argument("--siyi-log", default=None, help="SIYI log file")
-parser.add_argument("--video-idx", type=int, default=1, help="SIYI video index")
-parser.add_argument("--thermal", action='store_true', help="assume thermal")
-parser.add_argument("--attitude", action='store_true', help="show attitude in title")
-parser.add_argument("--threshold", type=int, default=60, help="temperature threshold")
-parser.add_argument("--min-threshold", type=int, default=250, help="temperature threshold min pixel")
-parser.add_argument("--aspect-ratio", type=float, default=1280.0/720.0, help="aspect ratio")
-parser.add_argument("--start-frame", type=int, default=None, help="start frame")
-parser.add_argument("--fov", type=float, default=88.0, help="horizontal FOV")
+parser.add_argument("video", help=tr("opt_video_file"))
+parser.add_argument("--seek", default=None, type=float, help=tr("opt_seek_start_percentage"))
+parser.add_argument("--fps", default=None, type=float, help=tr("opt_max_playback_fps"))
+parser.add_argument("--siyi-log", default=None, help=tr("opt_siyi_log_file"))
+parser.add_argument("--video-idx", type=int, default=1, help=tr("opt_siyi_video_index"))
+parser.add_argument("--thermal", action='store_true', help=tr("opt_assume_thermal"))
+parser.add_argument("--attitude", action='store_true', help=tr("opt_show_attitude_in_title"))
+parser.add_argument("--threshold", type=int, default=60, help=tr("opt_temperature_threshold"))
+parser.add_argument("--min-threshold", type=int, default=250, help=tr("opt_temperature_threshold_min_pixel"))
+parser.add_argument("--aspect-ratio", type=float, default=1280.0/720.0, help=tr("opt_aspect_ratio"))
+parser.add_argument("--start-frame", type=int, default=None, help=tr("opt_start_frame"))
+parser.add_argument("--fov", type=float, default=88.0, help=tr("opt_horizontal_fov"))
 args = parser.parse_args()
 
 if args.siyi_log is not None:
@@ -114,35 +116,35 @@ def check_events():
             frame_counter = event.frame
             continue
         if getattr(event,'ClassName',None) == 'wxKeyEvent':
-            print('key %u' % event.KeyCode)
+            print(tr("key_u") % event.KeyCode)
             if event.KeyCode == ord('P'):
-                print("PAUSE")
+                print(tr("pause"))
                 paused = not paused
                 im.set_fps_max(0 if paused else fps)
             if event.KeyCode == ord('F'):
                 fps *= 1.1
-                print("Speed %.1f" % fps)
+                print(tr("speed_2") % fps)
                 im.set_fps_max(0 if paused else fps)
             if event.KeyCode == ord('S'):
                 fps /= 1.1
-                print("Speed %.1f" % fps)
+                print(tr("speed_2") % fps)
                 im.set_fps_max(0 if paused else fps)
             if event.KeyCode == ord('N'):
                 fps = args.fps
-                print("Speed %.1f" % fps)
+                print(tr("speed_2") % fps)
                 im.set_fps_max(0 if paused else fps)
         if getattr(event,'ClassName',None) == "wxMouseEvent":
             if event.pixel is not None:
                 spot_temp = get_pixel_temp(event)
                 if args.thermal:
-                    print("TEMP: %.1f px=%u range=(%.1f %.1f) tv=%d" % (spot_temp, event.pixel[0], tmin, tmax, threshold_value))
+                    print(tr("temp_px_u_range_tv") % (spot_temp, event.pixel[0], tmin, tmax, threshold_value))
                 if args.attitude:
                     ATT = mlog.messages.get('ATT',None)
                     SIEN = mlog.messages.get('SIEN',None)
                     GPS = mlog.messages.get('GPS',None)
                     if ATT is None or SIEN is None or GPS is None:
                         return
-                    print("SIEN (%.1f %.1f %.1f) ATT (%.1f %.1f %.1f)" % (SIEN.R, SIEN.P, SIEN.Y, ATT.Roll, ATT.Pitch, ATT.Yaw))
+                    print(tr("sien_att") % (SIEN.R, SIEN.P, SIEN.Y, ATT.Roll, ATT.Pitch, ATT.Yaw))
 
 
 
@@ -201,7 +203,7 @@ while True:
     if mlog is not None:
         m = mlog.recv_match(type=['SITR','SIEN','SIGA','ATT','SIFC','GPS','SIVL'])
         if m is None:
-            print("EOF")
+            print(tr("eof"))
             break
         mtype = m.get_type()
         if mtype == 'SIFC':

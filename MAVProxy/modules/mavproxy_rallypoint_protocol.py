@@ -7,15 +7,16 @@ from pymavlink import mavutil
 import time, os, platform
 from MAVProxy.modules.lib import mp_module
 from MAVProxy.modules.lib import mp_util
+from MAVProxy.modules.lib.mp_i18n import tr
 
 if mp_util.has_wxpython:
     from MAVProxy.modules.lib.mp_menu import *
 
 class RallyModule(mp_module.MPModule):
     def __init__(self, mpstate):
-        super(RallyModule, self).__init__(mpstate, "rally", "rally point control", public = True)
+        super(RallyModule, self).__init__(mpstate, "rally", tr("mod_rally_point_control"), public = True)
         self.rallyloader_by_sysid = {}
-        self.add_command('rally', self.cmd_rally, "old rally point control", ["<add|clear|land|list|move|remove|>",
+        self.add_command('rally', self.cmd_rally, tr("cmd_old_rally_point_control"), ["<add|clear|land|list|move|remove|>",
                                     "<load|save> (FILENAME)"])
         self.have_list = False
         self.abort_alt = 50
@@ -95,7 +96,7 @@ class RallyModule(mp_module.MPModule):
             if self.abort_first_send_time == 0:
                 self.abort_first_send_time = time.time()
             elif time.time() - self.abort_first_send_time > 10: #give up after 10 seconds
-                print("Unable to send abort command!\n")
+                print(tr("unable_to_send_abort_command"))
                 self.abort_ack_received = True
 
 
@@ -121,36 +122,36 @@ class RallyModule(mp_module.MPModule):
                 flag = 2
 
         if not self.have_list:
-            print("Please list rally points first")
+            print(tr("please_list_rally_points_first"))
             return
 
         if (self.rallyloader.rally_count() > 4):
-            print("Only 5 rally points possible per flight plan.")
+            print(tr("only_5_rally_points_possible_per"))
             return
 
         latlon = self.mpstate.click_location
         if latlon is None:
-            print("No map click position available")
+            print(tr("no_map_click_position_available"))
             return
 
         land_hdg = 0.0
 
         self.rallyloader.create_and_append_rally_point(latlon[0] * 1e7, latlon[1] * 1e7, alt, break_alt, land_hdg, flag)
         self.send_rally_points()
-        print("Added Rally point at %s %f %f, autoland: %s" % (str(latlon), alt, break_alt, bool(flag & 2)))
+        print(tr("added_rally_point_at_autoland") % (str(latlon), alt, break_alt, bool(flag & 2)))
 
     def cmd_rally_alt(self, args):
         '''handle rally alt change'''
         if (len(args) < 2):
-            print("Usage: rally alt RALLYNUM newAlt <newBreakAlt>")
+            print(tr("usage_rally_alt_rallynum_newalt_newbreakalt"))
             return
         if not self.have_list:
-            print("Please list rally points first")
+            print(tr("please_list_rally_points_first"))
             return
 
         idx = int(args[0])
         if idx <= 0 or idx > self.rallyloader.rally_count():
-            print("Invalid rally point number %u" % idx)
+            print(tr("invalid_rally_point_number_u") % idx)
             return
 
         new_alt = int(args[1])
@@ -166,22 +167,22 @@ class RallyModule(mp_module.MPModule):
     def cmd_rally_move(self, args):
         '''handle rally move'''
         if len(args) < 1:
-            print("Usage: rally move RALLYNUM")
+            print(tr("usage_rally_move_rallynum"))
             return
         if not self.have_list:
-            print("Please list rally points first")
+            print(tr("please_list_rally_points_first"))
             return
 
         idx = int(args[0])
         if idx <= 0 or idx > self.rallyloader.rally_count():
-            print("Invalid rally point number %u" % idx)
+            print(tr("invalid_rally_point_number_u") % idx)
             return
 
         rpoint = self.rallyloader.rally_point(idx-1)
 
         latlon = self.mpstate.click_location
         if latlon is None:
-            print("No map click position available")
+            print(tr("no_map_click_position_available"))
             return
 
         oldpos = (rpoint.lat*1e-7, rpoint.lng*1e-7)
@@ -189,10 +190,10 @@ class RallyModule(mp_module.MPModule):
         self.send_rally_point(idx-1)
         p = self.fetch_rally_point(idx-1)
         if p.lat != int(latlon[0]*1e7) or p.lng != int(latlon[1]*1e7):
-            print("Rally move failed")
+            print(tr("rally_move_failed"))
             return
         self.rallyloader.reindex()
-        print("Moved rally point from %s to %s at %fm" % (str(oldpos), str(latlon), rpoint.alt))
+        print(tr("moved_rally_point_from_to_at") % (str(oldpos), str(latlon), rpoint.alt))
 
 
     def cmd_rally(self, args):
@@ -214,10 +215,10 @@ class RallyModule(mp_module.MPModule):
 
         elif args[0] == "remove":
             if not self.have_list:
-                print("Please list rally points first")
+                print(tr("please_list_rally_points_first"))
                 return
             if (len(args) < 2):
-                print("Usage: rally remove RALLYNUM")
+                print(tr("usage_rally_remove_rallynum"))
                 return
             self.rallyloader.remove(int(args[1]))
             self.send_rally_points()
@@ -228,28 +229,28 @@ class RallyModule(mp_module.MPModule):
 
         elif args[0] == "load":
             if (len(args) < 2):
-                print("Usage: rally load filename")
+                print(tr("usage_rally_load_filename"))
                 return
 
             try:
                 self.rallyloader.load(args[1].strip('"'))
             except Exception as msg:
-                print("Unable to load %s - %s" % (args[1], msg))
+                print(tr("unable_to_load") % (args[1], msg))
                 return
 
             self.send_rally_points()
             self.have_list = True
 
-            print("Loaded %u rally points from %s" % (self.rallyloader.rally_count(), args[1]))
+            print(tr("loaded_u_rally_points_from") % (self.rallyloader.rally_count(), args[1]))
 
         elif args[0] == "save":
             if (len(args) < 2):
-                print("Usage: rally save filename")
+                print(tr("usage_rally_save_filename"))
                 return
 
             self.rallyloader.save(args[1].strip('"'))
 
-            print("Saved rally file %s" % args[1])
+            print(tr("saved_rally_file") % args[1])
 
         elif args[0] == "alt":
             self.cmd_rally_alt(args[1:])
@@ -278,14 +279,14 @@ class RallyModule(mp_module.MPModule):
         if type in ['COMMAND_ACK']:
             if m.command == mavutil.mavlink.MAV_CMD_DO_GO_AROUND:
                 if (m.result == 0 and self.abort_ack_received == False):
-                    self.say("Landing Abort Command Successfully Sent.")
+                    self.say(tr("landing_abort_command_successfully_sent"))
                     self.abort_ack_received = True
                 elif (m.result != 0 and self.abort_ack_received == False):
-                    self.say("Landing Abort Command Unsuccessful.")
+                    self.say(tr("landing_abort_command_unsuccessful"))
 
             elif m.command == mavutil.mavlink.MAV_CMD_DO_RALLY_LAND:
                 if (m.result == 0):
-                    self.say("Landing.")
+                    self.say(tr("landing"))
 
     def unload(self):
         self.remove_command("rally")
@@ -324,7 +325,7 @@ class RallyModule(mp_module.MPModule):
             time.sleep(0.1)
             continue
         if p is None:
-            self.console.error("Failed to fetch rally point %u" % i)
+            self.console.error(tr("failed_to_fetch_rally_point_u") % i)
             return None
         return p
 
@@ -332,7 +333,7 @@ class RallyModule(mp_module.MPModule):
         self.rallyloader.clear()
         rally_count = self.mav_param.get('RALLY_TOTAL',0)
         if rally_count == 0:
-            print("No rally points")
+            print(tr("no_rally_points"))
             return
         for i in range(int(rally_count)):
             p = self.fetch_rally_point(i)
@@ -342,7 +343,7 @@ class RallyModule(mp_module.MPModule):
 
         for i in range(self.rallyloader.rally_count()):
             p = self.rallyloader.rally_point(i)
-            self.console.writeln("lat=%f lng=%f alt=%f break_alt=%f land_dir=%f autoland=%f" % (p.lat * 1e-7, p.lng * 1e-7, p.alt, p.break_alt, p.land_dir, int(p.flags & 2!=0) ))
+            self.console.writeln(tr("lat_lng_alt_break_alt_land") % (p.lat * 1e-7, p.lng * 1e-7, p.alt, p.break_alt, p.land_dir, int(p.flags & 2!=0) ))
 
         if self.logdir is not None:
             fname = 'ral.txt'
@@ -350,10 +351,10 @@ class RallyModule(mp_module.MPModule):
                 fname = 'ral_%u.txt' % self.target_system
             ral_file_path = os.path.join(self.logdir, fname)
             self.rallyloader.save(ral_file_path)
-            print("Saved rally points to %s" % ral_file_path)
+            print(tr("saved_rally_points_to") % ral_file_path)
 
     def print_usage(self):
-        print("Usage: rally <list|load|land|save|add|remove|move|clear|alt>")
+        print(tr("usage_rally_list_load_land_save"))
 
 def init(mpstate):
     '''initialise module'''

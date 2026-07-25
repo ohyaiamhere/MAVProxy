@@ -5,11 +5,12 @@ import time
 from MAVProxy.modules.lib import mp_module
 from MAVProxy.modules.lib import mp_settings
 from pymavlink import mavutil
+from MAVProxy.modules.lib.mp_i18n import tr
 
 class WarningModule(mp_module.MPModule):
     def __init__(self, mpstate):
-        super(WarningModule, self).__init__(mpstate, "warning", "warning module")
-        self.add_command('warning', self.cmd_warning, "warning", ["details", "set (WARNINGSETTING)"])
+        super(WarningModule, self).__init__(mpstate, "warning", tr("mod_warning_module"))
+        self.add_command('warning', self.cmd_warning, tr("cmd_warning"), ["details", "set (WARNINGSETTING)"])
         self.check_time = time.time()
         self.warn_time = time.time()
         self.failure = None
@@ -42,9 +43,9 @@ class WarningModule(mp_module.MPModule):
             if args[0] == 'set':
                 state.warning_settings.command(args[1:])
             if args[0] == 'details':
-                print("warning: %s" % '|'.join(self.details))
+                print(tr("warning") % '|'.join(self.details))
         else:
-            print('usage: warning set|details')
+            print(tr("usage_warning_set_details"))
 
     def get_esc_rpms(self):
         '''get a dictionary of ESC RPMs'''

@@ -15,6 +15,7 @@ from MAVProxy.modules.lib import mp_module
 from MAVProxy.modules.lib import mp_settings
 from MAVProxy.modules.lib import wxsettings
 from MAVProxy.modules.lib.mp_menu import *
+from MAVProxy.modules.lib.mp_i18n import tr
 
 green = (0, 128, 0)
 
@@ -28,7 +29,7 @@ class DisplayItem:
 
 class ConsoleModule(mp_module.MPModule):
     def __init__(self, mpstate):
-        super(ConsoleModule, self).__init__(mpstate, "console", "GUI console", public=True, multi_vehicle=True)
+        super(ConsoleModule, self).__init__(mpstate, "console", tr("mod_gui_console"), public=True, multi_vehicle=True)
         self.in_air = False
         self.start_time = 0.0
         self.total_time = 0.0
@@ -40,7 +41,7 @@ class ConsoleModule(mp_module.MPModule):
         self.safety_on = False
         self.unload_check_interval = 5 # seconds
         self.last_unload_check_time = time.time()
-        self.add_command('console', self.cmd_console, "console module", ['add','list','remove'])
+        self.add_command('console', self.cmd_console, tr("cmd_console_module"), ['add','list','remove'])
         mpstate.console = wxconsole.MessageConsole(title='Console')
 
         # setup some default status information
@@ -103,14 +104,14 @@ class ConsoleModule(mp_module.MPModule):
         self.shown_agl = False
 
     def cmd_console(self, args):
-        usage = 'usage: console <add|list|remove|menu|set>'
+        usage = tr("usage_usage_console_add_list_remove_menu_set")
         if len(args) < 1:
             print(usage)
             return
         cmd = args[0]
         if cmd == 'add':
             if len(args) < 4:
-                print("usage: console add ID FORMAT EXPRESSION <row>")
+                print(tr("usage_console_add_id_format_expression"))
                 return
             if len(args) > 4:
                 row = int(args[4])
@@ -121,10 +122,10 @@ class ConsoleModule(mp_module.MPModule):
         elif cmd == 'list':
             for k in sorted(self.user_added.keys()):
                 d = self.user_added[k]
-                print("%s : FMT=%s EXPR=%s ROW=%u" % (k, d.format, d.expression, d.row))
+                print(tr("fmt_expr_row_u") % (k, d.format, d.expression, d.row))
         elif cmd == 'remove':
             if len(args) < 2:
-                print("usage: console remove ID")
+                print(tr("usage_console_remove_id"))
                 return
             id = args[1]
             if id in self.user_added:
@@ -144,7 +145,7 @@ class ConsoleModule(mp_module.MPModule):
     def cmd_menu_add(self, args):
         '''add to console menus'''
         if len(args) < 2:
-            print("Usage: console menu add MenuPath command")
+            print(tr("usage_console_menu_add_menupath_command"))
             return
         menupath = args[0].strip('"').split(':')
         name = menupath[-1]
@@ -155,7 +156,7 @@ class ConsoleModule(mp_module.MPModule):
     def cmd_menu(self, args):
         '''control console menus'''
         if len(args) < 2:
-            print("Usage: console menu <add>")
+            print(tr("usage_console_menu_add"))
             return
         if args[0] == 'add':
             self.cmd_menu_add(args[1:])
@@ -309,7 +310,7 @@ class ConsoleModule(mp_module.MPModule):
         now = time.time()
         if now - self.last_sys_status_errors_announce > self.mpstate.settings.sys_status_error_warn_interval:
             self.last_sys_status_errors_announce = now
-            self.say("Critical failure 0x%x sysid=%u compid=%u" % (errors, sysid, compid))
+            self.say(tr("critical_failure_0x_sysid_u_compid") % (errors, sysid, compid))
 
     def set_component_name(self, sysid, compid, name):
         if sysid not in self.component_name:
@@ -510,7 +511,7 @@ class ConsoleModule(mp_module.MPModule):
                 healthy = ((msg.onboard_control_sensors_health & bits) == bits)
                 was_healthy = ((self.last_sys_status_health & bits) == bits)
                 if enabled and not healthy and was_healthy:
-                    self.say("%s fail" % announce_unhealthy[s])
+                    self.say(tr("fail") % announce_unhealthy[s])
             announce_healthy = {
                 'PRE': 'pre-arm',
             }
@@ -520,7 +521,7 @@ class ConsoleModule(mp_module.MPModule):
                 healthy = ((msg.onboard_control_sensors_health & bits) == bits)
                 was_healthy = ((self.last_sys_status_health & bits) == bits)
                 if enabled and healthy and not was_healthy:
-                    self.say("%s good" % announce_healthy[s])
+                    self.say(tr("good") % announce_healthy[s])
             self.last_sys_status_health = msg.onboard_control_sensors_health
 
             if ((msg.onboard_control_sensors_enabled & mavutil.mavlink.MAV_SYS_STATUS_SENSOR_MOTOR_OUTPUTS) == 0):
@@ -803,7 +804,7 @@ class ConsoleModule(mp_module.MPModule):
                                                       limit=2, file=sys.stdout)
                         elif self.mpstate.settings.moddebug == 1:
                             print(ex)
-                        print(f"{id} failed")
+                        print(tr("failed") % (id,))
                 self.console.set_status(id, console_string, row = d.row)
 
     def mavlink_packet(self, msg):

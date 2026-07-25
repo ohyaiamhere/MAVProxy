@@ -8,22 +8,23 @@ June 2012
 import sys, os, time
 from cuav.lib import cuav_util
 from MAVProxy.modules.lib import mp_module
+from MAVProxy.modules.lib.mp_i18n import tr
 
 class AntennaModule(mp_module.MPModule):
     def __init__(self, mpstate):
-        super(AntennaModule, self).__init__(mpstate, "antenna", "antenna pointing module")
+        super(AntennaModule, self).__init__(mpstate, "antenna", tr("mod_antenna_pointing_module"))
         self.gcs_location = None
         self.last_bearing = 0
         self.last_announce = 0
-        self.add_command('antenna', self.cmd_antenna, "antenna link control")
+        self.add_command('antenna', self.cmd_antenna, tr("cmd_antenna_link_control"))
 
     def cmd_antenna(self, args):
         '''set gcs location'''
         if len(args) != 2:
             if self.gcs_location is None:
-                print("GCS location not set")
+                print(tr("gcs_location_not_set"))
             else:
-                print("GCS location %s" % str(self.gcs_location))
+                print(tr("gcs_location") % str(self.gcs_location))
             return
         self.gcs_location = (float(args[0]), float(args[1]))
 
@@ -34,7 +35,7 @@ class AntennaModule(mp_module.MPModule):
         if self.gcs_location is None and self.module('wp').wploader.count() > 0:
             home = self.module('wp').get_home()
             self.gcs_location = (home.x, home.y)
-            print("Antenna home set")
+            print(tr("antenna_home_set"))
         if self.gcs_location is None:
             return
         if m.get_type() == 'GPS_RAW' and self.gcs_location is not None:
@@ -49,7 +50,7 @@ class AntennaModule(mp_module.MPModule):
         if abs(bearing - self.last_bearing) > 5 and (time.time() - self.last_announce) > 15:
             self.last_bearing = bearing
             self.last_announce = time.time()
-            self.say("Antenna %u" % int(bearing + 0.5))
+            self.say(tr("antenna_u") % int(bearing + 0.5))
 
 def init(mpstate):
     '''initialise module'''

@@ -4,6 +4,7 @@ Graphical editing of mp_settings object
 import os, sys
 from MAVProxy.modules.lib import multiproc
 import threading
+from MAVProxy.modules.lib.mp_i18n import tr
 
 class WXSettings(object):
     '''
@@ -44,7 +45,7 @@ class WXSettings(object):
             try:
                 self.settings.set(setting.name, setting.value)
             except Exception:
-                print("Unable to set %s to %s" % (setting.name, setting.value))
+                print(tr("unable_to_set_to") % (setting.name, setting.value))
 
     def is_alive(self):
         '''check if child is still going'''
@@ -56,18 +57,18 @@ if __name__ == "__main__":
 
     def test_callback(setting):
         '''callback on apply'''
-        print("Changing %s to %s" % (setting.name, setting.value))
+        print(tr("changing_to") % (setting.name, setting.value))
 
     # test the settings
     from MAVProxy.modules.lib import mp_settings, time
     from MAVProxy.modules.lib.mp_settings import MPSetting
     settings = mp_settings.MPSettings(
-        [ MPSetting('link', int, 1, tab='TabOne'),
+        [ MPSetting('link', int, 1, tab=tr("set_tabone")),
           MPSetting('altreadout', int, 10, range=(-30,1017), increment=1),
           MPSetting('pvalue', float, 0.3, range=(-3.0,1e6), increment=0.1, digits=2),
-          MPSetting('enable', bool, True, tab='TabTwo'),
+          MPSetting('enable', bool, True, tab=tr("set_tabtwo")),
           MPSetting('colour', str, 'Blue', choice=['Red', 'Green', 'Blue']),
-          MPSetting('foostr', str, 'blah', label='Foo String') ])
+          MPSetting('foostr', str, 'blah', label=tr("set_foo_string")) ])
     settings.set_callback(test_callback)
     dlg = WXSettings(settings)
     while dlg.is_alive():

@@ -15,18 +15,19 @@ import glob
 import json
 import xmltodict
 import os
+from MAVProxy.modules.lib.mp_i18n import tr, ensure_language_from_argv
 
 try:
     from openai import OpenAI
 except Exception:
-    print("chat: failed to import openai. See https://ardupilot.org/mavproxy/docs/modules/chat.html")
+    print(tr("chat_failed_to_import_openai_see"))
     exit()
 
 
 # main function
 def main(openai_api_key=None, assistant_name=None, model_name=None, upgrade=False):
 
-    print("Starting assistant setup")
+    print(tr("starting_assistant_setup"))
 
     # create connection object
     try:
@@ -39,7 +40,7 @@ def main(openai_api_key=None, assistant_name=None, model_name=None, upgrade=Fals
             client = OpenAI()
     except Exception:
         # if connection object creation fails, exit with error message
-        print("setup_assistant: failed to connect to OpenAI.  Perhaps the API key was incorrect?")
+        print(tr("setup_assistant_failed_to_connect_to"))
         exit()
 
     # use assistant name if provided, otherwise use default
@@ -59,13 +60,13 @@ def main(openai_api_key=None, assistant_name=None, model_name=None, upgrade=Fals
     # check that at least one text file exists.  E.g. text files holding the flight mode number to name mappings
     text_filenames = glob.glob(os.path.join(os.getcwd(), "*.txt"))
     if len(text_filenames) == 0:
-        print("setup_assistant: no txt files found")
+        print(tr("setup_assistant_no_txt_files_found"))
         exit()
 
     # check function definition files exist
     function_filenames = glob.glob(os.path.join(os.getcwd(), "*.json"))
     if len(function_filenames) == 0:
-        print("setup_assistant: no function json files found")
+        print(tr("setup_assistant_no_function_json_files"))
         exit()
 
     # parse function definition files
@@ -86,7 +87,7 @@ def main(openai_api_key=None, assistant_name=None, model_name=None, upgrade=Fals
 
     # check that at least one function was parsed
     if len(function_tools) == 0:
-        print("setup_assistant: no function json files found")
+        print(tr("setup_assistant_no_function_json_files"))
         exit()
 
     # download latest MAVLink files from ardupilot MAVLink repo, minimal.xml, common.xml and ardupilotmega.xml
@@ -113,7 +114,7 @@ def main(openai_api_key=None, assistant_name=None, model_name=None, upgrade=Fals
 
     # exit if assistant was found but upgrade was not requested
     if assistant is not None and not upgrade:
-        print("setup_assistant: assistant already exists, not upgrading")
+        print(tr("setup_assistant_assistant_already_exists_not"))
         exit()
 
     # if assistant was not found, create it
@@ -126,7 +127,7 @@ def main(openai_api_key=None, assistant_name=None, model_name=None, upgrade=Fals
         instructions_content = open(instructions_filename, 'r').read()
         client.beta.assistants.update(assistant.id, instructions=instructions_content, tools=function_tools)
     except Exception:
-        print("setup_assistant: failed to update assistant instructions")
+        print(tr("setup_assistant_failed_to_update_assistant"))
         exit()
 
     # upload MAVLink and text files
@@ -208,7 +209,7 @@ def main(openai_api_key=None, assistant_name=None, model_name=None, upgrade=Fals
         print("setup_assistant: updating assistant vector store to id:" + vector_store.id + " name:" + vector_store_name)
         client.beta.assistants.update(assistant.id, tool_resources={"file_search": {"vector_store_ids": [vector_store.id]}})
     except Exception:
-        print("setup_assistant: failed to update assistant vector store")
+        print(tr("setup_assistant_failed_to_update_assistant_2"))
         exit()
 
     # delete downloaded mavlink files
@@ -220,7 +221,7 @@ def main(openai_api_key=None, assistant_name=None, model_name=None, upgrade=Fals
             print("setup_assistant: failed to delete file: " + mavlink_filename)
 
     # print completion message
-    print("Assistant setup complete")
+    print(tr("assistant_setup_complete"))
 
 
 def download_file(url, filename):
@@ -262,10 +263,11 @@ if __name__ == "__main__":
 
     # parse command line arguments
     from argparse import ArgumentParser
-    parser = ArgumentParser(description="MAVProxy AI chat module OpenAI Assistant setup script")
-    parser.add_argument("--api-key", default=None, help="OpenAI API Key")
-    parser.add_argument("--name", default=None, help="Assistant name")
-    parser.add_argument("--model", default=None, help="model name")
-    parser.add_argument("--upgrade", action='store_true', help="upgrade existing assistant")
+    ensure_language_from_argv()
+    parser = ArgumentParser(description=tr("opt_mavproxy_ai_chat_module_openai_assistant_setup_script"))
+    parser.add_argument("--api-key", default=None, help=tr("opt_openai_api_key"))
+    parser.add_argument("--name", default=None, help=tr("opt_assistant_name"))
+    parser.add_argument("--model", default=None, help=tr("opt_model_name"))
+    parser.add_argument("--upgrade", action='store_true', help=tr("opt_upgrade_existing_assistant"))
     args = parser.parse_args()
     main(openai_api_key=args.api_key, assistant_name=args.name, model_name=args.model, upgrade=args.upgrade)

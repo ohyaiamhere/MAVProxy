@@ -9,6 +9,7 @@ import time
 from pymavlink import mavutil, mavwp
 from MAVProxy.modules.lib import mp_module
 from MAVProxy.modules.lib import mp_util
+from MAVProxy.modules.lib.mp_i18n import tr
 if mp_util.has_wxpython:
     from MAVProxy.modules.lib.mp_menu import MPMenuCallFileDialog
     from MAVProxy.modules.lib.mp_menu import MPMenuCallTextDialog
@@ -25,7 +26,7 @@ except ImportError:
 
 class WPModule(mp_module.MPModule):
     def __init__(self, mpstate):
-        super(WPModule, self).__init__(mpstate, "wp", "waypoint handling", public=True)
+        super(WPModule, self).__init__(mpstate, "wp", tr("mod_waypoint_handling"), public=True)
         self.wp_op = None
         self.wp_requested = {}
         self.wp_received = {}
@@ -40,7 +41,7 @@ class WPModule(mp_module.MPModule):
         self.undo_wp_idx = -1
         self.upload_start = None
         self.last_get_home = time.time()
-        self.add_command('wp', self.cmd_wp, 'waypoint management',
+        self.add_command('wp', self.cmd_wp, tr("cmd_waypoint_management"),
                          ["<list|clear|move|remove|loop|set|undo|movemulti|moverelhome|changealt|param|status|slope|ftp|add_takeoff|add_landing|add_dls|add_rtl>",  # noqa
                           "<load|update|save|savecsv|show|ftpload> (FILENAME)"])
         self.mission_ftp_name = "@MISSION/mission.dat"
@@ -53,7 +54,7 @@ class WPModule(mp_module.MPModule):
             waytxt = os.path.join(mpstate.status.logdir, 'way.txt')
             if os.path.exists(waytxt):
                 self.wploader.load(waytxt)
-                print("Loaded waypoints from %s" % waytxt)
+                print(tr("loaded_waypoints_from") % waytxt)
 
         self.menu_added_console = False
         self.menu_added_map = False
@@ -136,9 +137,9 @@ class WPModule(mp_module.MPModule):
     def wp_status(self):
         '''show status of wp download'''
         try:
-            print("Have %u of %u waypoints" % (self.wploader.count()+len(self.wp_received), self.wploader.expected_count))
+            print(tr("have_u_of_u_waypoints") % (self.wploader.count()+len(self.wp_received), self.wploader.expected_count))
         except Exception:
-            print("Have %u waypoints" % (self.wploader.count()+len(self.wp_received)))
+            print(tr("have_u_waypoints") % (self.wploader.count()+len(self.wp_received)))
 
     def mavlink_packet(self, m):
         '''handle an incoming mavlink packet'''
@@ -149,10 +150,10 @@ class WPModule(mp_module.MPModule):
                 return
             if self.wp_op is None:
                 if self.wploader.expected_count != m.count:
-                    self.console.writeln("Mission is stale")
+                    self.console.writeln(tr("mission_is_stale"))
             else:
                 self.wploader.clear()
-                self.console.writeln("Requesting %u waypoints t=%s now=%s" % (
+                self.console.writeln(tr("requesting_u_waypoints_t_now") % (
                     m.count,
                     time.asctime(time.localtime(m._timestamp)),
                     time.asctime()))
@@ -170,7 +171,7 @@ class WPModule(mp_module.MPModule):
                 # print("DUPLICATE %u" % m.seq)
                 return
             if m.seq+1 > self.wploader.expected_count:
-                self.console.writeln("Unexpected waypoint number %u - expected %u" % (m.seq, self.wploader.count()))
+                self.console.writeln(tr("unexpected_waypoint_number_u_expected_u") % (m.seq, self.wploader.count()))
             self.wp_received[m.seq] = m
             next_seq = self.wploader.count()
             while next_seq in self.wp_received:
@@ -197,7 +198,7 @@ class WPModule(mp_module.MPModule):
             if m.seq != self.last_waypoint:
                 self.last_waypoint = m.seq
                 if self.settings.wpupdates:
-                    self.say("waypoint %u" % m.seq, priority='message')
+                    self.say(tr("waypoint_u") % m.seq, priority='message')
 
         elif mtype == "MISSION_ITEM_REACHED":
             wp = self.wploader.wp(m.seq)
@@ -209,7 +210,7 @@ class WPModule(mp_module.MPModule):
                 if wp.command == mavutil.mavlink.MAV_CMD_DO_LAND_START:
                     alt_offset = self.get_mav_param('ALT_OFFSET', 0)
                     if alt_offset > 0.005:
-                        self.say("ALT OFFSET IS NOT ZERO passing DO_LAND_START")
+                        self.say(tr("alt_offset_is_not_zero_passing"))
 
         elif mtype == "COMMAND_ACK":
             # check to see if the vehicle has bounced our attempts to
@@ -231,7 +232,7 @@ class WPModule(mp_module.MPModule):
                     self.master.time_since('MISSION_ITEM') >= 2 and
                     self.wploader.count() < getattr(self.wploader, 'expected_count', 0)):
                 wps = self.missing_wps_to_request()
-                print("re-requesting WPs %s" % str(wps))
+                print(tr("re_requesting_wps") % str(wps))
                 self.send_wp_requests(wps)
         if self.module('console') is not None:
             if not self.menu_added_console:
@@ -334,7 +335,7 @@ class WPModule(mp_module.MPModule):
             # self.console.error("not loading waypoints")
             return
         if m.seq >= self.wploader.count():
-            self.console.error("Request for bad waypoint %u (max %u)" % (m.seq, self.wploader.count()))
+            self.console.error(tr("request_for_bad_waypoint_u_max") % (m.seq, self.wploader.count()))
             return
         wp = self.wploader.wp(m.seq)
         wp.target_system = self.target_system
@@ -348,8 +349,8 @@ class WPModule(mp_module.MPModule):
         self.mpstate.console.set_status('Mission', 'Mission %u/%u' % (m.seq, self.wploader.count()-1))
         if m.seq == self.wploader.count() - 1:
             self.loading_waypoints = False
-            print("Loaded %u waypoint in %.2fs" % (self.wploader.count(), time.time() - self.upload_start))
-            self.console.writeln("Sent all %u waypoints" % self.wploader.count())
+            print(tr("loaded_u_waypoint_in_s") % (self.wploader.count(), time.time() - self.upload_start))
+            self.console.writeln(tr("sent_all_u_waypoints") % self.wploader.count())
 
     def send_all_waypoints(self):
         '''send all waypoints to vehicle'''
@@ -369,9 +370,9 @@ class WPModule(mp_module.MPModule):
             # need to remove the leading and trailing quotes in filename
             self.wploader.load(filename.strip('"'))
         except Exception as msg:
-            print("Unable to load %s - %s" % (filename, msg))
+            print(tr("unable_to_load") % (filename, msg))
             return
-        print("Loaded %u waypoints from %s" % (self.wploader.count(), filename))
+        print(tr("loaded_u_waypoints_from") % (self.wploader.count(), filename))
         self.send_all_waypoints()
 
     def update_waypoints(self, filename, wpnum):
@@ -381,18 +382,18 @@ class WPModule(mp_module.MPModule):
         try:
             self.wploader.load(filename)
         except Exception as msg:
-            print("Unable to load %s - %s" % (filename, msg))
+            print(tr("unable_to_load") % (filename, msg))
             return
         if self.wploader.count() == 0:
-            print("No waypoints found in %s" % filename)
+            print(tr("no_waypoints_found_in") % filename)
             return
         if wpnum == -1:
-            print("Loaded %u updated waypoints from %s" % (self.wploader.count(), filename))
+            print(tr("loaded_u_updated_waypoints_from") % (self.wploader.count(), filename))
         elif wpnum >= self.wploader.count():
-            print("Invalid waypoint number %u" % wpnum)
+            print(tr("invalid_waypoint_number_u") % wpnum)
             return
         else:
-            print("Loaded updated waypoint %u from %s" % (wpnum, filename))
+            print(tr("loaded_updated_waypoint_u_from") % (wpnum, filename))
 
         self.loading_waypoints = True
         self.loading_waypoint_lasttime = time.time()
@@ -413,9 +414,9 @@ class WPModule(mp_module.MPModule):
             # need to remove the leading and trailing quotes in filename
             self.wploader.save(filename.strip('"'))
         except Exception as msg:
-            print("Failed to save %s - %s" % (filename, msg))
+            print(tr("failed_to_save") % (filename, msg))
             return
-        print("Saved %u waypoints to %s" % (self.wploader.count(), filename))
+        print(tr("saved_u_waypoints_to") % (self.wploader.count(), filename))
 
     def save_waypoints_csv(self, filename):
         '''save waypoints to a file in a human readable CSV file'''
@@ -423,22 +424,22 @@ class WPModule(mp_module.MPModule):
             # need to remove the leading and trailing quotes in filename
             self.wploader.savecsv(filename.strip('"'))
         except Exception as msg:
-            print("Failed to save %s - %s" % (filename, msg))
+            print(tr("failed_to_save") % (filename, msg))
             return
-        print("Saved %u waypoints to CSV %s" % (self.wploader.count(), filename))
+        print(tr("saved_u_waypoints_to_csv") % (self.wploader.count(), filename))
 
     def cmd_wp_move(self, args):
         '''handle wp move'''
         if len(args) != 1:
-            print("usage: wp move WPNUM")
+            print(tr("usage_wp_move_wpnum"))
             return
         idx = int(args[0])
         if idx < 1 or idx > self.wploader.count():
-            print("Invalid wp number %u" % idx)
+            print(tr("invalid_wp_number_u") % idx)
             return
         latlon = self.mpstate.click_location
         if latlon is None:
-            print("No map click position available")
+            print(tr("no_map_click_position_available"))
             return
         wp = self.wploader.wp(idx)
 
@@ -466,7 +467,7 @@ class WPModule(mp_module.MPModule):
                                                         self.target_component,
                                                         idx, idx)
         self.wploader.set(wp, idx)
-        print("Moved WP %u to %f, %f at %.1fm" % (idx, lat, lon, wp.z))
+        print(tr("moved_wp_u_to_at_m") % (idx, lat, lon, wp.z))
 
     def is_location_command(self, cmd):
         '''see if cmd is a MAV_CMD with a latitude/longitude'''
@@ -484,22 +485,22 @@ class WPModule(mp_module.MPModule):
     def cmd_wp_movemulti(self, args, latlon=None):
         '''handle wp move of multiple waypoints'''
         if len(args) < 3:
-            print("usage: wp movemulti WPNUM WPSTART WPEND <rotation>")
+            print(tr("usage_wp_movemulti_wpnum_wpstart_wpend"))
             return
         idx = int(args[0])
         if idx < 1 or idx > self.wploader.count():
-            print("Invalid wp number %u" % idx)
+            print(tr("invalid_wp_number_u") % idx)
             return
         wpstart = int(args[1])
         if wpstart < 1 or wpstart > self.wploader.count():
-            print("Invalid wp number %u" % wpstart)
+            print(tr("invalid_wp_number_u") % wpstart)
             return
         wpend = int(args[2])
         if wpend < 1 or wpend > self.wploader.count():
-            print("Invalid wp number %u" % wpend)
+            print(tr("invalid_wp_number_u") % wpend)
             return
         if idx < wpstart or idx > wpend:
-            print("WPNUM must be between WPSTART and WPEND")
+            print(tr("wpnum_must_be_between_wpstart_and"))
             return
 
         # optional rotation about center point
@@ -511,11 +512,11 @@ class WPModule(mp_module.MPModule):
         if latlon is None:
             latlon = self.mpstate.click_location
         if latlon is None:
-            print("No map click position available")
+            print(tr("no_map_click_position_available"))
             return
         wp = self.wploader.wp(idx)
         if not self.is_location_wp(wp):
-            print("WP must be a location command")
+            print(tr("wp_must_be_a_location_command"))
             return
 
         (lat, lon) = latlon
@@ -551,28 +552,28 @@ class WPModule(mp_module.MPModule):
         self.master.mav.mission_write_partial_list_send(self.target_system,
                                                         self.target_component,
                                                         wpstart, wpend+1)
-        print("Moved WPs %u:%u to %f, %f rotation=%.1f" % (wpstart, wpend, lat, lon, rotation))
+        print(tr("moved_wps_u_u_to_rotation") % (wpstart, wpend, lat, lon, rotation))
 
     def cmd_wp_move_rel_home(self, args, latlon=None):
         '''handle wp move to a point relative to home by dist/bearing'''
         if len(args) < 3:
-            print("usage: wp moverelhome WPNUM dist bearing")
+            print(tr("usage_wp_moverelhome_wpnum_dist_bearing"))
             return
         idx = int(args[0])
         if idx < 1 or idx > self.wploader.count():
-            print("Invalid wp number %u" % idx)
+            print(tr("invalid_wp_number_u") % idx)
             return
         dist = float(args[1])
         bearing = float(args[2])
 
         home = self.get_home()
         if home is None:
-            print("Need home")
+            print(tr("need_home"))
             return
 
         wp = self.wploader.wp(idx)
         if not self.is_location_wp(wp):
-            print("Not a nav command")
+            print(tr("not_a_nav_command"))
             return
         (newlat, newlon) = mp_util.gps_newpos(home.x, home.y, bearing, dist)
         wp.x = newlat
@@ -586,16 +587,16 @@ class WPModule(mp_module.MPModule):
         self.master.mav.mission_write_partial_list_send(self.target_system,
                                                         self.target_component,
                                                         idx, idx+1)
-        print("Moved WP %u %.1fm bearing %.1f from home" % (idx, dist, bearing))
+        print(tr("moved_wp_u_m_bearing_from") % (idx, dist, bearing))
 
     def cmd_wp_changealt(self, args):
         '''handle wp change target alt of multiple waypoints'''
         if len(args) < 2:
-            print("usage: wp changealt WPNUM NEWALT <NUMWP>")
+            print(tr("usage_wp_changealt_wpnum_newalt_numwp"))
             return
         idx = int(args[0])
         if idx < 1 or idx > self.wploader.count():
-            print("Invalid wp number %u" % idx)
+            print(tr("invalid_wp_number_u") % idx)
             return
         newalt = float(args[1])
         if len(args) >= 3:
@@ -617,16 +618,16 @@ class WPModule(mp_module.MPModule):
         self.master.mav.mission_write_partial_list_send(self.target_system,
                                                         self.target_component,
                                                         idx, idx+count)
-        print("Changed alt for WPs %u:%u to %f" % (idx, idx+(count-1), newalt))
+        print(tr("changed_alt_for_wps_u_u") % (idx, idx+(count-1), newalt))
 
     def cmd_wp_remove(self, args):
         '''handle wp remove'''
         if len(args) != 1:
-            print("usage: wp remove WPNUM")
+            print(tr("usage_wp_remove_wpnum"))
             return
         idx = int(args[0])
         if idx < 0 or idx >= self.wploader.count():
-            print("Invalid wp number %u" % idx)
+            print(tr("invalid_wp_number_u") % idx)
             return
         wp = self.wploader.wp(idx)
 
@@ -638,12 +639,12 @@ class WPModule(mp_module.MPModule):
         self.wploader.remove(wp)
         self.fix_jumps(idx, -1)
         self.send_all_waypoints()
-        print("Removed WP %u" % idx)
+        print(tr("removed_wp_u") % idx)
 
     def cmd_wp_undo(self):
         '''handle wp undo'''
         if self.undo_wp_idx == -1 or self.undo_wp is None:
-            print("No undo information")
+            print(tr("no_undo_information"))
             return
         wp = self.undo_wp
         if self.undo_type == 'move':
@@ -655,35 +656,35 @@ class WPModule(mp_module.MPModule):
                                                             self.target_component,
                                                             self.undo_wp_idx, self.undo_wp_idx)
             self.wploader.set(wp, self.undo_wp_idx)
-            print("Undid WP move")
+            print(tr("undid_wp_move"))
         elif self.undo_type == 'remove':
             self.wploader.insert(self.undo_wp_idx, wp)
             self.fix_jumps(self.undo_wp_idx, 1)
             self.send_all_waypoints()
-            print("Undid WP remove")
+            print(tr("undid_wp_remove"))
         else:
-            print("bad undo type")
+            print(tr("bad_undo_type"))
         self.undo_wp = None
         self.undo_wp_idx = -1
 
     def cmd_wp_param(self, args):
         '''handle wp parameter change'''
         if len(args) < 2:
-            print("usage: wp param WPNUM PNUM <VALUE>")
+            print(tr("usage_wp_param_wpnum_pnum_value"))
             return
         idx = int(args[0])
         if idx < 1 or idx > self.wploader.count():
-            print("Invalid wp number %u" % idx)
+            print(tr("invalid_wp_number_u") % idx)
             return
         wp = self.wploader.wp(idx)
         param = [wp.param1, wp.param2, wp.param3, wp.param4]
         pnum = int(args[1])
         if pnum < 1 or pnum > 4:
-            print("Invalid param number %u" % pnum)
+            print(tr("invalid_param_number_u") % pnum)
             return
 
         if len(args) == 2:
-            print("Param %u: %f" % (pnum, param[pnum-1]))
+            print(tr("param_u") % (pnum, param[pnum-1]))
             return
 
         param[pnum-1] = float(args[2])
@@ -700,7 +701,7 @@ class WPModule(mp_module.MPModule):
                                                         self.target_component,
                                                         idx, idx)
         self.wploader.set(wp, idx)
-        print("Set param %u for %u to %f" % (pnum, idx, param[pnum-1]))
+        print(tr("set_param_u_for_u_to") % (pnum, idx, param[pnum-1]))
 
     def cmd_clear(self, args):
         '''clear waypoints'''
@@ -713,19 +714,19 @@ class WPModule(mp_module.MPModule):
 
     def cmd_wp(self, args):
         '''waypoint commands'''
-        usage = "usage: wp <editor|list|load|update|save|set|clear|loop|remove|move|movemulti|changealt|ftp|ftpload|add_takeoff|add_landing|add_dls>"  # noqa
+        usage = tr("usage_usage_wp_editor_list_load_update_save_set")  # noqa
         if len(args) < 1:
             print(usage)
             return
 
         if args[0] == "load":
             if len(args) != 2:
-                print("usage: wp load <filename>")
+                print(tr("usage_wp_load_filename"))
                 return
             self.load_waypoints(args[1])
         elif args[0] == "update":
             if len(args) < 2:
-                print("usage: wp update <filename> <wpnum>")
+                print(tr("usage_wp_update_filename_wpnum"))
                 return
             if len(args) == 3:
                 wpnum = int(args[2])
@@ -737,24 +738,24 @@ class WPModule(mp_module.MPModule):
             self.master.waypoint_request_list_send()
         elif args[0] == "save":
             if len(args) != 2:
-                print("usage: wp save <filename>")
+                print(tr("usage_wp_save_filename"))
                 return
             self.wp_save_filename = args[1]
             self.wp_op = "save"
             self.master.waypoint_request_list_send()
         elif args[0] == "savecsv":
             if len(args) != 2:
-                print("usage: wp savecsv <filename.csv>")
+                print(tr("usage_wp_savecsv_filename_csv"))
                 return
             self.savecsv(args[1])
         elif args[0] == "savelocal":
             if len(args) != 2:
-                print("usage: wp savelocal <filename>")
+                print(tr("usage_wp_savelocal_filename"))
                 return
             self.wploader.save(args[1])
         elif args[0] == "show":
             if len(args) != 2:
-                print("usage: wp show <filename>")
+                print(tr("usage_wp_show_filename"))
                 return
             self.wploader.load(args[1])
         elif args[0] == "move":
@@ -773,7 +774,7 @@ class WPModule(mp_module.MPModule):
             self.cmd_wp_undo()
         elif args[0] == "set":
             if len(args) != 2:
-                print("usage: wp set <wpindex>")
+                print(tr("usage_wp_set_wpindex"))
                 return
             # At time of writing MAVProxy sends to (1, 0) by default,
             # but ArduPilot will respond from (1,1) by default -and
@@ -807,15 +808,15 @@ class WPModule(mp_module.MPModule):
                 self.mpstate.functions.process_stdin("module load misseditor", immediate=True)
         elif args[0] == "draw":
             if 'draw_lines' not in self.mpstate.map_functions:
-                print("No map drawing available")
+                print(tr("no_map_drawing_available"))
                 return
             if self.get_home() is None:
-                print("Need home location - please run gethome")
+                print(tr("need_home_location_please_run_gethome"))
                 return
             if len(args) > 1:
                 self.settings.wpalt = int(args[1])
             self.mpstate.map_functions['draw_lines'](self.wp_draw_callback)
-            print("Drawing waypoints on map at altitude %d" % self.settings.wpalt)
+            print(tr("drawing_waypoints_on_map_at_altitude") % self.settings.wpalt)
         elif args[0] == "sethome":
             self.set_home_location()
         elif args[0] == "loop":
@@ -828,7 +829,7 @@ class WPModule(mp_module.MPModule):
             self.wp_ftp_download()
         elif args[0] == "ftpload":
             if len(args) != 2:
-                print("usage: wp ftpload <filename>")
+                print(tr("usage_wp_ftpload_filename"))
                 return
             self.wp_ftp_upload(args[1])
         elif args[0] == "add_takeoff":
@@ -907,9 +908,9 @@ class WPModule(mp_module.MPModule):
         '''Download wpts from vehicle with ftp'''
         ftp = self.mpstate.module('ftp')
         if ftp is None:
-            print("Need ftp module")
+            print(tr("need_ftp_module"))
             return
-        print("Fetching mission with ftp")
+        print(tr("fetching_mission_with_ftp"))
         self.ftp_count = None
         ftp.cmd_get([self.mission_ftp_name], callback=self.ftp_callback, callback_progress=self.ftp_callback_progress)
 
@@ -932,16 +933,16 @@ class WPModule(mp_module.MPModule):
     def ftp_callback(self, fh):
         '''callback from ftp fetch of mission'''
         if fh is None:
-            print("mission: failed ftp download")
+            print(tr("mission_failed_ftp_download"))
             return
         magic = 0x763d
         data = fh.read()
         magic2, dtype, options, start, num_items = struct.unpack("<HHHHH", data[0:10])
         if magic != magic2:
-            print("mission: bad magic 0x%x expected 0x%x" % (magic2, magic))
+            print(tr("mission_bad_magic_0x_expected_0x") % (magic2, magic))
             return
         if dtype != mavutil.mavlink.MAV_MISSION_TYPE_MISSION:
-            print("mission: bad data type %u" % dtype)
+            print(tr("mission_bad_data_type_u") % dtype)
             return
 
         self.wploader.clear()
@@ -967,7 +968,7 @@ class WPModule(mp_module.MPModule):
         '''display waypoints and save'''
         for i in range(self.wploader.count()):
             w = self.wploader.wp(i)
-            print("%u %u %.10f %.10f %f p1=%.1f p2=%.1f p3=%.1f p4=%.1f cur=%u auto=%u" % (
+            print(tr("u_u_p1_p2_p3_p4") % (
                 w.command, w.frame, w.x, w.y, w.z,
                 w.param1, w.param2, w.param3, w.param4,
                 w.current, w.autocontinue))
@@ -977,13 +978,13 @@ class WPModule(mp_module.MPModule):
                 fname = 'way_%u.txt' % source_system
             waytxt = os.path.join(self.logdir, fname)
             self.save_waypoints(waytxt)
-            print("Saved waypoints to %s" % waytxt)
+            print(tr("saved_waypoints_to") % waytxt)
 
     def wp_ftp_upload(self, filename):
         '''upload waypoints to vehicle with ftp'''
         ftp = self.mpstate.module('ftp')
         if ftp is None:
-            print("Need ftp module")
+            print(tr("need_ftp_module"))
             return
         self.wploader.target_system = self.target_system
         self.wploader.target_component = self.target_component
@@ -991,10 +992,10 @@ class WPModule(mp_module.MPModule):
             # need to remove the leading and trailing quotes in filename
             self.wploader.load(filename.strip('"'))
         except Exception as msg:
-            print("Unable to load %s - %s" % (filename, msg))
+            print(tr("unable_to_load") % (filename, msg))
             return
-        print("Loaded %u waypoints from %s" % (self.wploader.count(), filename))
-        print("Sending mission with ftp")
+        print(tr("loaded_u_waypoints_from") % (self.wploader.count(), filename))
+        print(tr("sending_mission_with_ftp"))
 
         fh = SIO()
         fh.write(struct.pack("<HHHHH", 0x763d, mavutil.mavlink.MAV_MISSION_TYPE_MISSION, 0, 0, self.wploader.count()))
@@ -1026,11 +1027,11 @@ class WPModule(mp_module.MPModule):
     def ftp_upload_callback(self, dlen):
         '''callback from ftp put of mission'''
         if dlen is None:
-            print("Failed to send waypoints")
+            print(tr("failed_to_send_waypoints"))
         else:
             mavmsg = mavutil.mavlink.MAVLink_mission_item_int_message
             item_size = mavmsg.unpacker.size
-            print("Sent mission of length %u in %.2fs" % ((dlen - 10) // item_size, time.time() - self.upload_start))
+            print(tr("sent_mission_of_length_u_in") % ((dlen - 10) // item_size, time.time() - self.upload_start))
 
     # waypoint-specific methods:
     def wp_slope(self, args):
@@ -1047,10 +1048,10 @@ class WPModule(mp_module.MPModule):
             else:
                 delta_xy = mp_util.gps_distance(w1.x, w1.y, w2.x, w2.y)
                 slope = "%.1f" % (delta_xy / delta_alt)
-            print("wp%u -> wp%u %s" % (wp1, wp2, slope))
+            print(tr("wp_u_wp_u") % (wp1, wp2, slope))
             return
         if len(args) != 0:
-            print("Usage: wp slope WP1 WP2")
+            print(tr("usage_wp_slope_wp1_wp2"))
             return
         last_w = None
         for i in range(1, self.wploader.count()):
@@ -1059,14 +1060,14 @@ class WPModule(mp_module.MPModule):
                 continue
             if last_w is not None:
                 if last_w.frame != w.frame:
-                    print("WARNING: frame change %u -> %u at %u" % (last_w.frame, w.frame, i))
+                    print(tr("warning_frame_change_u_u_at") % (last_w.frame, w.frame, i))
                 delta_alt = last_w.z - w.z
                 if delta_alt == 0:
                     slope = "Level"
                 else:
                     delta_xy = mp_util.gps_distance(w.x, w.y, last_w.x, last_w.y)
                     slope = "%.1f" % (delta_xy / delta_alt)
-                print("WP%u: slope %s" % (i, slope))
+                print(tr("wp_u_slope") % (i, slope))
             last_w = w
 
     def get_default_frame(self):
@@ -1103,7 +1104,7 @@ class WPModule(mp_module.MPModule):
         if self.wploader.count() < 2:
             home = self.get_home()
             if home is None:
-                print("Need home location for draw - please run gethome")
+                print(tr("need_home_location_for_draw_please"))
                 return
             self.wploader.clear()
             self.wploader.add(home)
@@ -1119,11 +1120,11 @@ class WPModule(mp_module.MPModule):
         '''close the loop on a mission'''
         loader = self.wploader
         if loader.count() < 2:
-            print("Not enough waypoints (%u)" % loader.count())
+            print(tr("not_enough_waypoints_u") % loader.count())
             return
         wp = loader.wp(loader.count()-2)
         if wp.command == mavutil.mavlink.MAV_CMD_DO_JUMP:
-            print("Mission is already looped")
+            print(tr("mission_is_already_looped"))
             return
         if (loader.count() > 1 and
                 loader.wp(1).command in [mavutil.mavlink.MAV_CMD_NAV_TAKEOFF, mavutil.mavlink.MAV_CMD_NAV_VTOL_TAKEOFF]):
@@ -1136,13 +1137,13 @@ class WPModule(mp_module.MPModule):
         self.loading_waypoints = True
         self.loading_waypoint_lasttime = time.time()
         self.master.waypoint_count_send(self.wploader.count())
-        print("Closed loop on mission")
+        print(tr("closed_loop_on_mission"))
 
     def wp_add_takeoff(self, args):
         '''add a takeoff as first mission item'''
         latlon = self.mpstate.click_location
         if latlon is None:
-            print("No position chosen")
+            print(tr("no_position_chosen"))
             return
         takeoff_alt = 20
         if len(args) > 0:
@@ -1158,7 +1159,7 @@ class WPModule(mp_module.MPModule):
         if self.wploader.count() < 2:
             home = self.get_home()
             if home is None:
-                print("Need home location - please run gethome")
+                print(tr("need_home_location_please_run_gethome"))
                 return
             self.wploader.clear()
             self.wploader.add(home)
@@ -1170,7 +1171,7 @@ class WPModule(mp_module.MPModule):
         '''add a landing as last mission item'''
         latlon = self.mpstate.click_location
         if latlon is None:
-            print("No position chosen")
+            print(tr("no_position_chosen"))
             return
         if self.is_quadplane():
             wptype = mavutil.mavlink.MAV_CMD_NAV_VTOL_LAND
@@ -1198,7 +1199,7 @@ class WPModule(mp_module.MPModule):
         '''add a DO_LAND_START as last mission item'''
         latlon = self.mpstate.click_location
         if latlon is None:
-            print("No position chosen")
+            print(tr("no_position_chosen"))
             return
         wp = mavutil.mavlink.MAVLink_mission_item_message(0, 0, 0,
                                                           mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT,
@@ -1212,7 +1213,7 @@ class WPModule(mp_module.MPModule):
         '''set home location from last map click'''
         latlon = self.mpstate.click_location
         if latlon is None:
-            print("No position available")
+            print(tr("no_position_available"))
             return
         lat = float(latlon[0])
         lon = float(latlon[1])
@@ -1267,37 +1268,37 @@ class WPModule(mp_module.MPModule):
             return "Bad wp num (%s)" % args[0]
 
         if num < 1 or num > self.wploader.count():
-            print("Bad item %s" % str(num))
+            print(tr("bad_item") % str(num))
             return
         wp = self.wploader.wp(num)
         if wp is None:
-            print("Could not get wp %u" % num)
+            print(tr("could_not_get_wp_u") % num)
             return
         loc = self.get_loc(wp)
         if loc is None:
-            print("wp is not a location command")
+            print(tr("wp_is_not_a_location_command"))
             return
 
         prev = num - 1
         if prev < 1 or prev > self.wploader.count():
-            print("Bad item %u" % num)
+            print(tr("bad_item_u") % num)
             return
         prev_wp = self.wploader.wp(prev)
         if prev_wp is None:
-            print("Could not get previous wp %u" % prev)
+            print(tr("could_not_get_previous_wp_u") % prev)
             return
         prev_loc = self.get_loc(prev_wp)
         if prev_loc is None:
-            print("previous wp is not a location command")
+            print(tr("previous_wp_is_not_a_location"))
             return
 
         if wp.frame != prev_wp.frame:
-            print("waypoints differ in frame (%u vs %u)" %
+            print(tr("waypoints_differ_in_frame_u_vs") %
                   (wp.frame, prev_wp.frame))
             return
 
         if wp.frame != prev_wp.frame:
-            print("waypoints differ in frame")
+            print(tr("waypoints_differ_in_frame"))
             return
 
         lat_avg = (loc.lat + prev_loc.lat)/2

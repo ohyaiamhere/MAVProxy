@@ -6,12 +6,13 @@ from MAVProxy.modules.lib import mp_module
 from MAVProxy.modules.lib import mp_settings
 from pymavlink import mavutil
 import time
+from MAVProxy.modules.lib.mp_i18n import tr
 
 class OpenDroneIDModule(mp_module.MPModule):
 
     def __init__(self, mpstate):
-        super(OpenDroneIDModule, self).__init__(mpstate, "OpenDroneID", "OpenDroneID Support", public = True)
-        self.add_command('opendroneid', self.cmd_opendroneid, "opendroneid control",
+        super(OpenDroneIDModule, self).__init__(mpstate, "OpenDroneID", tr("mod_opendroneid_support"), public = True)
+        self.add_command('opendroneid', self.cmd_opendroneid, tr("cmd_opendroneid_control"),
                          ["<status>", "set (OPENDRONEIDSETTING)", "vehicle set (OPENDRONEIDVEHICLESETTING)"])
 
         from MAVProxy.modules.lib.mp_settings import MPSetting
@@ -59,7 +60,7 @@ class OpenDroneIDModule(mp_module.MPModule):
 
     def cmd_opendroneid(self, args):
         '''opendroneid command parser'''
-        usage = "usage: opendroneid <vehicle> <set>"
+        usage = tr("usage_usage_opendroneid_vehicle_set")
         if len(args) == 0:
             print(usage)
             return
@@ -179,7 +180,7 @@ class OpenDroneIDModule(mp_module.MPModule):
                 self.param_set("DID_ID_LEN", len(self.OpenDroneID_vehicle_settings.UAS_ID))
             for i in range(8):
                 if self.get_mav_param("DID_ID{}".format(i)) != (UAS_ID_Bytes[2*i] | (UAS_ID_Bytes[2*i+1] << 8)):
-                    print("DID_ID{}".format(i), " {:x}{:x}".format(UAS_ID_Bytes[i+1] , UAS_ID_Bytes[i]))
+                    print(tr("did_id").format(i), " {:x}{:x}".format(UAS_ID_Bytes[i+1] , UAS_ID_Bytes[i]))
                     self.param_set("DID_ID{}".format(i), UAS_ID_Bytes[2*i] | (UAS_ID_Bytes[2*i+1] << 8))
         if now - self.last_loc_send_s > 1.0/self.OpenDroneID_settings.location_rate_hz:
             self.last_loc_send_s = now

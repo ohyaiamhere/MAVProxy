@@ -15,6 +15,7 @@ from MAVProxy.modules.lib import mp_util
 from MAVProxy.modules.lib import mp_module
 from MAVProxy.modules.lib import param_help
 from MAVProxy.modules.lib import param_ftp
+from MAVProxy.modules.lib.mp_i18n import tr
 
 if mp_util.has_wxpython:
     from MAVProxy.modules.lib.mp_menu import MPMenuItem
@@ -106,7 +107,7 @@ class ParamState:
                 elif param_type == mavutil.mavlink.MAV_PARAM_TYPE_INT32:
                     vstr = struct.pack(">i", int(value))
                 else:
-                    print("can't send %s of type %u" % (name, param_type))
+                    print(tr("can_t_send_of_type_u") % (name, param_type))
                     return None
                 numeric_value, = struct.unpack(">f", vstr)
             else:
@@ -116,7 +117,7 @@ class ParamState:
                     try:
                         numeric_value = float(value)
                     except ValueError:
-                        print(f"can't convert {name} ({value}, {type(value)}) to float")
+                        print(tr("can_t_convert_to_float") % (name, value, type(value)))
                         return None
 
             return numeric_value
@@ -124,7 +125,7 @@ class ParamState:
         def send_set(self):
             numeric_value = self.normalize_parameter_for_param_set_send(self.name, self.value, self.param_type)
             if numeric_value is None:
-                print(f"can't send {self.name} of type {self.param_type}")
+                print(tr("can_t_send_of_type") % (self.name, self.param_type))
                 self.attempts_remaining = 0
                 return
             # print(f"Sending set attempts-remaining={self.attempts_remaining}")
@@ -164,7 +165,7 @@ class ParamState:
                 reason = " (no PARAM_VALUE received)"
             else:
                 reason = f" (invalid returned value {self.last_value_received})"
-            print(f"Failed to set {self.name} to {self.value}{reason}")
+            print(tr("failed_to_set_to") % (self.name, self.value, reason))
 
     def run_parameter_set_queue(self):
         # firstly move anything from the input queue into our
@@ -264,11 +265,11 @@ class ParamState:
             if param_id in self.fetch_one and self.fetch_one[param_id] > 0:
                 self.fetch_one[param_id] -= 1
                 if isinstance(value, float):
-                    print("%s = %.7f" % (param_id, value))
+                    print(tr("msg_8") % (param_id, value))
                 else:
-                    print("%s = %s" % (param_id, str(value)))
+                    print(tr("msg_9") % (param_id, str(value)))
             if added_new_parameter and len(self.mav_param_set) == m.param_count:
-                print("Received %u parameters" % m.param_count)
+                print(tr("received_u_parameters") % m.param_count)
                 if self.logdir is not None:
                     self.mav_param.save(os.path.join(self.logdir, self.parm_file), '*', verbose=True)
                 self.fetch_set = None
@@ -418,7 +419,7 @@ class ParamState:
 
         self.ftp_failed = False
         self.mpstate.console.set_status('Params', 'Param %u/%u' % (total_params, total_params))
-        print("Received %u parameters (ftp)" % total_params)
+        print(tr("received_u_parameters_ftp") % total_params)
         if self.logdir is not None:
             self.mav_param.save(os.path.join(self.logdir, self.parm_file), '*', verbose=True)
         self.log_params(pdata.params)
@@ -431,7 +432,7 @@ class ParamState:
             if self.logdir:
                 defaults_path = os.path.join(self.logdir, "defaults.parm")
                 self.default_params.save(defaults_path, '*', verbose=False)
-                print("Saved %u defaults to %s" % (len(pdata.defaults), defaults_path))
+                print(tr("saved_u_defaults_to") % (len(pdata.defaults), defaults_path))
 
     def fetch_all(self, master):
         '''force refetch of parameters'''
@@ -447,20 +448,20 @@ class ParamState:
         if len(args) < 1 or args[0].find('*') != -1:
             defaults = self.default_params
             if defaults is None:
-                print("Cannot find default parameters")
+                print(tr("cannot_find_default_parameters"))
                 return
             if len(args) >= 1:
                 wildcard = args[0]
         else:
             filename = args[0]
             if not os.path.exists(filename):
-                print("Can't find defaults file %s" % filename)
+                print(tr("can_t_find_defaults_file") % filename)
                 return
             defaults = mavparm.MAVParmDict()
             defaults.load(filename)
             if len(args) == 2:
                 wildcard = args[1]
-        print("\nParameter        Current  Default")
+        print(tr("parameter_current_default"))
         for p in self.mav_param:
             p = str(p).upper()
             if p not in defaults:
@@ -490,7 +491,7 @@ class ParamState:
             filename = args[0]
         defaults = self.default_params
         if defaults is None:
-            print("No defaults available")
+            print(tr("no_defaults_available"))
             return
         f = open(filename, "w")
         count = 0
@@ -508,13 +509,13 @@ class ParamState:
             f.write("%s\n" % s)
             count += 1
         f.close()
-        print("Saved %u parameters to %s" % (count, filename))
+        print(tr("saved_u_parameters_to") % (count, filename))
 
     def handle_mavlink_watch_param_value(self, master, m):
         param_id = "%.16s" % m.param_id
         for pattern in self.watch_patterns:
             if fnmatch.fnmatch(param_id, pattern):
-                self.mpstate.console.writeln("> %s=%f" % (param_id, m.param_value))
+                self.mpstate.console.writeln(tr("msg_10") % (param_id, m.param_value))
 
     def param_watch(self, master, args):
         '''command to allow addition of watches for parameter changes'''
@@ -529,7 +530,7 @@ class ParamState:
     def param_watchlist(self, master, args):
         '''command to show watch patterns for parameter changes'''
         for pattern in self.watch_patterns:
-            self.mpstate.console.writeln("> %s" % (pattern))
+            self.mpstate.console.writeln(tr("msg_11") % (pattern))
 
     def param_bitmask_modify(self, master, args):
         '''command for performing bitmask actions on a parameter'''
@@ -539,33 +540,33 @@ class ParamState:
 
         # Ensure we have at least an action and a parameter
         if len(args) < 2:
-            print("Not enough arguments")
-            print(f"param bitmask <{'/'.join(BITMASK_ACTIONS)}> <parameter> [bit-index-1 ... bit-index-n]")
+            print(tr("not_enough_arguments"))
+            print(tr("param_bitmask_parameter_bit_index_1") % ('/'.join(BITMASK_ACTIONS),))
             return
 
         action = args[0]
         if action not in BITMASK_ACTIONS:
-            print(f"action must be one of: {', '.join(BITMASK_ACTIONS)}")
+            print(tr("action_must_be_one_of") % (', '.join(BITMASK_ACTIONS),))
             return
 
         # Grab the parameter argument, and check it exists
         param = args[1]
         if not param.upper() in self.mav_param:
-            print(f"Unable to find parameter {param.upper()}")
+            print(tr("unable_to_find_parameter") % (param.upper(),))
             return
         uname = param.upper()
 
         htree = self.param_help.param_help_tree()
         if htree is None:
             # No help tree is available
-            print("Download parameters first")
+            print(tr("download_parameters_first"))
             return
 
         # Take the help tree and check if parameter is a bitmask
         phelp = htree[uname]
         bitmask_values = self.param_help.get_bitmask_from_help(phelp)
         if bitmask_values is None:
-            print(f"Parameter {uname} is not a bitmask")
+            print(tr("parameter_is_not_a_bitmask") % (uname,))
             return
 
         # Find the type of the parameter
@@ -577,7 +578,7 @@ class ParamState:
         # Now grab the value for the parameter
         value = int(self.mav_param.get(uname))
         if value is None:
-            print(f"Could not get a value for parameter {uname}")
+            print(tr("could_not_get_a_value_for") % (uname,))
             return
 
         # The next argument is the bit_index - if it exists, handle it
@@ -591,7 +592,7 @@ class ParamState:
                 # Try to convert it to int
                 bit_indices.append(int(arg_bit_index))
             except ValueError:
-                print(f"Invalid bit index: {arg_bit_index}")
+                print(tr("invalid_bit_index") % (arg_bit_index,))
 
         if bit_indices == []:
             # No bit index was specified, but the parameter and action was.
@@ -614,11 +615,11 @@ class ParamState:
                         out_v.append(f"\t{i:3d} [{'x' if value & (1 << i) else ' '}] : Unknownbit{i}")
 
             if out_v is not None and len(out_v) > 0:
-                print("\nBitmask: ")
+                print(tr("bitmask"))
                 print("\n".join(out_v))
 
             # Finally, inform user of the error we experienced
-            print("bit index is not specified")
+            print(tr("bit_index_is_not_specified"))
 
             # We don't have enough information to modify the bitmask, so bail
             return
@@ -626,7 +627,7 @@ class ParamState:
         # Sanity check the bit indices
         invalid_bits = [bit_index for bit_index in bit_indices if bit_index >= NUM_BITS_MAX]
         if invalid_bits:
-            print(f"Cannot perform bitmask action '{action}' on bit(s) {', '.join(str(bit) for bit in invalid_bits)}.")
+            print(tr("cannot_perform_bitmask_action_on_bit") % (action, ', '.join(str(bit) for bit in invalid_bits)))
             return
 
         # Cycle through the bit indices
@@ -640,7 +641,7 @@ class ParamState:
                 value = value & ~(1 << bit_index)
             else:
                 # We cannot toggle, set or clear
-                print("Invalid bitmask action")
+                print(tr("invalid_bitmask_action"))
                 return
 
         # Update the parameter
@@ -664,10 +665,10 @@ class ParamState:
         '''handle param revert'''
         defaults = self.default_params
         if defaults is None:
-            print("No defaults available")
+            print(tr("no_defaults_available"))
             return
         if len(args) == 0:
-            print("Usage: param revert PATTERN")
+            print(tr("usage_param_revert_pattern"))
             return
         wildcard = args[0].upper()
         count = 0
@@ -683,15 +684,15 @@ class ParamState:
             s2 = "%f" % defaults[p]
             if s1 == s2:
                 continue
-            print("Reverting %-16.16s  %s -> %s" % (p, s1, s2))
+            print(tr("reverting") % (p, s1, s2))
             self.set_parameter(master, p, defaults[p], attempts=3)
             count += 1
-        print("Reverted %u parameters" % count)
+        print(tr("reverted_u_parameters") % count)
 
     def handle_command(self, master, mpstate, args):
         '''handle parameter commands'''
         param_wildcard = "*"
-        usage="Usage: param <fetch|ftp|save|savechanged|revert|set|show|load|preload|forceload|ftpload|diff|download|check|help|watch|unwatch|watchlist|bitmask>"  # noqa
+        usage=tr("usage_usage_param_fetch_ftp_save_savechanged_revert_set")  # noqa
         if len(args) < 1:
             print(usage)
             return
@@ -699,9 +700,9 @@ class ParamState:
             if len(args) == 1:
                 self.fetch_all(master)
                 if self.ftp_started:
-                    print("Requested parameter list (ftp)")
+                    print(tr("requested_parameter_list_ftp"))
                 else:
-                    print("Requested parameter list")
+                    print(tr("requested_parameter_list"))
             else:
                 found = False
                 pname = args[1].upper()
@@ -712,19 +713,19 @@ class ParamState:
                             self.fetch_one[p] = 0
                         self.fetch_one[p] += 1
                         found = True
-                        print("Requested parameter %s" % p)
+                        print(tr("requested_parameter") % p)
                 if not found and args[1].find('*') == -1:
                     master.param_fetch_one(pname)
                     if pname not in self.fetch_one:
                         self.fetch_one[pname] = 0
                     self.fetch_one[pname] += 1
-                    print("Requested parameter %s" % pname)
+                    print(tr("requested_parameter") % pname)
         elif args[0] == "ftp":
             self.ftp_start()
 
         elif args[0] == "save":
             if len(args) < 2:
-                print("usage: param save <filename> [wildcard]")
+                print(tr("usage_param_save_filename_wildcard"))
                 return
             if len(args) > 2:
                 param_wildcard = args[2]
@@ -745,7 +746,7 @@ class ParamState:
             self.param_watchlist(master, args[1:])
         elif args[0] == "set":
             if len(args) < 2:
-                print("Usage: param set PARMNAME VALUE")
+                print(tr("usage_param_set_parmname_value"))
                 return
             if len(args) == 2:
                 self.param_show(args[1], self.mpstate.settings.param_docs)
@@ -755,7 +756,7 @@ class ParamState:
             if value.startswith('0x'):
                 value = int(value, base=16)
             if not param.upper() in self.mav_param:
-                print("Unable to find parameter '%s'" % param)
+                print(tr("unable_to_find_parameter_2") % param)
                 return
             uname = param.upper()
             self.set_parameter(master, uname, value, attempts=3)
@@ -769,7 +770,7 @@ class ParamState:
             self.param_bitmask_modify(master, args[1:])
         elif args[0] == "load":
             if len(args) < 2:
-                print("Usage: param load <filename> [wildcard]")
+                print(tr("usage_param_load_filename_wildcard"))
                 return
             if len(args) > 2:
                 param_wildcard = args[2]
@@ -778,12 +779,12 @@ class ParamState:
             self.mav_param.load(args[1].strip('"'), param_wildcard, master)
         elif args[0] == "preload":
             if len(args) < 2:
-                print("Usage: param preload <filename>")
+                print(tr("usage_param_preload_filename"))
                 return
             self.mav_param.load(args[1].strip('"'))
         elif args[0] == "forceload":
             if len(args) < 2:
-                print("Usage: param forceload <filename> [wildcard]")
+                print(tr("usage_param_forceload_filename_wildcard"))
                 return
             if len(args) > 2:
                 param_wildcard = args[2]
@@ -792,7 +793,7 @@ class ParamState:
             self.mav_param.load(args[1].strip('"'), param_wildcard, master, check=False)
         elif args[0] == "ftpload":
             if len(args) < 2:
-                print("Usage: param ftpload <filename> [wildcard]")
+                print(tr("usage_param_ftpload_filename_wildcard"))
                 return
             if len(args) > 2:
                 param_wildcard = args[2]
@@ -822,7 +823,7 @@ class ParamState:
                 pattern = "*"
             self.param_show(pattern, verbose)
         elif args[0] == "status":
-            print("Have %u/%u params" % (len(self.mav_param_set), self.mav_param_count))
+            print(tr("have_u_u_params") % (len(self.mav_param_set), self.mav_param_count))
         else:
             print(usage)
 
@@ -843,14 +844,14 @@ class ParamState:
     def ftp_upload_callback(self, dlen):
         '''callback on ftp put completion'''
         if dlen is None:
-            print("Failed to send parameters")
+            print(tr("failed_to_send_parameters"))
         else:
             if self.ftp_send_param is not None:
                 for k in mp_util.sorted_natural(self.ftp_send_param.keys()):
                     v = self.ftp_send_param.get(k)
                     self.mav_param[k] = v
                 self.ftp_send_param = None
-            print("Parameter upload done")
+            print(tr("parameter_upload_done"))
 
     def ftp_upload_progress(self, proportion):
         '''callback from ftp put of parameters'''
@@ -882,7 +883,7 @@ class ParamState:
         '''load parameters with ftp'''
         ftp = self.mpstate.module('ftp')
         if ftp is None:
-            print("Need ftp module")
+            print(tr("need_ftp_module"))
             return
         newparm = mavparm.MAVParmDict()
         newparm.load(filename, param_wildcard, check=False)
@@ -895,7 +896,7 @@ class ParamState:
                 newparm.pop(k)
         count = len(newparm.keys())
         if count == 0:
-            print("No parameter changes")
+            print(tr("no_parameter_changes"))
             return
 
         fh.write(struct.pack("<HHH", 0x671b, count, count))
@@ -924,21 +925,21 @@ class ParamState:
         fh.write(struct.pack("<HHH", 0x671b, count, file_len))
         fh.seek(0)
         self.ftp_send_param = newparm
-        print("Sending %u params" % count)
+        print(tr("sending_u_params") % count)
         ftp.cmd_put(["-", "@PARAM/param.pck"],
                     fh=fh, callback=self.ftp_upload_callback, progress_callback=self.ftp_upload_progress)
 
 
 class ParamModule(mp_module.MPModule):
     def __init__(self, mpstate, **kwargs):
-        super(ParamModule, self).__init__(mpstate, "param", "parameter handling", public=True, multi_vehicle=True)
+        super(ParamModule, self).__init__(mpstate, "param", tr("mod_parameter_handling"), public=True, multi_vehicle=True)
         self.xml_filepath = kwargs.get("xml-filepath", None)
         self.pstate = {}
         self.check_new_target_system()
         self.menu_added_console = False
         bitmask_indexes = "|".join(str(x) for x in range(32))
         self.add_command(
-            'param', self.cmd_param, "parameter handling", [
+            'param', self.cmd_param, tr("mod_parameter_handling"), [
                 "<download|status>",
                 "<set|show|fetch|ftp|help|apropos|revert> (PARAMETER)",
                 "<load|save|savechanged|diff|forceload|ftpload> (FILENAME)",

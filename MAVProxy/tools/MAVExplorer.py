@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from MAVProxy.modules.lib.mp_i18n import tr
 '''
 log analysis program
 Andrew Tridgell December 2014
@@ -103,22 +104,22 @@ class MEState(object):
         self.exit = False
         self.status = MEStatus()
         self.settings = MPSettings(
-            [ MPSetting('marker', str, '+', 'data marker', tab='Graph'),
-              MPSetting('condition', str, None, 'condition'),
-              MPSetting('xaxis', str, None, 'xaxis'),
-              MPSetting('linestyle', str, None, 'linestyle'),
-              MPSetting('show_flightmode', int, 1, 'show flightmode'),
-              MPSetting('sync_xzoom', bool, True, 'sync X-axis zoom'),
-              MPSetting('sync_xmap', bool, True, 'sync X-axis zoom for map'),
-              MPSetting('legend', str, 'upper left', 'legend position'),
-              MPSetting('legend2', str, 'upper right', 'legend2 position'),
-              MPSetting('axis_mode', str, 'auto', 'y-axis layout mode',
+            [ MPSetting('marker', str, '+', tr("set_data_marker"), tab=tr("set_graph")),
+              MPSetting('condition', str, None, tr("set_condition")),
+              MPSetting('xaxis', str, None, tr("set_xaxis")),
+              MPSetting('linestyle', str, None, tr("set_linestyle")),
+              MPSetting('show_flightmode', int, 1, tr("set_show_flightmode")),
+              MPSetting('sync_xzoom', bool, True, tr("set_sync_x_axis_zoom")),
+              MPSetting('sync_xmap', bool, True, tr("set_sync_x_axis_zoom_for_map")),
+              MPSetting('legend', str, 'upper left', tr("set_legend_position")),
+              MPSetting('legend2', str, 'upper right', tr("set_legend2_position")),
+              MPSetting('axis_mode', str, 'auto', tr("set_y_axis_layout_mode"),
                         choice=['auto', 'dual', 'multi']),
-              MPSetting('title', str, None, 'Graph title'),
-              MPSetting('debug', int, 0, 'debug level'),
-              MPSetting('paramdocs', bool, True, 'show param docs'),
-              MPSetting('max_rate', float, 0, 'maximum display rate of graphs in Hz'),
-              MPSetting('vehicle_type', str, 'Auto', 'force vehicle type for mode handling'),
+              MPSetting('title', str, None, tr("set_graph_title")),
+              MPSetting('debug', int, 0, tr("set_debug_level")),
+              MPSetting('paramdocs', bool, True, tr("set_show_param_docs")),
+              MPSetting('max_rate', float, 0, tr("set_maximum_display_rate_of_graphs_in_hz")),
+              MPSetting('vehicle_type', str, 'Auto', tr("set_force_vehicle_type_for_mode_handling")),
               ]
             )
 
@@ -203,11 +204,11 @@ def menu_callback(m):
     elif m.returnkey == 'quit':
         mestate.console.close()
         mestate.exit = True
-        print("Exited. Press Enter to continue.")
+        print(tr("exited_press_enter_to_continue"))
         sys.exit(0)
 
     else:
-        print('Unknown menu selection: %s' % m.returnkey)
+        print(tr("unknown_menu_selection") % m.returnkey)
 
 
 def flightmode_menu():
@@ -371,7 +372,7 @@ def load_graphs():
         graphs = load_graph_xml(open(file).read(), file)
         if graphs:
             mestate.graphs.extend(graphs)
-            mestate.console.writeln("Loaded %s" % file)
+            mestate.console.writeln(tr("loaded") % file)
 
     # also load the built in graphs
     load_built_in_graphs()
@@ -391,7 +392,7 @@ def load_built_in_graphs():
         graphs = load_graph_xml(raw, None)
         if graphs:
             mestate.graphs.extend(graphs)
-            mestate.console.writeln("Loaded %s" % f)
+            mestate.console.writeln(tr("loaded") % f)
 
 def flightmode_colours():
     '''return mapping of flight mode to colours'''
@@ -413,7 +414,7 @@ def cmd_location(args):
         from geopy.distance import geodesic
         from geopy.exc import GeocoderTimedOut, GeocoderServiceError
     except ImportError:
-        print("Error: geopy library not installed. Install with: pip install geopy")
+        print(tr("error_geopy_library_not_installed_install"))
         return
 
     # Initialize geocoder
@@ -429,7 +430,7 @@ def cmd_location(args):
     sampled_positions = []
     locations = set()  # Store display_name strings
 
-    print("Scanning log for GPS coordinates...")    # Read all GPS messages
+    print(tr("scanning_log_for_gps_coordinates"))    # Read all GPS messages
     msg_types = ['GPS', 'GPS_RAW_INT', 'GLOBAL_POSITION_INT']
     while True:
         msg = mestate.mlog.recv_match(type=msg_types, condition=mestate.settings.condition)
@@ -475,14 +476,14 @@ def cmd_location(args):
     mestate.mlog.rewind()
 
     if len(sampled_positions) == 0:
-        print("No valid GPS coordinates found in log.")
+        print(tr("no_valid_gps_coordinates_found_in"))
         return
 
-    print("Found %d GPS samples, performing reverse geocoding..." % len(sampled_positions))
+    print(tr("found_gps_samples_performing_reverse_geocoding") % len(sampled_positions))
 
     # Geocode sampled positions
     for idx, (lat, lon, timestamp) in enumerate(sampled_positions):
-        print("Geocoding sample %d/%d..." % (idx + 1, len(sampled_positions)))
+        print(tr("geocoding_sample") % (idx + 1, len(sampled_positions)))
 
         try:
             # Use 50km search radius to find nearest city
@@ -498,32 +499,32 @@ def cmd_location(args):
                     # Show location for first and last samples
                     if idx == 0:
                         ts_str = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(timestamp))
-                        print("  Start location: %s at %s" % (display_name, ts_str))
+                        print(tr("start_location_at") % (display_name, ts_str))
                     elif idx == len(sampled_positions) - 1:
                         ts_str = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(timestamp))
-                        print("  End location: %s at %s" % (display_name, ts_str))
+                        print(tr("end_location_at") % (display_name, ts_str))
 
             # Rate limiting: 1 second between requests
             time.sleep(1)
 
         except GeocoderTimedOut:
-            print("  Geocoding timeout for sample %d, skipping..." % (idx + 1))
+            print(tr("geocoding_timeout_for_sample_skipping") % (idx + 1))
             continue
         except GeocoderServiceError as e:
-            print("  Geocoding service error for sample %d: %s" % (idx + 1, str(e)))
+            print(tr("geocoding_service_error_for_sample") % (idx + 1, str(e)))
             continue
         except Exception as e:
-            print("  Error geocoding sample %d: %s" % (idx + 1, str(e)))
+            print(tr("error_geocoding_sample") % (idx + 1, str(e)))
             continue
 
     # Display summary
-    print("\n=== Location Summary ===")
+    print(tr("location_summary"))
     if len(locations) > 0:
-        print("Locations visited:")
+        print(tr("locations_visited"))
         for location_name in sorted(locations):
-            print("  %s" % location_name)
+            print(tr("msg_25") % location_name)
     else:
-        print("No location information could be retrieved.")
+        print(tr("no_location_information_could_be_retrieved"))
 
 def check_vehicle_type():
     '''check vehicle_type option'''
@@ -547,12 +548,12 @@ def check_vehicle_type():
                 mestate.mlog._flightmodes = None
                 flightmodes = mestate.mlog.flightmode_list()
             return
-    print("Unknown vehicle type '%s'" % mestate.settings.vehicle_type)
+    print(tr("unknown_vehicle_type_2") % mestate.settings.vehicle_type)
 
 
 def cmd_graph(args):
     '''graph command'''
-    usage = "usage: graph <FIELD...>"
+    usage = tr("usage_usage_graph_field")
     if len(args) < 1:
         print(usage)
         return
@@ -562,16 +563,16 @@ def cmd_graph(args):
         g = mestate.graphs[i]
         expression = g.expression
         args = expression.split()
-        mestate.console.write("Added graph: %s\n" % g.name)
+        mestate.console.write(tr("added_graph") % g.name)
         if g.description:
-            mestate.console.write("%s\n" % g.description, fg='blue')
+            mestate.console.write(tr("msg_26") % g.description, fg='blue')
         mestate.rl.add_history("graph %s" % ' '.join(expression.split()))
         mestate.last_graph = g
     else:
         expression = ' '.join(args)
         mestate.last_graph = GraphDefinition(mestate.settings.title, expression, '', [expression], None)
     if mestate.settings.debug > 0:
-        print("Adding graph: %s" % mestate.last_graph.expression)
+        print(tr("adding_graph") % mestate.last_graph.expression)
     grui.append(Graph_UI(mestate))
     grui[-1].display_graph(mestate.last_graph, flightmode_colours())
     global xlimits
@@ -581,7 +582,7 @@ def cmd_graph(args):
 
 def cmd_graphs(args):
     '''graphs command'''
-    usage = "usage: graphs <PREDEFINED_GRAPH_NAME>"
+    usage = tr("usage_usage_graphs_predefined_graph_name")
     if len(args) < 1:
         print(usage)
         return
@@ -594,18 +595,18 @@ def cmd_graphs(args):
     # Find matching predefined graph
     matching_graphs = [g for g in mestate.graphs if normalized_search in g.name.replace(' ', '-').upper()]
     if not matching_graphs:
-        print("No predefined graph found matching: %s" % graph_name)
+        print(tr("no_predefined_graph_found_matching") % graph_name)
         return
 
     # Display the first matching graph
     g = matching_graphs[0]
-    mestate.console.write("Added predefined graph: %s\n" % g.name)
+    mestate.console.write(tr("added_predefined_graph") % g.name)
     if g.description:
-        mestate.console.write("%s\n" % g.description, fg='blue')
+        mestate.console.write(tr("msg_26") % g.description, fg='blue')
     mestate.rl.add_history("graphs %s" % g.name)
     mestate.last_graph = g
     if mestate.settings.debug > 0:
-        print("Adding graph: %s" % mestate.last_graph.expression)
+        print(tr("adding_graph") % mestate.last_graph.expression)
     grui.append(Graph_UI(mestate))
     grui[-1].display_graph(mestate.last_graph, flightmode_colours())
     global xlimits
@@ -662,7 +663,7 @@ def cmd_set(args):
 def cmd_condition(args):
     '''control MAVExporer conditions'''
     if len(args) == 0:
-        print("condition is: %s" % mestate.settings.condition)
+        print(tr("condition_is") % mestate.settings.condition)
         return
     mestate.settings.condition = ' '.join(args)
     if len(mestate.settings.condition) == 0 or mestate.settings.condition == 'clear':
@@ -670,10 +671,10 @@ def cmd_condition(args):
 
 def cmd_reload(args):
     '''reload graphs'''
-    mestate.console.writeln('Reloading graphs', fg='blue')
+    mestate.console.writeln(tr("reloading_graphs"), fg='blue')
     load_graphs()
     setup_menus()
-    mestate.console.write("Loaded %u graphs\n" % len(mestate.graphs))
+    mestate.console.write(tr("loaded_u_graphs") % len(mestate.graphs))
 
 fft_tool = None
 
@@ -714,7 +715,7 @@ def cmd_dump(args):
     if len(args) > 0:
         wildcard = args[0]
     else:
-        print("Usage: dump MSG1,MSG2[0]...")
+        print(tr("usage_dump_msg1_msg2_0"))
         return
     mlog = mestate.mlog
     mlog.rewind()
@@ -751,7 +752,7 @@ def cmd_dump(args):
                 instid = re.sub(r'.*\[', '', type_inst)
                 instid = re.sub(r'\]', '', instid)
             else:
-                print(f"{msg.get_type()} is not instance.")
+                print(tr("is_not_instance") % (msg.get_type(),))
                 ext = True
         if ext:
             break
@@ -793,7 +794,7 @@ def save_graph(graphdef):
         graphs = []
         print(ex)
     if contents is not None and len(graphs) == 0:
-        print("Unable to parse %s" % graphdef.filename)
+        print(tr("unable_to_parse") % graphdef.filename)
         return
     if contents is not None:
         try:
@@ -1161,7 +1162,7 @@ def extract_files():
                 continue
             seen.add(t[0])
             if t[0] != ofs:
-                print("Gap in %s at %u" % (f, ofs))
+                print(tr("gap_in_at_u") % (f, ofs))
             ret[f] += t[1]
             ofs = t[0]+len(t[1])
 
@@ -1174,23 +1175,23 @@ def cmd_file(args):
     if len(args) == 0:
         # list
         for n in sorted(files.keys()):
-            print("%s (length %u)" % (n, len(files[n])))
+            print(tr("length_u") % (n, len(files[n])))
         return
     fname = args[0]
     if any(c in fname for c in '*?['):
         # wildcard: extract all matching files to a directory (default cwd)
         matches = sorted(n for n in files if fnmatch.fnmatch(n, fname))
         if not matches:
-            print("No files match %s" % fname)
+            print(tr("no_files_match") % fname)
             return
         destdir = args[1] if len(args) > 1 else '.'
         for n in matches:
             dest = os.path.join(destdir, os.path.basename(n))
             open(dest, "wb").write(files[n])
-            print("Saved %s to %s" % (n, dest))
+            print(tr("saved_to") % (n, dest))
         return
     if not fname in files:
-        print("File %s not found" % fname)
+        print(tr("file_not_found") % fname)
         return
     if len(args) == 1:
         # print on terminal
@@ -1199,7 +1200,7 @@ def cmd_file(args):
         # save to file
         dest = args[1]
         open(dest, "wb").write(files[fname])
-        print("Saved %s to %s" % (fname, dest))
+        print(tr("saved_to") % (fname, dest))
 
 def set_vehicle_name():
     mapping = { mavutil.mavlink.MAV_TYPE_GROUND_ROVER : "Rover",
@@ -1215,7 +1216,7 @@ def cmd_param_diff(args):
     verbose = mestate.settings.paramdocs
     mlog = mestate.mlog
     if not hasattr(mlog, 'param_defaults'):
-        print("No param defaults in log")
+        print(tr("no_param_defaults_in_log"))
         return
     if len(args) > 0:
         wildcard = args[0]
@@ -1245,7 +1246,7 @@ def cmd_param_save(args, changed_only=False):
     '''save parameters'''
     mlog = mestate.mlog
     if changed_only and not hasattr(mlog, 'param_defaults'):
-        print("No param defaults in log")
+        print(tr("no_param_defaults_in_log"))
         return
     filename = args[0]
     if len(args) > 1:
@@ -1257,7 +1258,7 @@ def cmd_param_save(args, changed_only=False):
     try:
         f = open(filename, "w")
     except Exception as ex:
-        print("Failed to open %s - %s" % (filename, ex))
+        print(tr("failed_to_open_3") % (filename, ex))
         return
     for p in k:
         p = str(p).upper()
@@ -1273,7 +1274,7 @@ def cmd_param_save(args, changed_only=False):
             f.write(s + "\n")
             count += 1
     f.close()
-    print("Saved %u parameters to %s" % (count, filename))
+    print(tr("saved_u_parameters_to") % (count, filename))
             
 def ftp_decode(mlog):
     '''decode FILE_TRANSFER_PROTOCOL for parameters'''
@@ -1305,7 +1306,7 @@ def ftp_decode(mlog):
                 if b.offset < len(data):
                     continue
                 if b.offset > len(data):
-                    print("gap at %u" % len(data))
+                    print(tr("gap_at_u") % len(data))
                     return None
                 data += bytes(b.data)
             return data
@@ -1325,7 +1326,7 @@ def ftp_decode(mlog):
             ftp_transfers[session] = Transfer(bytearray(filename))
         if req_opcode in [FTP_ReadFile, FTP_BurstReadFile] and opcode == FTP_Ack:
             if not session in ftp_transfers:
-                print("No session %u" % session)
+                print(tr("no_session_u") % session)
                 continue
             offset, = struct.unpack("<I", bytearray(m.payload[8:12]))
             ftp_transfers[session].blocks.append(Block(offset,size,bytearray(data)))
@@ -1353,7 +1354,7 @@ def cmd_param(args):
     '''show parameters'''
     verbose = mestate.settings.paramdocs
     mlog = mestate.mlog
-    usage = "Usage: param <help|download|check|show|diff|save|savechanged>"
+    usage = tr("usage_usage_param_help_download_check_show_diff_save")
     global done_ftp_decode
     if isinstance(mlog, mavutil.mavfile) and not done_ftp_decode:
         done_ftp_decode = True
@@ -1383,14 +1384,14 @@ def cmd_param(args):
         if args[0] == 'save':
             # save parameters
             if len(args) < 2:
-                print("Usage: param save FILENAME <WILDCARD>")
+                print(tr("usage_param_save_filename_wildcard_2"))
                 return
             cmd_param_save(args[1:], False)
             return
         if args[0] == 'savechanged':
             # save changed parameters
             if len(args) < 2:
-                print("Usage: param savechanged FILENAME <WILDCARD>")
+                print(tr("usage_param_savechanged_filename_wildcard"))
                 return
             cmd_param_save(args[1:], True)
             return
@@ -1441,7 +1442,7 @@ def cmd_paramchange(args):
             vmap[pname] = pvalue
             continue
 
-        print("%s %s %.6f -> %.6f" % (timestring(m), pname, vmap[pname], pvalue))
+        print(tr("msg_27") % (timestring(m), pname, vmap[pname], pvalue))
         vmap[pname] = pvalue
     mestate.mlog.rewind()
 
@@ -1449,7 +1450,7 @@ def cmd_paramchange(args):
 def cmd_logmessage(args):
     '''show log message information'''
     mlog = mestate.mlog
-    usage = "Usage: logmessage <help|download>"
+    usage = tr("usage_usage_logmessage_help_download")
     # Print usage and return, if we have no arguments
     if len(args) <= 0:
         print(usage)
@@ -1462,14 +1463,14 @@ def cmd_logmessage(args):
         if hasattr(mlog, 'metadata'):
             mlog.metadata.print_help(args[1])
         elif isinstance(mlog, mavutil.mavlogfile):
-            print("logmessage help is not supported for telemetry log files")
+            print(tr("logmessage_help_is_not_supported_for"))
         else:
-            print("Incompatible pymavlink; upgrade pymavlink?")
+            print(tr("incompatible_pymavlink_upgrade_pymavlink"))
         return
     # download: download XML files for log messages
     if args[0] == 'download':
         if not hasattr(DFReader, 'DFMetaData'):
-            print("Incompatible pymavlink; upgrade pymavlink?")
+            print(tr("incompatible_pymavlink_upgrade_pymavlink"))
             return
         try:
             child = multiproc.Process(target=DFReader.DFMetaData.download)
@@ -1486,7 +1487,7 @@ def cmd_logmessage(args):
 def cmd_mission(args):
     '''show mission'''
     if (len(args) == 1):
-        print("Usage: mission <save FILENAME>")
+        print(tr("usage_mission_save_filename"))
         return
     mestate.mlog.rewind()
     types = set(['CMD','MISSION_ITEM_INT'])
@@ -1499,7 +1500,7 @@ def cmd_mission(args):
             try:
                 frame = m.Frame
             except AttributeError:
-                print("Warning: assuming frame is GLOBAL_RELATIVE_ALT")
+                print(tr("warning_assuming_frame_is_global_relative"))
                 frame = mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT
             num_wps = m.CTot
             m = mavutil.mavlink.MAVLink_mission_item_message(0,
@@ -1530,7 +1531,7 @@ def cmd_mission(args):
             continue
 
         while m.seq > wp.count():
-            print("Adding dummy WP %u" % wp.count())
+            print(tr("adding_dummy_wp_u") % wp.count())
             wp.set(m, wp.count())
         wp.set(m, m.seq)
     if len(args) == 2 and args[0] == 'save':
@@ -1569,7 +1570,7 @@ def cmd_loadfile(args):
     else:
         fileargs = args[0]
     if not os.path.exists(fileargs):
-        print("Error loading file ", fileargs);
+        print(tr("error_loading_file"), fileargs);
         return
     if os.name == 'nt':
         #convert slashes in Windows
@@ -1578,7 +1579,7 @@ def cmd_loadfile(args):
 
 def loadfile(args):
     '''load a log file (path given by arg)'''
-    mestate.console.write("Loading %s...\n" % args)
+    mestate.console.write(tr("loading") % args)
     t0 = time.time()
     mlog = mavutil.mavlink_connection(args, notimestamps=False,
                                       zero_time_base=False,
@@ -1592,7 +1593,7 @@ def loadfile(args):
     # enough for tab-completion to function.
     mestate.status.msgs = copy.copy(mlog.messages)
     t1 = time.time()
-    mestate.console.write("\ndone (%u messages in %.1fs)\n" % (mestate.mlog._count, t1-t0))
+    mestate.console.write(tr("done_u_messages_in_s") % (mestate.mlog._count, t1-t0))
 
     # evaluate graph expressions before finding flightmode list as
     # flightmode_list does a rewind(), and that clears the DFReader
@@ -1641,7 +1642,7 @@ def cmd_help(args):
         if hasattr(v,cmd):
             pydoc.help(getattr(v,cmd))
             return
-    print("%s not found" % cmd)
+    print(tr("not_found") % cmd)
 
 def process_stdin(line):
     '''handle commands from user'''
@@ -1667,13 +1668,13 @@ def process_stdin(line):
         return
 
     if not cmd in command_map:
-        print("Unknown command '%s'" % line)
+        print(tr("unknown_command") % line)
         return
     (fn, help) = command_map[cmd]
     try:
         fn(args[1:])
     except Exception as e:
-        print("ERROR in command %s: %s" % (args[1:], str(e)))
+        print(tr("error_in_command_2") % (args[1:], str(e)))
         if mestate.settings.debug > 0:
             print_caught_exception(e)
 
@@ -1782,8 +1783,12 @@ def progress_bar(pct):
 if __name__ == "__main__":
     multiproc.freeze_support()
     from argparse import ArgumentParser
+    from MAVProxy.modules.lib.mp_i18n import tr, ensure_language_from_argv
+    ensure_language_from_argv()
     parser = ArgumentParser(description=__doc__)
-    parser.add_argument("--version", action='store_true', help="show version")
+    parser.add_argument("--version", action='store_true', help=tr("opt_show_version"))
+    parser.add_argument("--language", default=None,
+                        help=tr("opt_ui_language_for_user_facing_messages"))
     parser.add_argument("files", metavar="<FILE>", nargs="?")
     args = parser.parse_args()
 

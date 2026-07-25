@@ -9,11 +9,12 @@ from MAVProxy.modules.lib import mp_module
 from MAVProxy.modules.lib.wxhorizon_util import Attitude, VFR_HUD, Global_Position_INT, BatteryInfo, FlightState, WaypointInfo, FPS
 
 import time
+from MAVProxy.modules.lib.mp_i18n import tr
 
 class HorizonModule(mp_module.MPModule):
     def __init__(self, mpstate):
         # Define module load/unload reference and window title
-        super(HorizonModule, self).__init__(mpstate, "horizon", "Horizon Indicator", public=True)
+        super(HorizonModule, self).__init__(mpstate, "horizon", tr("mod_horizon_indicator"), public=True)
         self.mpstate.horizonIndicator = wxhorizon.HorizonIndicator(title='Horizon Indicator')
         self.mode = ''
         self.armed = ''
@@ -27,7 +28,7 @@ class HorizonModule(mp_module.MPModule):
         self.lastSend = 0.0
         self.fps = 10.0
         self.sendDelay = (1.0/self.fps)*0.9
-        self.add_command('horizon-fps',self.fpsInformation,"Get or change frame rate for horizon. Usage: horizon-fps set <fps>, horizon-fps get. Set fps to zero to get unrestricted framerate.")
+        self.add_command('horizon-fps',self.fpsInformation,tr("cmd_get_or_change_frame_rate_for_horizon_usage"))
         
     def unload(self):
         '''unload module'''
@@ -40,7 +41,7 @@ class HorizonModule(mp_module.MPModule):
             if args[0] == "get":
                 '''Get the current framerate.'''
                 if (self.fps == 0.0):
-                    print('Horizon Framerate: Unrestricted')
+                    print(tr("horizon_framerate_unrestricted"))
                 else:
                     print("Horizon Framerate: " + str(self.fps))
             elif args[0] == "set":
@@ -52,7 +53,7 @@ class HorizonModule(mp_module.MPModule):
                         self.sendDelay = 0.0
                     self.msgList.append(FPS(self.fps))
                     if (self.fps == 0.0):
-                        print('Horizon Framerate: Unrestricted')
+                        print(tr("horizon_framerate_unrestricted"))
                     else:
                         print("Horizon Framerate: " + str(self.fps))
                 else:

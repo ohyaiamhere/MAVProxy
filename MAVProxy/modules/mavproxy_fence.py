@@ -12,6 +12,7 @@ from pymavlink import mavwp
 
 from MAVProxy.modules.lib import mission_item_protocol
 from MAVProxy.modules.lib import mp_util
+from MAVProxy.modules.lib.mp_i18n import tr
 
 if mp_util.has_wxpython:
     from MAVProxy.modules.lib.mp_menu import MPMenuCallTextDialog
@@ -32,7 +33,7 @@ class FenceModule(mission_item_protocol.MissionItemProtocolModule):
     '''
 
     def __init__(self, mpstate):
-        super(FenceModule, self).__init__(mpstate, "fence", "fence point management (new)", public=True)
+        super(FenceModule, self).__init__(mpstate, "fence", tr("mod_fence_point_management_new"), public=True)
         self.present = False
         self.enabled = False
         self.healthy = True
@@ -92,7 +93,7 @@ class FenceModule(mission_item_protocol.MissionItemProtocolModule):
         for i in range(0, loader.count()):
             p = loader.item(i)
             if p is None:
-                print("Bad loader item (%u)" % i)
+                print(tr("bad_loader_item_u") % i)
                 return []
             if p.command != t:
                 continue
@@ -125,12 +126,12 @@ class FenceModule(mission_item_protocol.MissionItemProtocolModule):
         for i in range(0, loader.count()):
             p = loader.item(i)
             if p is None:
-                print("Bad loader item (%u)" % i)
+                print(tr("bad_loader_item_u") % i)
                 return []
             if p.command == t:
                 # sanity checks:
                 if p.param1 < 3:
-                    print("Bad vertex count (%u) in seq=%u" % (p.param1, p.seq))
+                    print(tr("bad_vertex_count_u_in_seq") % (p.param1, p.seq))
                     continue
                 if state == state_outside:
                     # starting a new polygon
@@ -144,7 +145,7 @@ class FenceModule(mission_item_protocol.MissionItemProtocolModule):
                     # inside then the current polygon is invalid.
                     # Discard it.
                     if p.param1 != current_expected_length:
-                        print("Short polygon found, discarding")
+                        print(tr("short_polygon_found_discarding"))
                         current_expected_length = p.param1
                         current_polygon = []
                         current_polygon.append(p)
@@ -154,18 +155,18 @@ class FenceModule(mission_item_protocol.MissionItemProtocolModule):
                         ret.append(current_polygon)
                         state = state_outside
                     continue
-                print("Unknown state (%s)" % str(state))
+                print(tr("unknown_state") % str(state))
             else:
                 if state == state_inside:
                     if len(current_polygon) != current_expected_length:
-                        print("Short polygon found")
+                        print(tr("short_polygon_found"))
                     else:
                         ret.append(current_polygon)
                     state = state_outside
                     continue
                 if state == state_outside:
                     continue
-                print("Unknown state (%s)" % str(state))
+                print(tr("unknown_state") % str(state))
         return ret
 
     def inclusion_polygons(self):
@@ -182,7 +183,7 @@ class FenceModule(mission_item_protocol.MissionItemProtocolModule):
         for i in range(0, loader.count()):
             p = loader.item(i)
             if p is None:
-                print("Bad loader item (%u)" % i)
+                print(tr("bad_loader_item_u") % i)
                 return []
             if p.command != mavutil.mavlink.MAV_CMD_NAV_FENCE_RETURN_POINT:
                 continue
@@ -213,23 +214,23 @@ class FenceModule(mission_item_protocol.MissionItemProtocolModule):
 
         present = ((m.onboard_control_sensors_present & bits) == bits)
         if self.present is False and present is True:
-            self.say("fence present")
+            self.say(tr("fence_present"))
         elif self.present is True and present is False:
-            self.say("fence removed")
+            self.say(tr("fence_removed"))
         self.present = present
 
         enabled = ((m.onboard_control_sensors_enabled & bits) == bits)
         if self.enabled is False and enabled is True:
-            self.say("fence enabled")
+            self.say(tr("fence_enabled"))
         elif self.enabled is True and enabled is False:
-            self.say("fence disabled")
+            self.say(tr("fence_disabled"))
         self.enabled = enabled
 
         healthy = ((m.onboard_control_sensors_health & bits) == bits)
         if self.healthy is False and healthy is True:
-            self.say("fence OK")
+            self.say(tr("fence_ok"))
         elif self.healthy is True and healthy is False:
-            self.say("fence breach")
+            self.say(tr("fence_breach"))
         self.healthy = healthy
 
         # console output for fence:
@@ -260,7 +261,7 @@ class FenceModule(mission_item_protocol.MissionItemProtocolModule):
 
     def add_polyfence(self, fence_type, points):
         if len(points) < 3:
-            print("Too few points")
+            print(tr("too_few_points"))
             return
         items = []
         for p in points:
@@ -298,7 +299,7 @@ class FenceModule(mission_item_protocol.MissionItemProtocolModule):
             return
 
         if len(args) == 0:
-            print("WARNING!  You want 'fence draw inc' or 'fence draw exc'")
+            print(tr("warning_you_want_fence_draw_inc"))
             return
         if args[0] in ("inc", "inclusion"):
             self.drawing_fence_type = mavutil.mavlink.MAV_CMD_NAV_FENCE_POLYGON_VERTEX_INCLUSION
@@ -307,30 +308,30 @@ class FenceModule(mission_item_protocol.MissionItemProtocolModule):
             self.drawing_fence_type = mavutil.mavlink.MAV_CMD_NAV_FENCE_POLYGON_VERTEX_EXCLUSION
             draw_colour = (255, 128, 128)
         else:
-            print("fence draw <inc|inclusion|exc|exclusion>")
+            print(tr("fence_draw_inc_inclusion_exc_exclusion"))
             return
 
         if 'draw_lines' not in self.mpstate.map_functions:
-            print("No map drawing available")
+            print(tr("no_map_drawing_available"))
             return
 
         self.mpstate.map_functions['draw_lines'](self.fence_draw_callback,
                                                  colour=draw_colour)
-        print("Drawing fence on map")
+        print(tr("drawing_fence_on_map"))
 
     def cmd_addcircle(self, args):
         '''adds a circle to the map click position of specific type/radius'''
         if not self.check_have_list():
             return
         if len(args) < 2:
-            print("Usage: fence setcircle inclusion|exclusion RADIUS")
+            print(tr("usage_fence_setcircle_inclusion_exclusion_radius"))
             return
         t = args[0]
         radius = float(args[1])
 
         latlon = self.mpstate.click_location
         if latlon is None:
-            print("No click position available")
+            print(tr("no_click_position_available"))
             return
 
         if t in ["inclusion", "inc"]:
@@ -338,7 +339,7 @@ class FenceModule(mission_item_protocol.MissionItemProtocolModule):
         elif t in ["exclusion", "exc"]:
             command = mavutil.mavlink.MAV_CMD_NAV_FENCE_CIRCLE_EXCLUSION
         else:
-            print("%s is not one of inclusion|exclusion" % t)
+            print(tr("is_not_one_of_inclusion_exclusion") % t)
             return
 
         m = mavutil.mavlink.MAVLink_mission_item_int_message(
@@ -366,7 +367,7 @@ class FenceModule(mission_item_protocol.MissionItemProtocolModule):
         if not self.check_have_list():
             return
         if len(args) < 1:
-            print("Usage: fence addhomecircle RADIUS")
+            print(tr("usage_fence_addhomecircle_radius"))
             return
         radius = float(args[0])
 
@@ -423,7 +424,7 @@ class FenceModule(mission_item_protocol.MissionItemProtocolModule):
         if not self.check_have_list():
             return
         if len(args) < 1:
-            print("Need at least 1 argument (<inclusion|inc|exclusion|exc>", "<radius>" "<pointcount>", "<rotation>")
+            print(tr("need_at_least_1_argument_inclusion"), "<radius>" "<pointcount>", "<rotation>")
             return
         t = args[0]
         count = 4
@@ -437,15 +438,15 @@ class FenceModule(mission_item_protocol.MissionItemProtocolModule):
             rotation = float(args[3])
 
         if count < 3:
-            print("Invalid count (%s)" % str(count))
+            print(tr("invalid_count") % str(count))
             return
         if radius <= 0:
-            print("Invalid radius (%s)" % str(radius))
+            print(tr("invalid_radius") % str(radius))
             return
 
         latlon = self.mpstate.click_location
         if latlon is None:
-            print("No map click position available")
+            print(tr("no_map_click_position_available"))
             return
 
         if t in ["inclusion", "inc"]:
@@ -453,7 +454,7 @@ class FenceModule(mission_item_protocol.MissionItemProtocolModule):
         elif t in ["exclusion", "exc"]:
             command = mavutil.mavlink.MAV_CMD_NAV_FENCE_POLYGON_VERTEX_EXCLUSION
         else:
-            print("%s is not one of inclusion|exclusion" % t)
+            print(tr("is_not_one_of_inclusion_exclusion") % t)
             return
 
         items = []
@@ -488,7 +489,7 @@ class FenceModule(mission_item_protocol.MissionItemProtocolModule):
 
     def cmd_remove(self, args):
         '''deny remove on fence - requires renumbering etc etc'''
-        print("remove is not currently supported for fence.  Try removepolygon_point or removecircle")
+        print(tr("remove_is_not_currently_supported_for"))
         if not self.check_have_list():
             return
 
@@ -498,11 +499,11 @@ class FenceModule(mission_item_protocol.MissionItemProtocolModule):
             return
         item = self.wploader.item(seq)
         if item is None:
-            print("No item %s" % str(seq))
+            print(tr("no_item") % str(seq))
             return
 
         if item.command != mavutil.mavlink.MAV_CMD_NAV_FENCE_RETURN_POINT:
-            print("Item %u is not a return point" % seq)
+            print(tr("item_u_is_not_a_return") % seq)
             return
         self.wploader.remove(item)
         self.wploader.expected_count -= 1
@@ -511,7 +512,7 @@ class FenceModule(mission_item_protocol.MissionItemProtocolModule):
 
     def cmd_setcircleradius(self, args):
         if len(args) < 1:
-            print("fence setcircleradius INDEX RADIUS")
+            print(tr("fence_setcircleradius_index_radius"))
             return
 
         if len(args) < 2:
@@ -530,11 +531,11 @@ class FenceModule(mission_item_protocol.MissionItemProtocolModule):
             return
         item = self.wploader.item(seq)
         if item is None:
-            print("No item %s" % str(seq))
+            print(tr("no_item") % str(seq))
             return
 
         if not self.is_circle_item(item):
-            print("Item %u is not a circle" % seq)
+            print(tr("item_u_is_not_a_circle") % seq)
             return
         self.wploader.remove(item)
         self.wploader.expected_count -= 1
@@ -549,16 +550,16 @@ class FenceModule(mission_item_protocol.MissionItemProtocolModule):
 
         item = self.wploader.item(seq)
         if item is None:
-            print("No item %s" % str(seq))
+            print(tr("no_item") % str(seq))
             return
 
         if not self.is_circle_item(item):
-            print("Item %u is not a circle" % seq)
+            print(tr("item_u_is_not_a_circle") % seq)
             return
 
         latlon = self.mpstate.click_location
         if latlon is None:
-            print("No map click position available")
+            print(tr("no_map_click_position_available"))
             return
 
         moving_item = self.wploader.item(seq)
@@ -583,18 +584,18 @@ class FenceModule(mission_item_protocol.MissionItemProtocolModule):
 
         item = self.wploader.item(seq)
         if item is None:
-            print("No item %s" % str(seq))
+            print(tr("no_item") % str(seq))
             return
 
         if not self.is_circle_item(item):
-            print("Item %u is not a circle" % seq)
+            print(tr("item_u_is_not_a_circle") % seq)
             return
 
         if radius is None:
             # calculate radius from clock position:
             latlon = self.mpstate.click_location
             if latlon is None:
-                print("No click position available")
+                print(tr("no_click_position_available"))
                 return
             item_x = item.x
             item_y = item.y
@@ -603,7 +604,7 @@ class FenceModule(mission_item_protocol.MissionItemProtocolModule):
                 item_y *= 1e-7
             radius = mavextra.distance_lat_lon(latlon[0], latlon[1], item_x, item_y)
         elif radius <= 0:
-            print("radius must be positive")
+            print(tr("radius_must_be_positive"))
             return
 
         changing_item = self.wploader.item(seq)
@@ -627,17 +628,17 @@ class FenceModule(mission_item_protocol.MissionItemProtocolModule):
         '''
         first_item = self.wploader.item(polygon_start_seq)
         if first_item is None:
-            print("No item at %u" % polygon_start_seq)
+            print(tr("no_item_at_u") % polygon_start_seq)
             return None, None
         if not self.is_polygon_item(first_item):
-            print("Item %u is not a polygon vertex" % polygon_start_seq)
+            print(tr("item_u_is_not_a_polygon") % polygon_start_seq)
             return None, None
         original_count = int(first_item.param1)
         if item_offset == original_count:
             # selecting closing point on polygon selects first point
             item_offset = 0
         if item_offset > original_count:
-            print("Out-of-range point")
+            print(tr("out_of_range_point"))
             return None, None
 
         return first_item, item_offset
@@ -655,7 +656,7 @@ class FenceModule(mission_item_protocol.MissionItemProtocolModule):
             return
         original_count = int(first_item.param1)
         if original_count <= 3:
-            print("Too few points to remove one")
+            print(tr("too_few_points_to_remove_one"))
             return
 
         dead_item_walking = self.wploader.item(polygon_start_seq + item_offset)
@@ -664,7 +665,7 @@ class FenceModule(mission_item_protocol.MissionItemProtocolModule):
         for i in range(int(first_item.param1)):
             item = self.wploader.item(polygon_start_seq+i)
             if int(item.param1) != original_count:
-                print("Invalid polygon starting at %u (count=%u), point %u (count=%u)" %
+                print(tr("invalid_polygon_starting_at_u_count") %
                       (polygon_start_seq, original_count, i, int(item.param1)))
                 return
             item.param1 = item.param1 - 1
@@ -693,18 +694,18 @@ class FenceModule(mission_item_protocol.MissionItemProtocolModule):
                 mavutil.mavlink.MAV_CMD_NAV_FENCE_POLYGON_VERTEX_EXCLUSION,
                 mavutil.mavlink.MAV_CMD_NAV_FENCE_POLYGON_VERTEX_INCLUSION
         ]):
-            print("Item %u is not a polygon vertex" % polygon_start_seq)
+            print(tr("item_u_is_not_a_polygon") % polygon_start_seq)
             return
         original_count = int(first_item.param1)
         if item_offset >= original_count:
-            print("Out-of-range point")
+            print(tr("out_of_range_point"))
             return
 
         # increase count in each of the polygon vertexes:
         for i in range(int(first_item.param1)):
             item = self.wploader.item(polygon_start_seq+i)
             if int(item.param1) != original_count:
-                print("Invalid polygon starting at %u (count=%u), point %u (count=%u)" %
+                print(tr("invalid_polygon_starting_at_u_count") %
                       (polygon_start_seq, original_count, i, int(item.param1)))
                 return
             item.param1 = item.param1 + 1
@@ -746,24 +747,24 @@ class FenceModule(mission_item_protocol.MissionItemProtocolModule):
 
         first_item = self.wploader.item(seq)
         if first_item is None:
-            print("Invalid item sequence number (%s)" % seq)
+            print(tr("invalid_item_sequence_number") % seq)
             return
         if not self.is_polygon_item(first_item):
-            print("Item %u is not a polygon vertex" % seq)
+            print(tr("item_u_is_not_a_polygon") % seq)
             return
 
         items_to_remove = []
         for i in range(int(first_item.param1)):
             item = self.wploader.item(seq+i)
             if item is None:
-                print("No item %s" % str(i))
+                print(tr("no_item") % str(i))
                 return
             if item.param1 != first_item.param1:
-                print("Invalid polygon starting at %u (count=%u), point %u (count=%u)" %
+                print(tr("invalid_polygon_starting_at_u_count") %
                       (seq, int(first_item.param1), i, int(item.param1)))
                 return
             if not self.is_polygon_item(item):
-                print("Item %u point %u is not a polygon vertex" % (seq, i))
+                print(tr("item_u_point_u_is_not") % (seq, i))
                 return
             items_to_remove.append(item)
 
@@ -779,7 +780,7 @@ class FenceModule(mission_item_protocol.MissionItemProtocolModule):
             return
 
         if len(args) < 2:
-            print("Need first polygon point and vertex offset")
+            print(tr("need_first_polygon_point_and_vertex"))
             return
         polygon_start_seq = int(args[0])
         item_offset = int(args[1])
@@ -789,7 +790,7 @@ class FenceModule(mission_item_protocol.MissionItemProtocolModule):
 
         latlon = self.mpstate.click_location
         if latlon is None:
-            print("No map click position available")
+            print(tr("no_map_click_position_available"))
             return
 
         moving_item = self.wploader.item(polygon_start_seq + item_offset)
@@ -855,7 +856,7 @@ def init(mpstate):
     try:
         mavwp.MissionItemProtocol_Fence
     except AttributeError:
-        print("pymavlink too old; using old %s module" % oldmodule)
+        print(tr("pymavlink_too_old_using_old_module") % oldmodule)
         mpstate.load_module(oldmodule)
         for (m, pm) in mpstate.modules:
             if m.name == "fence":

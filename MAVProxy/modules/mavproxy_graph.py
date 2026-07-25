@@ -10,14 +10,15 @@ import re, os, sys
 from MAVProxy.modules.lib import live_graph
 
 from MAVProxy.modules.lib import mp_module
+from MAVProxy.modules.lib.mp_i18n import tr
 
 class GraphModule(mp_module.MPModule):
     def __init__(self, mpstate):
-        super(GraphModule, self).__init__(mpstate, "graph", "graph control")
+        super(GraphModule, self).__init__(mpstate, "graph", tr("mod_graph_control"))
         self.timespan = 20
         self.tickresolution = 0.2
         self.graphs = []
-        self.add_command('graph', self.cmd_graph, "[expression...] add a live graph",
+        self.add_command('graph', self.cmd_graph, tr("cmd_expression_add_a_live_graph"),
                          ['(VARIABLE) (VARIABLE) (VARIABLE) (VARIABLE) (VARIABLE) (VARIABLE)',
                           'legend',
                           'timespan',
@@ -31,19 +32,19 @@ class GraphModule(mp_module.MPModule):
         if len(args) == 0:
             # list current graphs
             for i in range(len(self.graphs)):
-                print("Graph %u: %s" % (i, self.graphs[i].fields))
+                print(tr("graph_u") % (i, self.graphs[i].fields))
             return
 
         elif args[0] == "help":
-            print("graph <timespan|tickresolution|expression>")
+            print(tr("graph_timespan_tickresolution_expression"))
         elif args[0] == "timespan":
             if len(args) == 1:
-                print("timespan: %.1f" % self.timespan)
+                print(tr("timespan") % self.timespan)
                 return
             self.timespan = float(args[1])
         elif args[0] == "tickresolution":
             if len(args) == 1:
-                print("tickresolution: %.1f" % self.tickresolution)
+                print(tr("tickresolution") % self.tickresolution)
                 return
             self.tickresolution = float(args[1])
         elif args[0] == "legend":
@@ -56,16 +57,16 @@ class GraphModule(mp_module.MPModule):
         '''setup legend for graphs'''
         if len(args) == 0:
             for leg in self.legend.keys():
-                print("%s -> %s" % (leg, self.legend[leg]))
+                print(tr("msg_6") % (leg, self.legend[leg]))
         elif len(args) == 1:
             leg = args[0]
             if leg in self.legend:
-                print("Removing legend %s" % leg)
+                print(tr("removing_legend") % leg)
                 self.legend.pop(leg)
         elif len(args) >= 2:
             leg = args[0]
             leg2 = args[1]
-            print("Adding legend %s -> %s" % (leg, leg2))
+            print(tr("adding_legend") % (leg, leg2))
             self.legend[leg] = leg2
 
     def unload(self):
@@ -111,7 +112,7 @@ class Graph():
             caps = set(re.findall(re_caps, f))
             self.msg_types = self.msg_types.union(caps)
             self.field_types.append(caps)
-        print("Adding graph: %s" % self.fields)
+        print(tr("adding_graph") % self.fields)
 
         fields = [ self.pretty_print_fieldname(x) for x in self.fields ]
         labels = []

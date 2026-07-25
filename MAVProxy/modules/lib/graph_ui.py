@@ -4,6 +4,7 @@ from MAVProxy.modules.lib import multiproc
 import errno
 import socket
 import copy
+from MAVProxy.modules.lib.mp_i18n import tr
 
 graph_count = 1
 
@@ -20,7 +21,7 @@ class Graph_UI(object):
     def display_graph(self, graphdef, flightmode_colourmap=None):
         '''display a graph'''
         if 'mestate' in globals():
-            self.mestate.console.write("Expression: %s\n" % ' '.join(graphdef.expression.split()))
+            self.mestate.console.write(tr("expression") % ' '.join(graphdef.expression.split()))
         else:
             self.mestate.child_pipe_send_console.send("Expression: %s\n" % ' '.join(graphdef.expression.split()))
         #mestate.mlog.reduce_by_flightmodes(mestate.flightmode_selections)

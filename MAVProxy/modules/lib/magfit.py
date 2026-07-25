@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from MAVProxy.modules.lib.mp_i18n import tr, ensure_language_from_argv
 '''
 fit best estimate of magnetometer offsets, diagonals, off-diagonals, cmot and scaling using WMM target
 '''
@@ -38,21 +39,21 @@ class Correction:
         self.scaling = 1.0
 
     def show_parms(self):
-        print("COMPASS_OFS%s_X %d" % (mag_idx, int(self.offsets.x)))
-        print("COMPASS_OFS%s_Y %d" % (mag_idx, int(self.offsets.y)))
-        print("COMPASS_OFS%s_Z %d" % (mag_idx, int(self.offsets.z)))
-        print("COMPASS_DIA%s_X %.3f" % (mag_idx, self.diag.x))
-        print("COMPASS_DIA%s_Y %.3f" % (mag_idx, self.diag.y))
-        print("COMPASS_DIA%s_Z %.3f" % (mag_idx, self.diag.z))
-        print("COMPASS_ODI%s_X %.3f" % (mag_idx, self.offdiag.x))
-        print("COMPASS_ODI%s_Y %.3f" % (mag_idx, self.offdiag.y))
-        print("COMPASS_ODI%s_Z %.3f" % (mag_idx, self.offdiag.z))
-        print("COMPASS_MOT%s_X %.3f" % (mag_idx, self.cmot.x))
-        print("COMPASS_MOT%s_Y %.3f" % (mag_idx, self.cmot.y))
-        print("COMPASS_MOT%s_Z %.3f" % (mag_idx, self.cmot.z))
-        print("COMPASS_SCALE%s %.2f" % (mag_idx, self.scaling))
+        print(tr("compass_ofs_x") % (mag_idx, int(self.offsets.x)))
+        print(tr("compass_ofs_y") % (mag_idx, int(self.offsets.y)))
+        print(tr("compass_ofs_z") % (mag_idx, int(self.offsets.z)))
+        print(tr("compass_dia_x") % (mag_idx, self.diag.x))
+        print(tr("compass_dia_y") % (mag_idx, self.diag.y))
+        print(tr("compass_dia_z") % (mag_idx, self.diag.z))
+        print(tr("compass_odi_x") % (mag_idx, self.offdiag.x))
+        print(tr("compass_odi_y") % (mag_idx, self.offdiag.y))
+        print(tr("compass_odi_z") % (mag_idx, self.offdiag.z))
+        print(tr("compass_mot_x") % (mag_idx, self.cmot.x))
+        print(tr("compass_mot_y") % (mag_idx, self.cmot.y))
+        print(tr("compass_mot_z") % (mag_idx, self.cmot.z))
+        print(tr("compass_scale") % (mag_idx, self.scaling))
         if margs['CMOT']:
-            print("COMPASS_MOTCT 2")
+            print(tr("compass_motct_2"))
 
 def RotationIDToString(id):
     '''map rotation number to a string'''
@@ -196,7 +197,7 @@ def fit_WWW():
 
     (p,err,iterations,imode,smode) = optimize.fmin_slsqp(wmm_error, p, bounds=bounds, full_output=True)
     if imode != 0:
-        print("Fit failed: %s" % smode)
+        print(tr("fit_failed") % smode)
         sys.exit(1)
     p = list(p)
 
@@ -285,7 +286,7 @@ def magfit(mlog, timestamp_in_range, save_plot=None):
     if lat != 0 and lon != 0:
         earth_field = mavextra.expected_earth_field_lat_lon(lat, lon)
         (declination,inclination,intensity) = mavextra.get_mag_field_ef(lat, lon)
-        print("Earth field: %s  strength %.0f declination %.1f degrees" % (earth_field, earth_field.length(), declination))
+        print(tr("earth_field_strength_declination_degrees") % (earth_field, earth_field.length(), declination))
 
     ATT_NAME = margs['Attitude']
 
@@ -293,7 +294,7 @@ def magfit(mlog, timestamp_in_range, save_plot=None):
     if ATT_NAME == "XKY0":
         mtypes.append('ATT')
     last_ATT = None
-    print("Attitude source %s mtypes=%s" % (ATT_NAME, mtypes))
+    print(tr("attitude_source_mtypes") % (ATT_NAME, mtypes))
 
     # extract MAG data
     while True:
@@ -308,7 +309,7 @@ def magfit(mlog, timestamp_in_range, save_plot=None):
         if msg.get_type() == 'GPS' and msg.Status >= 3 and earth_field is None:
             earth_field = mavextra.expected_earth_field(msg)
             (declination,inclination,intensity) = mavextra.get_mag_field_ef(msg.Lat, msg.Lng)
-            print("Earth field: %s  strength %.0f declination %.1f degrees" % (earth_field, earth_field.length(), declination))
+            print(tr("earth_field_strength_declination_degrees") % (earth_field, earth_field.length(), declination))
         if msg.get_type() == 'ATT':
             # needed for XKY0 for yaw
             last_ATT = msg
@@ -384,8 +385,8 @@ def magfit(mlog, timestamp_in_range, save_plot=None):
         data2.append((MAG,ATT,BAT))
     data = data2
 
-    print("Extracted %u points" % len(data))
-    print("Current: %s diag: %s offdiag: %s cmot: %s scale: %.2f" % (
+    print(tr("extracted_u_points") % len(data))
+    print(tr("current_diag_offdiag_cmot_scale") % (
         old_corrections.offsets, old_corrections.diag, old_corrections.offdiag, old_corrections.cmot, old_corrections.scaling))
     if len(data) == 0:
         return
@@ -408,7 +409,7 @@ def magfit(mlog, timestamp_in_range, save_plot=None):
         c.diag *= 1.0/scale_change
         c.offdiag *= 1.0/scale_change
 
-    print("New: %s diag: %s offdiag: %s cmot: %s scale: %.2f" % (
+    print(tr("new_diag_offdiag_cmot_scale") % (
         c.offsets, c.diag, c.offdiag, c.cmot, c.scaling))
 
     x = []
@@ -472,7 +473,7 @@ def magfit(mlog, timestamp_in_range, save_plot=None):
 
     if save_plot is not None:
         fig.savefig(save_plot)
-        print("Saved plot to %s" % save_plot)
+        print(tr("saved_plot_to") % save_plot)
     else:
         pyplot.show(block=False)
 
@@ -485,29 +486,30 @@ def main():
     '''
     global margs
     from argparse import ArgumentParser
-    parser = ArgumentParser(description='magnetometer fit (headless)')
-    parser.add_argument('log', help='log file to process')
-    parser.add_argument('--mag', default='MAG[0]', help='magnetometer source, eg MAG[0]')
-    parser.add_argument('--attitude', default='ATT', help='attitude source: ATT, XKF1, GYRO or XKY0')
+    ensure_language_from_argv()
+    parser = ArgumentParser(description=tr("opt_magnetometer_fit_headless"))
+    parser.add_argument('log', help=tr("opt_log_file_to_process"))
+    parser.add_argument('--mag', default='MAG[0]', help=tr("opt_magnetometer_source_eg_mag_0"))
+    parser.add_argument('--attitude', default='ATT', help=tr("opt_attitude_source_att_xkf1_gyro_or_xky0"))
     parser.add_argument('--orientation', default='ROTATION_NONE',
-                        help='sensor orientation, eg ROTATION_YAW_180')
-    parser.add_argument('--lat', type=float, default=0.0, help='latitude (0 to take from GPS)')
-    parser.add_argument('--lon', type=float, default=0.0, help='longitude (0 to take from GPS)')
-    parser.add_argument('--battery', type=int, default=1, help='battery instance for motor-current fit')
-    parser.add_argument('--reduce', type=int, default=1, help='use every Nth sample')
+                        help=tr("opt_sensor_orientation_eg_rotation_yaw_180"))
+    parser.add_argument('--lat', type=float, default=0.0, help=tr("opt_latitude_0_to_take_from_gps"))
+    parser.add_argument('--lon', type=float, default=0.0, help=tr("opt_longitude_0_to_take_from_gps"))
+    parser.add_argument('--battery', type=int, default=1, help=tr("opt_battery_instance_for_motor_current_fit"))
+    parser.add_argument('--reduce', type=int, default=1, help=tr("opt_use_every_nth_sample"))
     parser.add_argument('--offset-max', type=int, default=1500)
     parser.add_argument('--scale-min', type=float, default=1.0)
     parser.add_argument('--scale-max', type=float, default=1.0)
-    parser.add_argument('--elliptical', action='store_true', help='also fit diagonals/off-diagonals')
+    parser.add_argument('--elliptical', action='store_true', help=tr("opt_also_fit_diagonals_off_diagonals"))
     parser.add_argument('--diagonal-min', type=float, default=0.8)
     parser.add_argument('--diagonal-max', type=float, default=1.2)
     parser.add_argument('--offdiag-min', type=float, default=-0.2)
     parser.add_argument('--offdiag-max', type=float, default=0.2)
-    parser.add_argument('--cmot', action='store_true', help='also fit motor-current interference')
+    parser.add_argument('--cmot', action='store_true', help=tr("opt_also_fit_motor_current_interference"))
     parser.add_argument('--cmot-nochange', action='store_true')
     parser.add_argument('--cmot-max', type=float, default=10.0)
     parser.add_argument('--save-plot', default='magfit.png',
-                        help='save the result plot to this file instead of displaying it')
+                        help=tr("opt_save_the_result_plot_to_this_file_instead"))
     args = parser.parse_args()
 
     if args.save_plot is not None:
@@ -622,7 +624,7 @@ class MagFitUI(wx.Dialog):
         '''Initalise the UI elements'''
 
         if not hasattr(self.mlog, 'formats'):
-            print("Must be DF log")
+            print(tr("must_be_df_log"))
             return
 
         self.panel = wx.Panel(self)

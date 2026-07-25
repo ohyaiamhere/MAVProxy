@@ -1,3 +1,4 @@
+from MAVProxy.modules.lib.mp_i18n import tr
 #!/usr/bin/env python3
 
 """
@@ -149,7 +150,7 @@ class ChecklistFrame(wx.Frame):
                 with open(log_path, 'a') as f:
                     f.write(f"{timestamp}: {item_name} - {statestr}\n")
             except Exception as e:
-                print(f"Error writing to checklist log: {e}")
+                print(tr("error_writing_to_checklist_log") % (e,))
 
     # create controls on form - labels, buttons, etc
     def createWidgets(self):

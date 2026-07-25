@@ -4,6 +4,7 @@ from MAVProxy.modules.lib.wx_loader import wx
 import math, time
 
 import matplotlib
+from MAVProxy.modules.lib.mp_i18n import tr
 matplotlib.use('wxAgg')
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
 from matplotlib.figure import Figure
@@ -686,12 +687,12 @@ class HorizonFrame(wx.Frame):
         '''To adjust the distance between pitch markers.'''
         if event.GetKeyCode() == wx.WXK_UP:
             self.dist10deg += 0.1
-            print('Dist per 10 deg: %.1f' % self.dist10deg)
+            print(tr("dist_per_10_deg") % self.dist10deg)
         elif event.GetKeyCode() == wx.WXK_DOWN:
             self.dist10deg -= 0.1
             if self.dist10deg <= 0:
                 self.dist10deg = 0.1
-            print('Dist per 10 deg: %.1f' % self.dist10deg)
+            print(tr("dist_per_10_deg") % self.dist10deg)
         # Toggle Widgets
         elif event.GetKeyCode() == 49: # 1
             widgets = [self.modeText,self.wpText]

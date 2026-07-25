@@ -5,13 +5,14 @@ import numpy as np
 import cv2
 import time
 from MAVProxy.modules.lib.mp_image import MPImage
+from MAVProxy.modules.lib.mp_i18n import tr
 
 FNAME=sys.argv[1]
 
 # little-endian 16 bit data
 # Celsius temp = Raw data/64-273.15.
 
-print('Importing: ', FNAME)
+print(tr("importing"), FNAME)
 a = np.fromfile(FNAME, dtype='>u2')
 # get in Kelvin
 a = (a / 64.0)
@@ -22,9 +23,9 @@ C_TO_KELVIN = 273.15
 
 maxv = a.max()
 minv = a.min()
-print("Max=%.3fC Min=%.3fC" % (maxv-273.15, minv-273.15))
+print(tr("max_c_min_c") % (maxv-273.15, minv-273.15))
 if maxv <= minv:
-    print("Bad range")
+    print(tr("bad_range"))
     sys.exit(1)
 
 # convert to 0 to 255

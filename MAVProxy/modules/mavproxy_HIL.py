@@ -11,10 +11,11 @@ import sys, os, time, socket, errno, struct, math
 from math import degrees, radians
 from MAVProxy.modules.lib import mp_module
 from pymavlink import mavutil
+from MAVProxy.modules.lib.mp_i18n import tr
 
 class HILModule(mp_module.MPModule):
     def __init__(self, mpstate):
-        super(HILModule, self).__init__(mpstate, "HIL", "HIL simulation")
+        super(HILModule, self).__init__(mpstate, "HIL", tr("mod_hil_simulation"))
         self.last_sim_send_time = time.time()
         self.last_apm_send_time = time.time()
         self.rc_channels_scaled = mavutil.mavlink.MAVLink_rc_channels_scaled_message(0, 0, 0, 0, -10000, 0, 0, 0, 0, 0, 0)
@@ -60,7 +61,7 @@ class HILModule(mp_module.MPModule):
             return
         if len(pkt) != 17*8 + 4:
             # wrong size, discard it
-            print("wrong size %u" % len(pkt))
+            print(tr("wrong_size_u") % len(pkt))
             return
         (latitude, longitude, altitude, heading, v_north, v_east, v_down,
          ax, ay, az,

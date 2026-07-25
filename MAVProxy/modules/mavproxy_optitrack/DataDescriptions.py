@@ -24,6 +24,7 @@
 import copy
 import hashlib
 import random
+from MAVProxy.modules.lib.mp_i18n import tr
 
 K_SKIP = [0,0,1]
 K_FAIL = [0,1,0]
@@ -50,12 +51,12 @@ def test_hash(test_name, test_hash_str, test_object):
     out_hash_str=hashlib.sha1(out_str.encode()).hexdigest()
     ret_value=True
     if test_hash_str == out_hash_str :
-        print("[PASS]:%s"%test_name)
+        print(tr("pass")%test_name)
     else:
-        print("[FAIL]:%s test_hash_str != out_hash_str"%test_name)
-        print("test_hash_str=%s"%test_hash_str)
-        print("out_hash_str=%s"%out_hash_str)
-        print("out_str =\n%s"%out_str)
+        print(tr("fail_test_hash_str_out_hash")%test_name)
+        print(tr("test_hash_str")%test_hash_str)
+        print(tr("out_hash_str")%out_hash_str)
+        print(tr("out_str")%out_str)
         ret_value=False
     return ret_value
 
@@ -88,10 +89,10 @@ def test_hash2(test_name, test_hash_str, test_object, generator_string, run_test
             out_str2 += "%s[\"%s\", \"%s\", \"%s\", True],\n"%(indent_string,test_name,obj_out_hash_str,generator_string)
             out_str2+="%sobj_out_str =\n%s"%(indent_string,obj_out_str)
             ret_value = K_FAIL
-    print("[%s]:%s"%(out_str,test_name))
+    print(tr("msg_22")%(out_str,test_name))
 
     if len(out_str2):
-        print("%s"%out_str2)
+        print(tr("msg_3")%out_str2)
     return ret_value
 
 
@@ -583,7 +584,7 @@ class DataDescriptions():
         elif data_type is None:
             data_type = None
         else:
-            print("ERROR: Type %s unknown"%str(data_type))
+            print(tr("error_type_unknown")%str(data_type))
 
     def get_object_from_list(self, list_name, pos_num):
         """Determine list name and position of the object"""
@@ -798,9 +799,9 @@ def test_all(run_test=True):
             totals=add_lists(totals, totals_tmp)
 
     print("--------------------")
-    print("[PASS] Count = %3.1d"%totals[0])
-    print("[FAIL] Count = %3.1d"%totals[1])
-    print("[SKIP] Count = %3.1d"%totals[2])
+    print(tr("pass_count")%totals[0])
+    print(tr("fail_count")%totals[1])
+    print(tr("skip_count")%totals[2])
 
     return totals
 

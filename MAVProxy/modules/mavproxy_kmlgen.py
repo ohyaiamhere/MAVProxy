@@ -23,12 +23,13 @@ import functools
 from MAVProxy.modules.lib import mp_module
 from MAVProxy.modules.lib import mp_settings
 from pymavlink.dialects.v20 import common as mavlink2
+from MAVProxy.modules.lib.mp_i18n import tr
 
 
 class KMLGenModule(mp_module.MPModule):
 
     def __init__(self, mpstate):
-        super(KMLGenModule, self).__init__(mpstate, "kmlgen", "KML mission viewer")
+        super(KMLGenModule, self).__init__(mpstate, "kmlgen", tr("mod_kml_mission_viewer"))
 
         self.kml_settings = mp_settings.MPSettings([
             ('port', int, 8007),
@@ -37,7 +38,7 @@ class KMLGenModule(mp_module.MPModule):
             ('networklink_filename', str, 'networklink.kml')
         ])
 
-        self.add_command('kmlgen', self.cmd_kmlgen, 'KML mission output',
+        self.add_command('kmlgen', self.cmd_kmlgen, tr("cmd_kml_mission_output"),
                          ["<start>", "<set (KMLGENSETTING)>", "<status>"])
         self.add_completion_function('(KMLGENSETTING)', self.kml_settings.completion)
 
@@ -53,7 +54,7 @@ class KMLGenModule(mp_module.MPModule):
 
     def cmd_kmlgen(self, args):
         if len(args) == 0:
-            print("Usage: kmlgen <start|set|status>")
+            print(tr("usage_kmlgen_start_set_status"))
             return
         if args[0] == 'start':
             self.start_kmlgen()
@@ -64,11 +65,11 @@ class KMLGenModule(mp_module.MPModule):
 
     def start_kmlgen(self):
         if self.running:
-            print("KMLGen already running")
+            print(tr("kmlgen_already_running"))
             return
 
         if self.logdir is None:
-            print("KMLGen needs logdir set, start with --aircraft option")
+            print(tr("kmlgen_needs_logdir_set_start_with"))
             return
 
         self.running = True
@@ -78,14 +79,14 @@ class KMLGenModule(mp_module.MPModule):
 
         self.write_wrapper_kml()
         self.start_pending = True
-        print(f"KMLGen started: open {self.wrapper_path} in Google Earth")
+        print(tr("kmlgen_started_open_in_google_earth") % (self.wrapper_path,))
 
     def kml_status(self):
         if not self.running:
-            print("KMLGen not started")
+            print(tr("kmlgen_not_started"))
         else:
-            print(f"KMLGen running at port {self.kml_settings.port}, refresh {self.kml_settings.refresh_interval}s")
-            print(f"KML output: {self.kml_path}")
+            print(tr("kmlgen_running_at_port_refresh_s") % (self.kml_settings.port, self.kml_settings.refresh_interval))
+            print(tr("kml_output") % (self.kml_path,))
 
     def idle_task(self):
         if not self.running:
@@ -112,7 +113,7 @@ class KMLGenModule(mp_module.MPModule):
         if current_hash != self.last_hash:
             self.write_file(self.kml_path, kml)
             self.last_hash = current_hash
-            self.say(f"Updated {self.kml_settings.mission_filename} with {loader.count()} waypoints")
+            self.say(tr("updated_with_waypoints") % (self.kml_settings.mission_filename, loader.count()))
 
         self.last_update = now
 
@@ -182,7 +183,7 @@ class KMLGenModule(mp_module.MPModule):
             with open(path, "w") as f:
                 f.write(content)
         except Exception as e:
-            self.say(f"Failed to write {path}: {e}")
+            self.say(tr("failed_to_write") % (path, e))
 
     def write_wrapper_kml(self):
         url = f"http://localhost:{self.kml_settings.port}/{self.kml_settings.mission_filename}"
@@ -214,11 +215,11 @@ class KMLGenModule(mp_module.MPModule):
                 with self.ReusableTCPServer(("", self.kml_settings.port), handler) as httpd:
                     httpd.serve_forever()
             except Exception as e:
-                self.say(f"HTTP server failed: {e}")
+                self.say(tr("http_server_failed") % (e,))
 
         thread = threading.Thread(target=run_server, daemon=True)
         thread.start()
-        self.say(f"Serving KML on http://localhost:{self.kml_settings.port}/")
+        self.say(tr("serving_kml_on_http_localhost") % (self.kml_settings.port,))
 
 
 def init(mpstate):

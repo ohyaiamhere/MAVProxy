@@ -7,6 +7,7 @@ import socket, errno
 import json
 from pymavlink import mavutil
 from MAVProxy.modules.lib import mp_module
+from MAVProxy.modules.lib.mp_i18n import tr
 
 class GPSInputModule(mp_module.MPModule):
 
@@ -20,8 +21,8 @@ class GPSInputModule(mp_module.MPModule):
                         mavutil.mavlink.GPS_INPUT_IGNORE_FLAG_VERTICAL_ACCURACY)
 
     def __init__(self, mpstate):
-        super(GPSInputModule, self).__init__(mpstate, "GPSInput", "GPS_INPUT message support")
-        self.add_command('GPSInput.port', self.cmd_port, 'Port selection', ['<25100>'])
+        super(GPSInputModule, self).__init__(mpstate, "GPSInput", tr("mod_gps_input_message_support"))
+        self.add_command('GPSInput.port', self.cmd_port, tr("cmd_port_selection"), ['<25100>'])
         self.data = {
             'time_usec' : 0,                        # (uint64_t) Timestamp (micros since boot or Unix epoch)
             'gps_id' : 0,                           # (uint8_t) ID of the GPS for multiple GPS inputs
@@ -51,7 +52,7 @@ class GPSInputModule(mp_module.MPModule):
         self.port.bind((self.ip, self.portnum))
         self.port.setblocking(0)
         mavutil.set_close_on_exec(self.port.fileno())
-        print("Listening for GPS Input packets on UDP://%s:%s" % (self.ip, self.portnum))
+        print(tr("listening_for_gps_input_packets_on") % (self.ip, self.portnum))
 
 
     def idle_task(self):
@@ -91,13 +92,13 @@ class GPSInputModule(mp_module.MPModule):
                 self.data['satellites_visible'])
         
         except Exception as e:
-            print("GPS Input Failed:", e)
+            print(tr("gps_input_failed"), e)
 
 
     def cmd_port(self, args):
         'handle port selection'
         if len(args) != 1:
-            print("Usage: port <number>")
+            print(tr("usage_port_number"))
             return
         
         self.port.close()
@@ -107,7 +108,7 @@ class GPSInputModule(mp_module.MPModule):
         self.port.bind((self.ip, self.portnum))
         self.port.setblocking(0)
         mavutil.set_close_on_exec(self.port.fileno())
-        print("Listening for GPS INPUT packets on UDP://%s:%s" % (self.ip, self.portnum))
+        print(tr("listening_for_gps_input_packets_on_2") % (self.ip, self.portnum))
 
 
 def init(mpstate):

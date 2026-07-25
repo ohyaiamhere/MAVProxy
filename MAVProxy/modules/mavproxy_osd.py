@@ -15,6 +15,7 @@ import time
 from MAVProxy.modules.lib import mp_module
 from MAVProxy.modules.lib import mp_util
 from MAVProxy.modules.lib import mp_settings
+from MAVProxy.modules.lib.mp_i18n import tr
 
 class osd(mp_module.MPModule):
     def __init__(self, mpstate):
@@ -22,7 +23,7 @@ class osd(mp_module.MPModule):
         super(osd, self).__init__(mpstate, "osd", "")
 
         self.request_id = 1
-        self.add_command('osd', self.cmd_osd, "OSD module",
+        self.add_command('osd', self.cmd_osd, tr("cmd_osd_module"),
             ['param-set <5|6> <1|2|3|4|5|6|7|8|9> (PARAMETER) (TYPES)',
              'param-show <5|6> <1|2|3|4|5|6|7|8|9>'
             ])
@@ -57,7 +58,7 @@ class osd(mp_module.MPModule):
     def param_set(self, args):
         '''sets an OSD parameter'''
         if len(args) < 3 or len(args) > 6:
-            print("param-set <screen> <index> <name> (<type> | <min> <max> <increment>)")
+            print(tr("param_set_screen_index_name_type"))
             return
         screen = int(args[0], 0)
         index = int(args[1], 0)
@@ -71,7 +72,7 @@ class osd(mp_module.MPModule):
             type = self.string_to_config_type(args[3])
             # can't have config type and ranges
             if type is not None and len(args) > 4:
-                print("param-set <screen> <index> <name> (<type> | <min> <max> <increment>)")
+                print(tr("param_set_screen_index_name_type"))
                 return
 
         if len(args) > 3 and type is None:
@@ -122,7 +123,7 @@ class osd(mp_module.MPModule):
             return
 
         elif len(args) != 2:
-            print("param-show <screen> <index>")
+            print(tr("param_show_screen_index"))
             return
         screen = int(args[0], 0)
         index = int(args[1], 0)
@@ -139,12 +140,12 @@ class osd(mp_module.MPModule):
         mtype = m.get_type()
         if mtype == "OSD_PARAM_CONFIG_REPLY" or mtype == "OSD_PARAM_SHOW_CONFIG_REPLY":
             if m.result == mavutil.mavlink.OSD_PARAM_INVALID_PARAMETER:
-                print("OSD request %u failed: invalid parameter" % (m.request_id))
+                print(tr("osd_request_u_failed_invalid_parameter") % (m.request_id))
             elif m.result != 0:
-                print("OSD request %u failed: %u" % (m.request_id, m.result))
+                print(tr("osd_request_u_failed_u") % (m.request_id, m.result))
             else:
                 if mtype == "OSD_PARAM_CONFIG_REPLY":
-                    print("OSD parameter set")
+                    print(tr("osd_parameter_set"))
                 else:
                     print("%s %f %f %f %s" % (m.param_id, m.min_value, m.max_value, m.increment,
                         self.config_type_to_string(m.config_type)))

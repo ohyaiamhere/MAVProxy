@@ -18,6 +18,7 @@ package_data = ['modules/mavproxy_map/data/*.jpg',
                 'modules/mavproxy_magical/data/*.obj',
                 'modules/mavproxy_fieldcheck/*.txt',
                 'tools/graphs/*.xml',
+                'lang/*.py',
 ]
 
 package_data.extend(package_files('MAVProxy/modules/mavproxy_cesium/app'))
@@ -75,6 +76,7 @@ on how to use MAVProxy.''',
         'Topic :: Scientific/Engineering'],
       license='GPLv3',
       packages=['MAVProxy',
+                'MAVProxy.lang',
                 'MAVProxy.modules',
                 'MAVProxy.modules.mavproxy_anufireproject',
                 'MAVProxy.modules.mavproxy_fieldcheck',

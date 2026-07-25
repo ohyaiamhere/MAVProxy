@@ -9,6 +9,7 @@ import json
 import string
 from packaging import version
 from pymavlink import mavutil
+from MAVProxy.modules.lib.mp_i18n import tr
 
 if sys.version_info.major < 3:
     from urllib2 import Request
@@ -40,7 +41,7 @@ class UserAlertsModule(mp_module.MPModule):
         self.add_completion_function('(ALERTSETTING)',
                                      self.alerts_settings.completion)
 
-        self.add_command('useralerts', self.cmd_check, "Check User Alerts",
+        self.add_command('useralerts', self.cmd_check, tr("cmd_check_user_alerts"),
                          ["check",
                           "set (ALERTSETTING)"])
 
@@ -72,7 +73,7 @@ class UserAlertsModule(mp_module.MPModule):
             self.version = "{0}.{1}.{2}".format(vMajor, vMinor, vPatch)
 
         if self.board and self.version:
-            print("Checking Alerts for {1} version {0}, board {2}".format(self.version, self.mpstate.vehicle_type, self.board))
+            print(tr("checking_alerts_for_version_board").format(self.version, self.mpstate.vehicle_type, self.board))
 
             #download user alerts
             if self.alerts_settings.useTest:
@@ -83,23 +84,23 @@ class UserAlertsModule(mp_module.MPModule):
             try:
                 r = urlopen(req).read()
             except URLError:
-                print("Error: unable to download User Alerts")
+                print(tr("error_unable_to_download_user_alerts"))
                 # reset for next time "check" is called
                 self.version = None
                 self.board = None
                 return
 
             allAlerts = json.loads(r.decode('utf-8'))
-            print("Downloaded {0} alerts".format(len(allAlerts)))
+            print(tr("downloaded_alerts").format(len(allAlerts)))
 
             # Check and print out applicable alerts
             for (key, alert) in allAlerts.items():
                 #print("Checking: {0}".format(key))
                 (valid, mitigation) = self.alert_is_applicable(alert, self.version, str(self.mpstate.vehicle_type), self.board)
                 if valid:
-                    print("******************")
-                    print("User alert {0} is valid for this vehicle:".format(key))
-                    print("Issue: {0}\nMitigation: {1}".format(alert['description'], mitigation))
+                    print(tr("msg_14"))
+                    print(tr("user_alert_is_valid_for_this").format(key))
+                    print(tr("issue_mitigation").format(alert['description'], mitigation))
 
             # reset for next time "check" is called
             self.version = None
@@ -163,7 +164,7 @@ class UserAlertsModule(mp_module.MPModule):
 
     def cmd_check(self, args):
         '''Useralert operations'''
-        usage = "Usage: useralerts <check|set>"
+        usage = tr("usage_usage_useralerts_check_set")
         if len(args) < 1:
             print(usage)
             return

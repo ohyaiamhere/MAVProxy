@@ -1,3 +1,4 @@
+from MAVProxy.modules.lib.mp_i18n import tr
 # Copyright (C) 2016  Intel Corporation. All rights reserved.
 #
 # This file is free software: you can redistribute it and/or modify it
@@ -80,7 +81,7 @@ class Parser(object):
             try:
                 obj = pickle.load(f)
             except:
-                print("wavefront parser: error on loading cache, falling back to parsing", file=sys.stderr)
+                print(tr("wavefront_parser_error_on_loading_cache"), file=sys.stderr)
                 return None
             else:
                 return obj

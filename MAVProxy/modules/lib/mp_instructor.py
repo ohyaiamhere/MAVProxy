@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from MAVProxy.modules.lib.mp_i18n import tr
 """
   MAVProxy instructor station, UI runs in a child process
   André Kjellstrup @ NORCE
@@ -44,7 +45,7 @@ class InstructorUI:
         self.close_event.set()
         if self.is_alive():
             self.child.join(2)
-            print("closed")
+            print(tr("closed"))
 
     def is_alive(self):
         """check if child is still going"""

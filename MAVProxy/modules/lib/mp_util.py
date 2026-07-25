@@ -12,6 +12,7 @@ import warnings
 import time
 import re
 from math import cos, sin, tan, atan2, sqrt, radians, degrees, pi, log, fmod
+from MAVProxy.modules.lib.mp_i18n import tr
 
 # Some platforms (CYGWIN and others) many not have the wx library
 # use imp to see if wx is on the path
@@ -303,7 +304,7 @@ def download_url(url):
         resp = url_open(url)
         headers = resp.info()
     except url_error as e:
-        print('Error downloading %s' % url)
+        print(tr("error_downloading") % url)
         return None
     return resp.read()
 
@@ -311,7 +312,7 @@ def download_url(url):
 def download_files(files):
     '''download an array of files'''
     for (url, file) in files:
-        print("Downloading %s as %s" % (url, file))
+        print(tr("downloading_as") % (url, file))
         data = download_url(url)
         if data is None:
             continue
@@ -322,7 +323,7 @@ def download_files(files):
         try:
             open(file, mode='wb').write(data)
         except Exception as e:
-            print("Failed to save to %s : %s" % (file, e))
+            print(tr("failed_to_save_to") % (file, e))
 
 
 child_fd_list = []
@@ -527,7 +528,7 @@ def decode_devid(devid, pname):
     if pname.startswith("ARSP"):
         decoded_devname = airspeed_types.get(devtype, "UNKNOWN")
         
-    print("%s: bus_type:%s(%u)  bus:%u address:%u(0x%x) devtype:%u(0x%x) %s (%u)" % (
+    print(tr("bus_type_u_bus_u_address") % (
         pname,
         bustypes.get(bus_type,"UNKNOWN"), bus_type,
         bus, address, address, devtype, devtype, decoded_devname,

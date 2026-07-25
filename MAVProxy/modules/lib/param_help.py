@@ -2,6 +2,7 @@ import time, os
 from pymavlink import mavutil, mavparm
 from MAVProxy.modules.lib import mp_util
 from MAVProxy.modules.lib import multiproc
+from MAVProxy.modules.lib.mp_i18n import tr
 
 class ParamHelp:
     def __init__(self):
@@ -47,12 +48,12 @@ class ParamHelp:
             return self.last_htree
         if self.xml_filepath is not None:
             if verbose:
-                print("param: using xml_filepath=%s" % self.xml_filepath)
+                print(tr("param_using_xml_filepath") % self.xml_filepath)
             path = self.xml_filepath
         else:
             if self.vehicle_name is None:
                 if verbose:
-                    print("Unknown vehicle type")
+                    print(tr("unknown_vehicle_type"))
                 return None
             # Map between new and old names
             path = mp_util.dot_mavproxy("%s.xml" % self.convert_vehicle_name())
@@ -61,11 +62,11 @@ class ParamHelp:
                 path = mp_util.dot_mavproxy("%s.xml" % self.vehicle_name)
             if not os.path.exists(path):
                 if verbose:
-                    print("Please run 'param download' first (vehicle_name=%s)" % self.convert_vehicle_name())
+                    print(tr("please_run_param_download_first_vehicle") % self.convert_vehicle_name())
                 return None
         if not os.path.exists(path):
             if verbose:
-                print("Param XML (%s) does not exist" % path)
+                print(tr("param_xml_does_not_exist") % path)
             return None
         xml = open(path,'rb').read()
         from lxml import objectify
@@ -89,7 +90,7 @@ class ParamHelp:
     def param_apropos(self, args):
         '''search parameter help for a keyword, list those parameters'''
         if len(args) == 0:
-            print("Usage: param apropos keyword")
+            print(tr("usage_param_apropos_keyword"))
             return
 
         htree = self.param_help_tree(True)
@@ -103,7 +104,7 @@ class ParamHelp:
                 if str(htree[param]).lower().find(keyword) != -1:
                     contains[param] = True
         for param in contains.keys():
-            print("%s" % (param,))
+            print(tr("msg_3") % (param,))
 
     def get_Values_from_help(self, help):
         children = help.getchildren()
@@ -176,7 +177,7 @@ class ParamHelp:
     def param_help(self, args):
         '''show help on a parameter'''
         if len(args) == 0:
-            print("Usage: param help PARAMETER_NAME")
+            print(tr("usage_param_help_parameter_name"))
             return
 
         htree = self.param_help_tree(True)
@@ -201,24 +202,24 @@ class ParamHelp:
                 try:
                     values = self.get_Values_from_help(help)
                     if len(values):
-                        print("\nValues: ")
+                        print(tr("values"))
                         for v in values:
-                            print("\t%3u : %s" % (int(v.get('code')), str(v)))
+                            print(tr("msg_3u") % (int(v.get('code')), str(v)))
                 except Exception as e:
-                    print("Caught exception %s" % repr(e))
+                    print(tr("caught_exception_3") % repr(e))
                     pass
                 try:
                     # note this is a dictionary:
                     values = self.get_bitmask_from_help(help)
                     if values is not None and len(values):
-                        print("\nBitmask: ")
+                        print(tr("bitmask"))
                         for (n, v) in values.items():
                             print(f"\t{int(n):3d} : {v}")
                 except Exception as e:
-                    print("Caught exception %s" % repr(e))
+                    print(tr("caught_exception_3") % repr(e))
                     pass
             else:
-                print("Parameter '%s' not found in documentation" % h)
+                print(tr("parameter_not_found_in_documentation") % h)
             
     def param_check(self, params, args):
         '''Check through parameters for obvious misconfigurations'''
@@ -235,7 +236,7 @@ class ParamHelp:
             try:
                 help = htree[param]
             except KeyError:
-                print("%s: not found in documentation" % (param,))
+                print(tr("not_found_in_documentation") % (param,))
                 problems_found = True
                 continue
 
@@ -253,10 +254,10 @@ class ParamHelp:
                     continue
                 value_values = [float(x.get("code")) for x in values]
                 if value not in value_values:
-                    print("%s: value %f not in Values (%s)" %
+                    print(tr("value_not_in_values") %
                           (param, value, str(value_values)))
                     problems_found = True
 
         if problems_found:
-            print("Remember to `param download` before trusting the checking!  Also, remember that parameter documentation is for *master*!")
+            print(tr("remember_to_param_download_before_trusting"))
 

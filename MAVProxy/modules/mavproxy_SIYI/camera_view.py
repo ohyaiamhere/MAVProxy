@@ -12,6 +12,7 @@ from MAVProxy.modules.lib.mp_image import MPImageFrameCounter
 from MAVProxy.modules.mavproxy_map import mp_slipmap
 from MAVProxy.modules.lib import mp_util
 import numpy as np
+from MAVProxy.modules.lib.mp_i18n import tr, ensure_language_from_argv
 
 class CameraView:
     """handle camera view image"""
@@ -216,7 +217,7 @@ class CameraView:
                     self.siyi.cmd_palette(["WhiteHot"])
                 elif event.returnkey.startswith("Mode:"):
                     self.siyi.click_mode = event.returnkey[5:]
-                    print("ViewMode: %s" % self.siyi.click_mode)
+                    print(tr("viewmode") % self.siyi.click_mode)
                 elif event.returnkey.startswith("Marker:"):
                     self.siyi.handle_marker(event.returnkey[7:])
                 elif event.returnkey.startswith("Lens:") and self.siyi is not None:
@@ -267,14 +268,15 @@ class CameraView:
 
 if __name__ == '__main__':
     from optparse import OptionParser
-    parser = OptionParser("camera_view.py [options]")
-    parser.add_option("--rtsp-server", default=None, type=str, help="RTSP UTL")
-    parser.add_option("--thermal", action='store_true', help="thermal camera")
-    parser.add_option("--fps", type=int, help="frames per second")
+    ensure_language_from_argv()
+    parser = OptionParser(tr("opt_usage_camera_view_py_options"))
+    parser.add_option("--rtsp-server", default=None, type=str, help=tr("opt_rtsp_utl"))
+    parser.add_option("--thermal", action='store_true', help=tr("opt_thermal_camera"))
+    parser.add_option("--fps", type=int, help=tr("opt_frames_per_second"))
 
     (opts, args) = parser.parse_args()
     if opts.rtsp_server is None:
-        print("Must specify an RTSP URL")
+        print(tr("must_specify_an_rtsp_url"))
         sys.exit(1)
 
     c = CameraView(None, opts.rtsp_server, "output.mts", (1280, 1024), thermal=opts.thermal, fps=opts.fps)

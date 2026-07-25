@@ -5,12 +5,13 @@ import os, time, platform
 from pymavlink import mavwp, mavutil
 from MAVProxy.modules.lib import mp_util
 from MAVProxy.modules.lib import mp_module
+from MAVProxy.modules.lib.mp_i18n import tr
 if mp_util.has_wxpython:
     from MAVProxy.modules.lib.mp_menu import *
 
 class FenceModule(mp_module.MPModule):
     def __init__(self, mpstate):
-        super(FenceModule, self).__init__(mpstate, "fence", "geo-fence management", public = True)
+        super(FenceModule, self).__init__(mpstate, "fence", tr("mod_geo_fence_management"), public = True)
         self.fenceloader_by_sysid = {}
         self.last_fence_breach = 0
         self.last_fence_status = 0
@@ -20,7 +21,7 @@ class FenceModule(mp_module.MPModule):
         self.enabled = False
         self.healthy = True
         self.add_command('fence', self.cmd_fence,
-                         "fence item protocol geo-fence management",
+                         tr("cmd_fence_item_protocol_geo_fence_management"),
                          ["<draw|list|clear|enable|disable|move|remove>",
                           "<load|save> (FILENAME)"])
 
@@ -31,7 +32,7 @@ class FenceModule(mp_module.MPModule):
             if os.path.exists(fencetxt):
                 self.fenceloader.load(fencetxt)
                 self.have_list = True
-                print("Loaded fence from %s" % fencetxt)
+                print(tr("loaded_fence_from") % fencetxt)
 
         self.menu_added_console = False
         self.menu_added_map = False
@@ -87,27 +88,27 @@ class FenceModule(mp_module.MPModule):
 
             present = ((m.onboard_control_sensors_present & bits) == bits)
             if self.present == False and present == True:
-                self.say("fence present")
+                self.say(tr("fence_present"))
                 self.compid = m.get_srcComponent()
                 self.sysid = m.get_srcSystem()
             elif self.present == True and present == False:
-                self.say("fence removed")
+                self.say(tr("fence_removed"))
             self.present = present
 
             enabled = ((m.onboard_control_sensors_enabled & bits) == bits)
             if self.enabled == False and enabled == True:
-                self.say("fence enabled")
+                self.say(tr("fence_enabled"))
                 self.compid = m.get_srcComponent()
                 self.sysid = m.get_srcSystem()
             elif self.enabled == True and enabled == False:
-                self.say("fence disabled")
+                self.say(tr("fence_disabled"))
             self.enabled = enabled
 
             healthy = ((m.onboard_control_sensors_health & bits) == bits)
             if self.healthy == False and healthy == True:
-                self.say("fence OK")
+                self.say(tr("fence_ok"))
             elif self.healthy == True and healthy == False:
-                self.say("fence breach")
+                self.say(tr("fence_breach"))
             self.healthy = healthy
 
             #console output for fence:
@@ -131,47 +132,47 @@ class FenceModule(mp_module.MPModule):
     def cmd_fence_move(self, args):
         '''handle fencepoint move'''
         if len(args) < 1:
-            print("Usage: fence move FENCEPOINTNUM")
+            print(tr("usage_fence_move_fencepointnum"))
             return
         if not self.have_list:
-            print("Please list fence points first")
+            print(tr("please_list_fence_points_first"))
             return
 
         idx = int(args[0])
         if idx <= 0 or idx > self.fenceloader.count():
-            print("Invalid fence point number %u" % idx)
+            print(tr("invalid_fence_point_number_u") % idx)
             return
 
         latlon = self.mpstate.click_location
         if latlon is None:
-            print("No map click position available")
+            print(tr("no_map_click_position_available"))
             return
 
         # note we don't subtract 1, as first fence point is the return point
         self.fenceloader.move(idx, latlon[0], latlon[1])
         if self.send_fence():
-            print("Moved fence point %u" % idx)
+            print(tr("moved_fence_point_u") % idx)
 
     def cmd_fence_remove(self, args):
         '''handle fencepoint remove'''
         if len(args) < 1:
-            print("Usage: fence remove FENCEPOINTNUM")
+            print(tr("usage_fence_remove_fencepointnum"))
             return
         if not self.have_list:
-            print("Please list fence points first")
+            print(tr("please_list_fence_points_first"))
             return
 
         idx = int(args[0])
         if idx <= 0 or idx > self.fenceloader.count():
-            print("Invalid fence point number %u" % idx)
+            print(tr("invalid_fence_point_number_u") % idx)
             return
 
         # note we don't subtract 1, as first fence point is the return point
         self.fenceloader.remove(idx)
         if self.send_fence():
-            print("Removed fence point %u" % idx)
+            print(tr("removed_fence_point_u") % idx)
         else:
-            print("Failed to remove fence point %u" % idx)
+            print(tr("failed_to_remove_fence_point_u") % idx)
 
     def cmd_fence(self, args):
         '''fence commands'''
@@ -185,7 +186,7 @@ class FenceModule(mp_module.MPModule):
             self.set_fence_enabled(0)
         elif args[0] == "load":
             if len(args) != 2:
-                print("usage: fence load <filename>")
+                print(tr("usage_fence_load_filename"))
                 return
             self.load_fence(args[1])
         elif args[0] == "list":
@@ -196,21 +197,21 @@ class FenceModule(mp_module.MPModule):
             self.cmd_fence_remove(args[1:])
         elif args[0] == "save":
             if len(args) != 2:
-                print("usage: fence save <filename>")
+                print(tr("usage_fence_save_filename"))
                 return
             self.list_fence(args[1])
         elif args[0] == "show":
             if len(args) != 2:
-                print("usage: fence show <filename>")
+                print(tr("usage_fence_show_filename"))
                 return
             self.fenceloader.load(args[1])
             self.have_list = True
         elif args[0] == "draw":
             if not 'draw_lines' in self.mpstate.map_functions:
-                print("No map drawing available")
+                print(tr("no_map_drawing_available"))
                 return
             self.mpstate.map_functions['draw_lines'](self.fence_draw_callback)
-            print("Drawing fence on map")
+            print(tr("drawing_fence_on_map"))
         elif args[0] == "clear":
             self.param_set('FENCE_TOTAL', 0, 3)
         else:
@@ -223,9 +224,9 @@ class FenceModule(mp_module.MPModule):
             self.fenceloader.target_component = self.target_component
             self.fenceloader.load(filename.strip('"'))
         except Exception as msg:
-            print("Unable to load %s - %s" % (filename, msg))
+            print(tr("unable_to_load") % (filename, msg))
             return
-        print("Loaded %u geo-fence points from %s" % (self.fenceloader.count(), filename))
+        print(tr("loaded_u_geo_fence_points_from") % (self.fenceloader.count(), filename))
         self.send_fence()
 
     def send_fence(self):
@@ -247,7 +248,7 @@ class FenceModule(mp_module.MPModule):
             if (p.idx != p2.idx or
                 abs(p.lat - p2.lat) >= 0.00003 or
                 abs(p.lng - p2.lng) >= 0.00003):
-                print("Failed to send fence point %u" % i)
+                print(tr("failed_to_send_fence_point_u") % i)
                 self.param_set('FENCE_ACTION', action, 3)
                 return False
         self.param_set('FENCE_ACTION', action, 3)
@@ -266,7 +267,7 @@ class FenceModule(mp_module.MPModule):
             time.sleep(0.1)
             continue
         if p is None:
-            self.console.error("Failed to fetch point %u" % i)
+            self.console.error(tr("failed_to_fetch_point_u") % i)
             return None
         return p
 
@@ -293,13 +294,13 @@ class FenceModule(mp_module.MPModule):
         self.fenceloader.clear()
         count = self.get_mav_param('FENCE_TOTAL', 0)
         if count == 0:
-            print("No geo-fence points")
+            print(tr("no_geo_fence_points"))
             return
         for i in range(int(count)):
             for t in range(6):
                 p = self.fetch_fence_point(i)
                 if p is None:
-                    print("retrying %u" % i)
+                    print(tr("retrying_u") % i)
                     continue
                 break
             self.fenceloader.add(p)
@@ -308,24 +309,24 @@ class FenceModule(mp_module.MPModule):
             try:
                 self.fenceloader.save(filename.strip('"'))
             except Exception as msg:
-                print("Unable to save %s - %s" % (filename, msg))
+                print(tr("unable_to_save") % (filename, msg))
                 return
-            print("Saved %u geo-fence points to %s" % (self.fenceloader.count(), filename))
+            print(tr("saved_u_geo_fence_points_to") % (self.fenceloader.count(), filename))
         else:
             for i in range(self.fenceloader.count()):
                 p = self.fenceloader.point(i)
-                self.console.writeln("lat=%f lng=%f" % (p.lat, p.lng))
+                self.console.writeln(tr("lat_lng") % (p.lat, p.lng))
         if self.status.logdir is not None:
             fname = 'fence.txt'
             if self.target_system > 1:
                 fname = 'fence_%u.txt' % self.target_system
             fencetxt = os.path.join(self.status.logdir, fname)
             self.fenceloader.save(fencetxt.strip('"'))
-            print("Saved fence to %s" % fencetxt)
+            print(tr("saved_fence_to") % fencetxt)
         self.have_list = True
 
     def print_usage(self):
-        print("usage: fence <enable|disable|list|load|save|clear|draw|move|remove>")
+        print(tr("usage_fence_enable_disable_list_load"))
 
     def unload(self):
         self.remove_command("fence")

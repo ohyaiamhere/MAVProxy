@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from MAVProxy.modules.lib.mp_i18n import tr
 """
 Currently what I do is run a sync every second and keep the following:
 time_send
@@ -19,11 +20,11 @@ from MAVProxy.modules.lib import mp_module
 class TimeSyncModule(mp_module.MPModule):
     def __init__(self, mpstate):
         super(TimeSyncModule, self).__init__(mpstate, "timesync")
-        self.add_command('timesync', self.cmd_timesync, "timesync")
+        self.add_command('timesync', self.cmd_timesync, tr("cmd_timesync"))
 
     def cmd_timesync(self, args):
         if (len(args) != 1):
-            print("Usage: timesync CURRENT_TIME")
+            print(tr("usage_timesync_current_time"))
             return
 
         self.master.mav.timesync_send(0, int(args[0]))

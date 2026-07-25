@@ -4,12 +4,13 @@ from MAVProxy.modules.lib import mp_module
 import paho.mqtt.client as mqtt
 import json
 import numbers
+from MAVProxy.modules.lib.mp_i18n import tr
 
 
 class MqttModule(mp_module.MPModule):
 
     def __init__(self, mpstate):
-        super(MqttModule, self).__init__(mpstate, "mqtt", "mqtt publisher")
+        super(MqttModule, self).__init__(mpstate, "mqtt", tr("mod_mqtt_publisher"))
         self.client = mqtt.Client()
         self.device_prefix = ''
         self.mqtt_settings = mp_settings.MPSettings(
@@ -18,7 +19,7 @@ class MqttModule(mp_module.MPModule):
              ('name', str, 'mavproxy'),
              ('prefix', str, '')
              ])
-        self.add_command('mqtt', self.mqtt_command, "mqtt module", ['connect', 'set (MQTTSETTING)'])
+        self.add_command('mqtt', self.mqtt_command, tr("cmd_mqtt_module"), ['connect', 'set (MQTTSETTING)'])
         self.add_completion_function('(MQTTSETTING)', self.mqtt_settings.completion)
 
     def mavlink_packet(self, m):
@@ -27,18 +28,18 @@ class MqttModule(mp_module.MPModule):
             data = self.convert_to_dict(m)
             self.client.publish(f'{self.mqtt_settings.prefix}/{m.get_type()}', json.dumps(data))
         except MQTTException as e:
-            print(f'mqtt: Exception occurred: {e}')
+            print(tr("mqtt_exception_occurred") % (e,))
 
     def connect(self):
         """connect to mqtt broker"""
         try:
             self.client.reinitialise(client_id=self.mqtt_settings.name)
-            print(f'connecting to {self.mqtt_settings.ip}:{self.mqtt_settings.port}')
+            print(tr("connecting_to_2") % (self.mqtt_settings.ip, self.mqtt_settings.port))
             self.client.connect(self.mqtt_settings.ip, int(self.mqtt_settings.port), 30)
         except MQTTException as e:
-            print(f'mqtt: could not establish connection: {e}')
+            print(tr("mqtt_could_not_establish_connection") % (e,))
             return
-        print('connected...')
+        print(tr("connected"))
 
     def mqtt_command(self, args):
         """control behaviour of the module"""

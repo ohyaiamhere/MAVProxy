@@ -8,6 +8,7 @@ import time
 from MAVProxy.modules.lib import mp_module
 from MAVProxy.modules.lib import ntrip
 from MAVProxy.modules.lib import mp_settings
+from MAVProxy.modules.lib.mp_i18n import tr
 
 
 class NtripModule(mp_module.MPModule):
@@ -24,7 +25,7 @@ class NtripModule(mp_module.MPModule):
              ('sendalllinks', bool, False),
              ('frag_drop_pct', float, 0),
              ('sendmul', int, 1)])
-        self.add_command('ntrip', self.cmd_ntrip, 'NTRIP control',
+        self.add_command('ntrip', self.cmd_ntrip, tr("cmd_ntrip_control"),
                          ["<status>",
                           "<start>",
                           "<stop>",
@@ -71,7 +72,7 @@ class NtripModule(mp_module.MPModule):
             if (self.last_pkt is not None and
                 now - self.last_pkt > 15 and
                 (self.last_restart is None or now - self.last_restart > 30)):
-                print("NTRIP restart")
+                print(tr("ntrip_restart"))
                 self.ntrip = None
                 self.start_pending = True
                 self.last_restart = now
@@ -133,7 +134,7 @@ class NtripModule(mp_module.MPModule):
     def cmd_ntrip(self, args):
         '''ntrip command handling'''
         if len(args) <= 0:
-            print("Usage: ntrip <start|stop|status|set>")
+            print(tr("usage_ntrip_start_stop_status_set"))
             return
         if args[0] == "start":
             self.cmd_start()
@@ -149,27 +150,27 @@ class NtripModule(mp_module.MPModule):
         '''show ntrip status'''
         now = time.time()
         if self.ntrip is None:
-            print("ntrip: Not started")
+            print(tr("ntrip_not_started"))
             return
         elif self.last_pkt is None:
-            print("ntrip: no data")
+            print(tr("ntrip_no_data"))
             return
         frame_size = 0
         for id in sorted(self.id_counts.keys()):
-            print(" %4u: %u (len %u)" % (id, self.id_counts[id], len(self.last_by_id[id])))
+            print(tr("msg_4u_u_len_u") % (id, self.id_counts[id], len(self.last_by_id[id])))
             frame_size += len(self.last_by_id[id])
-        print("ntrip: %u packets, %.1f bytes/sec last %.1fs ago framesize %u" % (self.pkt_count, self.rate, now - self.last_pkt, frame_size))
+        print(tr("ntrip_u_packets_bytes_sec_last") % (self.pkt_count, self.rate, now - self.last_pkt, frame_size))
 
     def cmd_start(self):
         '''start ntrip link'''
         if self.ntrip_settings.caster is None:
-            print("Require caster")
+            print(tr("require_caster"))
             return
         if self.ntrip_settings.mountpoint is None:
-            print("Require mountpoint")
+            print(tr("require_mountpoint"))
             return
         if self.pos is None:
-            print("Start delayed pending position")
+            print(tr("start_delayed_pending_position"))
             self.start_pending = True
             return
         user = self.ntrip_settings.username + ":" + self.ntrip_settings.password
@@ -180,7 +181,7 @@ class NtripModule(mp_module.MPModule):
                                        lat=self.pos[0],
                                        lon=self.pos[1],
                                        height=self.pos[2])
-        print("NTRIP started")
+        print(tr("ntrip_started"))
         self.start_pending = False
         self.last_rate = time.time()
         self.rate_total = 0

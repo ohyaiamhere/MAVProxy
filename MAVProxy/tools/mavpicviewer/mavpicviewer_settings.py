@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from MAVProxy.modules.lib.mp_i18n import tr
 '''
 MAV Picture Viewer Settings Window
 
@@ -61,7 +62,7 @@ class mavpicviewer_settings:
     def settings_setyaw_button_click(self, event):
         """settings window event handlers"""
         self.settings_changed_cb("YAW", self.settings_yaw_input.GetValue())
-        print("YAW set to: ", self.settings_yaw_input.GetValue())
+        print(tr("yaw_set_to"), self.settings_yaw_input.GetValue())
         self.settings_frame.Hide()
 
     # close/hide settings window

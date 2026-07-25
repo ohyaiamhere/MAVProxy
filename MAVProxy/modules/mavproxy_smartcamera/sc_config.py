@@ -10,6 +10,7 @@ other classes or files wishing to use this class should add
 
 from os.path import expanduser
 import ConfigParser
+from MAVProxy.modules.lib.mp_i18n import tr
 
 class SmartCameraConfig(object):
 
@@ -18,7 +19,7 @@ class SmartCameraConfig(object):
         self.config_file = expanduser("~/smart_camera.cnf")
 
         # print config file location
-        print("config file: %s" % self.config_file)
+        print(tr("config_file") % self.config_file)
 
         # create the global parser object
         self.parser = ConfigParser.SafeConfigParser()
@@ -31,7 +32,7 @@ class SmartCameraConfig(object):
         try:
             self.parser.read(self.config_file)
         except IOError as e:
-            print('Error {0} reading config file: {1}: '.format(e.errno, e.strerror))
+            print(tr("error_reading_config_file").format(e.errno, e.strerror))
         return
 
     # save - saves the config to disk
@@ -40,7 +41,7 @@ class SmartCameraConfig(object):
             with open(self.config_file, 'wb') as configfile:
                 self.parser.write(configfile)
         except IOError as e:
-            print('Error {0} writing config file: {1}: '.format(e.errno, e.strerror))
+            print(tr("error_writing_config_file").format(e.errno, e.strerror))
         return
 
     # check_section - ensures the section exists, creates it if not
@@ -104,34 +105,34 @@ class SmartCameraConfig(object):
     # main - tests SmartCameraConfig class
     def main(self):
         # print welcome message
-        print("SmartCameraConfig v1.0 test")
-        print("config file: %s" % self.config_file)
+        print(tr("smartcameraconfig_v1_0_test"))
+        print(tr("config_file") % self.config_file)
 
         # write and read a boolean
         section = 'Test_Section1'
         option = 'Test_boolean'
-        print("Writing %s/%s = True" % (section,option))
+        print(tr("writing_true") % (section,option))
         self.set_boolean(section,option,True)
-        print("Read %s/%s : %s" % (section, option, self.get_boolean(section, option, False)))
+        print(tr("read") % (section, option, self.get_boolean(section, option, False)))
 
         # write and read an integer
         section = 'Test_Section1'
         option = 'Test_integer'
-        print("Writing %s/%s = 11" % (section,option))
+        print(tr("writing_11") % (section,option))
         self.set_integer(section,option,11)
-        print("Read %s/%s : %s" % (section, option, self.get_integer(section, option, 99)))
+        print(tr("read") % (section, option, self.get_integer(section, option, 99)))
 
         # write and read a float
         section = 'Test_Section1'
         option = 'Test_float'
-        print("Writing %s/%s = 12.345" % (section,option))
+        print(tr("writing_12_345") % (section,option))
         self.set_float(section,option,12.345)
-        print("Read %s/%s : %s" % (section, option, self.get_float(section, option, 0.01)))
+        print(tr("read") % (section, option, self.get_float(section, option, 0.01)))
 
         # read an undefined number to get back the default
         section = 'Test_Section2'
         option = 'test_default'
-        print("Read %s/%s : %s" % (section, option, self.get_float(section, option, 21.21)))
+        print(tr("read") % (section, option, self.get_float(section, option, 21.21)))
 
         # save the config file
         self.save()

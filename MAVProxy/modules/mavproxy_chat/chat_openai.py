@@ -18,11 +18,12 @@ from typing_extensions import override
 import json
 import math
 from MAVProxy.modules.lib import param_help
+from MAVProxy.modules.lib.mp_i18n import tr
 
 try:
     from openai import OpenAI, AssistantEventHandler
 except Exception:
-    print("chat: failed to import openai. See https://ardupilot.org/mavproxy/docs/modules/chat.html")
+    print(tr("chat_failed_to_import_openai_see"))
     exit()
 
 
@@ -88,12 +89,12 @@ class chat_openai():
             try:
                 self.client = OpenAI()
             except Exception:
-                print("chat: failed to connect to OpenAI")
+                print(tr("chat_failed_to_connect_to_openai"))
                 return False
 
         # check connection again just to be sure
         if self.client is None:
-            print("chat: failed to connect to OpenAI")
+            print(tr("chat_failed_to_connect_to_openai"))
             return False
 
         # get assistant id
@@ -101,7 +102,7 @@ class chat_openai():
             # get list of available assistants
             my_assistants = self.client.beta.assistants.list()
             if my_assistants is None or my_assistants.data is None or len(my_assistants.data) == 0:
-                print("chat: no assistants available")
+                print(tr("chat_no_assistants_available"))
                 return False
 
             # search for assistant with the expected name
@@ -112,7 +113,7 @@ class chat_openai():
 
             # raise error if assistant not found
             if self.assistant is None:
-                print("chat: failed to connect to OpenAI assistant")
+                print(tr("chat_failed_to_connect_to_openai_2"))
                 return False
 
         # create new thread
@@ -189,12 +190,12 @@ class chat_openai():
 
         # sanity check required action (this should never happen)
         if (event.event != "thread.run.requires_action"):
-            print("chat::handle_function_call: assistant function call empty")
+            print(tr("chat_handle_function_call_assistant_function"))
             return
 
         # check format
         if event.data.required_action.submit_tool_outputs is None:
-            print("chat::handle_function_call: submit tools outputs empty")
+            print(tr("chat_handle_function_call_submit_tools"))
             return
 
         tool_outputs = []
@@ -270,7 +271,7 @@ class chat_openai():
                     self.send_reply(stream_text)
 
         except Exception:
-            print("chat: error replying to function call")
+            print(tr("chat_error_replying_to_function_call"))
             print(tool_outputs)
             return
 
@@ -358,7 +359,7 @@ class chat_openai():
         hearbeat_msg = self.mpstate.master().messages.get('HEARTBEAT', None)
         if hearbeat_msg is None:
             mode_number = 0
-            print("chat: get_vehicle_state: vehicle mode is unknown")
+            print(tr("chat_get_vehicle_state_vehicle_mode"))
         else:
             mode_number = hearbeat_msg.custom_mode
         return {
@@ -445,7 +446,7 @@ class chat_openai():
 
         # check for timeout
         if mav_result is None:
-            print("send_mavlink_command_int: timed out")
+            print(tr("send_mavlink_command_int_timed_out"))
             return "command_int timed out"
 
         # update assistant with result
@@ -459,7 +460,7 @@ class chat_openai():
             return "command_int unsupported"
         if mav_result == mavutil.mavlink.MAV_RESULT_TEMPORARILY_REJECTED:
             return "command_int temporarily rejected"
-        print("send_mavlink_command_int: received unexpected command ack result")
+        print(tr("send_mavlink_command_int_received_unexpected"))
         return "command_int unknown result"
 
     # send a mavlink send_mavlink_set_position_target_global_int message to the vehicle
@@ -549,7 +550,7 @@ class chat_openai():
     def get_parameter(self, arguments):
         param_name = arguments.get("name", None)
         if param_name is None:
-            print("get_parameter: name not specified")
+            print(tr("get_parameter_name_not_specified"))
             return "get_parameter: name not specified"
 
         # start with empty parameter list

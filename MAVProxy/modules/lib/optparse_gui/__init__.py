@@ -11,6 +11,7 @@ import re
 import optparse
 from ..wx_loader import wx
 from MAVProxy.modules.lib import multiproc
+from MAVProxy.modules.lib.mp_i18n import tr
 
 __version__ = 0.1
 __revision__ = '$Id$'
@@ -273,7 +274,7 @@ class OptionParser( optparse.OptionParser ):
 ################################################################################
 
 def sample_parse_args():
-    usage = "usage: %prog [options] args"
+    usage = tr("usage_usage_prog_options_args")
     if 1 == len( sys.argv ):
         option_parser_class = OptionParser
     else:
@@ -281,49 +282,49 @@ def sample_parse_args():
 
     parser = option_parser_class( usage = usage, version='0.1' )
     parser.add_option("-f", "--file", dest="filename", default = r'c:\1.txt',
-                      help="read data from FILENAME")
+                      help=tr("opt_read_data_from_filename"))
     parser.add_option("-t", "--text", dest="text", default = r'c:\1.txt',
-                      help="MULTILINE text field")
+                      help=tr("opt_multiline_text_field"))
     parser.add_option("-a", "--action", dest="action",
                       choices = ['delete', 'copy', 'move'],
-                      help="Which action do you wish to take?!")
+                      help=tr("opt_which_action_do_you_wish_to_take"))
     parser.add_option("-n", "--number", dest="number", default = 23,
                       type = 'int',
-                      help="Just a number")
+                      help=tr("opt_just_a_number"))
     parser.add_option("-v", "--verbose",
                       action="store_true", dest="verbose",
-                      help = 'To be or not to be? ( verbose )' )
+                      help = tr("opt_to_be_or_not_to_be_verbose") )
 
     (options, args) = parser.parse_args()
     return options, args
 
 def sample_parse_args_issue1():
-    usage = "usage: %prog [options] args"
+    usage = tr("usage_usage_prog_options_args")
     option_parser_class = OptionParser
 
     parser = option_parser_class( usage = usage, version='0.1', description='Demo' )
     parser.add_option("-f", "--file", dest="filename", default = r'c:\1.txt',
                       type = 'file',
-                      help="read data from FILENAME")
+                      help=tr("opt_read_data_from_filename"))
     parser.add_option("-t", "--text", dest="text", default = r'c:\1.txt',
-                      help="MULTILINE text field")
+                      help=tr("opt_multiline_text_field"))
     parser.add_option("-a", "--action", dest="action",
                       choices = ['delete', 'copy', 'move'],
-                      help="Which action do you wish to take?!")
+                      help=tr("opt_which_action_do_you_wish_to_take"))
     parser.add_option("-n", "--number", dest="number", default = 23,
                       type = 'int',
-                      help="Just a number")
+                      help=tr("opt_just_a_number"))
     parser.add_option("-v", "--verbose",
                       action="store_true", dest="verbose",
-                      help = 'To be or not to be? ( verbose )' )
+                      help = tr("opt_to_be_or_not_to_be_verbose") )
 
     (options, args) = parser.parse_args()
     return options, args
 
 def main():
     options, args = sample_parse_args_issue1()
-    print('args: %s' % repr( args ))
-    print('options: %s' % repr( options ))
+    print(tr("args") % repr( args ))
+    print(tr("options") % repr( options ))
 
 if '__main__' == __name__:
     main()

@@ -7,6 +7,7 @@ import time
 
 from MAVProxy.modules.lib import mp_module
 from MAVProxy.modules.lib import mp_settings
+from MAVProxy.modules.lib.mp_i18n import tr
 #from MAVProxy.modules.mavproxy_nokov.nokov import nokovsdk
 
 Descriptor_MarkerSet = 0
@@ -19,7 +20,7 @@ nokov_module = None
 
 def py_data_func(pFrameOfMocapData, userdata):
     if pFrameOfMocapData == None:
-        print("Not get the data frame.\n")
+        print(tr("not_get_the_data_frame"))
         return
     frameData = pFrameOfMocapData.contents
     names_rigid = nokov_module.names_rigid
@@ -29,7 +30,7 @@ def py_data_func(pFrameOfMocapData, userdata):
         rigid = frameData.RigidBodies[i]
         name = names_rigid[i]
         if nokov_module.nokov_settings.tracker_name == name:
-            print('%f,%f,%f' % (rigid.x, rigid.y, rigid.z))
+            print(tr("msg_21") % (rigid.x, rigid.y, rigid.z))
             now = time.time()
             time_us = int(now * 1.0e6)
             x = rigid.x / 1000
@@ -58,7 +59,7 @@ class NokovModule(mp_module.MPModule):
              ('axis', str, 'z'),
              ('tracker_name', str, None)]
         )
-        self.add_command('nokov', self.cmd_nokov, "nokov control", ['<start>', '<stop>', 'set (NOKOVSETTING)'])
+        self.add_command('nokov', self.cmd_nokov, tr("cmd_nokov_control"), ['<start>', '<stop>', 'set (NOKOVSETTING)'])
 
     def cmd_stop(self):
         del self.client
@@ -67,29 +68,29 @@ class NokovModule(mp_module.MPModule):
 
     def cmd_start(self):
         if self.client != None:
-            print('The connection already exists, please disconnect first(command stop).')
+            print(tr("the_connection_already_exists_please_disconnect"))
             return
-        print('serverIp is %s' % self.nokov_settings.host)
+        print(tr("serverip_is") % self.nokov_settings.host)
         client = nokovsdk.PySDKClient()
         ver = client.PyNokovVersion()
-        print('SeekerSDK ver. %d.%d.%d.%d' % (ver[0], ver[1], ver[2], ver[3]))
+        print(tr("seekersdk_ver") % (ver[0], ver[1], ver[2], ver[3]))
         client.PySetDataCallback(py_data_func, None)
         ret = client.Initialize(bytes(self.nokov_settings.host, encoding="utf8"))
         if ret == 0:
-            print("Connect to the Seeker Succeed")
+            print(tr("connect_to_the_seeker_succeed"))
             dsc = nokovsdk.DataDescriptions()
             handle = nokovsdk.c_void_p()
             ret = client.PyGetDataDescriptionsEx(dsc, handle)
             if ret == 0:
-                print("GetDataDescriptions Succeed")
+                print(tr("getdatadescriptions_succeed"))
                 self.parseDescriptions(dsc)
                 self.client = client
                 client.PyFreeDataDescriptionsEx(handle)
             else:
-                print("GetDataDescriptions Failed: [%d]" % ret)
+                print(tr("getdatadescriptions_failed") % ret)
                 self.cmd_stop()
         else:
-            print("Connect Failed: [%d]" % ret)
+            print(tr("connect_failed") % ret)
             self.cmd_stop()
 
     def parseDescriptions(self, dsc):
@@ -98,7 +99,7 @@ class NokovModule(mp_module.MPModule):
             if dc.type == Descriptor_RigidBody:
                 name = str(dc.Data.RigidBodyDescription.contents.szName, encoding="utf8")
                 self.names_rigid.append(name)
-                print('Descriptions rigid:', name)
+                print(tr("descriptions_rigid"), name)
 
     def usage(self):
         '''show help on command line options'''

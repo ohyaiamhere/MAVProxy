@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from MAVProxy.modules.lib.mp_i18n import tr
 '''
 show stats on messages in a log in MAVExplorer
 '''
@@ -79,9 +80,9 @@ def show_stats(mlog):
     # mavmmaplog class (tlogs) does not contain formats attribute, so instead of
     # counting size in bytes, we count the number of messages
     if not hasattr(mlog, 'formats'):
-        print("Total number of messages: %u" % total_size)
+        print(tr("total_number_of_messages_u") % total_size)
     else:
-        print("Total size: %u" % total_size)
+        print(tr("total_size_u") % total_size)
 
     # Print out the percentage for each message, from lowest to highest
     pairs = sorted(pairs, key = lambda p : p[1])
@@ -95,7 +96,7 @@ def show_stats(mlog):
                         descstr = "  [%s...]" % desc[:(65 - maxnamelen)]
                     else:
                         descstr = "  [%s]" % desc
-            print("%-*s %5.2f%%%s" % (maxnamelen, name, 100.0 * size / total_size, descstr))
+            print(tr("msg_16") % (maxnamelen, name, 100.0 * size / total_size, descstr))
 
     print("")
     category_total = 0
@@ -108,5 +109,5 @@ def show_stats(mlog):
                     break
         category_total += total
         if total > 0:
-            print("@%s %.2f%%" % (c, 100.0 * total / total_size))
-    print("@OTHER %.2f%%" % (100.0 * (total_size-category_total) / total_size))
+            print(tr("msg_17") % (c, 100.0 * total / total_size))
+    print(tr("other") % (100.0 * (total_size-category_total) / total_size))

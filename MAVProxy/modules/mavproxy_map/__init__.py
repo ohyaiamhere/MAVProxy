@@ -16,6 +16,7 @@ from MAVProxy.modules.lib import mp_module
 from MAVProxy.modules.lib.mp_menu import *
 from pymavlink import mavutil
 from PIL import ImageColor
+from MAVProxy.modules.lib.mp_i18n import tr
 
 # pymavlink may not yet carry the enumeration entry for the
 # home-centred inclusion circle.  Fall back to its known value (from
@@ -26,7 +27,7 @@ MAV_CMD_NAV_FENCE_HOME_CIRCLE_INCLUSION = getattr(
 
 class MapModule(mp_module.MPModule):
     def __init__(self, mpstate):
-        super(MapModule, self).__init__(mpstate, "map", "map display", public=True, multi_instance=True, multi_vehicle=True)
+        super(MapModule, self).__init__(mpstate, "map", tr("mod_map_display"), public=True, multi_instance=True, multi_vehicle=True)
         cmdname = "map"
         if self.instance > 1:
             cmdname += "%u" % self.instance
@@ -99,7 +100,7 @@ class MapModule(mp_module.MPModule):
             mpstate.map_functions = {'draw_lines' : self.draw_lines}
 
         self.map.add_callback(functools.partial(self.map_callback))
-        self.add_command(cmdname, self.cmd_map, "map control", ['icon',
+        self.add_command(cmdname, self.cmd_map, tr("cmd_map_control"), ['icon',
                                                                 'set (MAPSETTING)',
                                                                 'vehicletype',
                                                                 'zoom',
@@ -176,7 +177,7 @@ class MapModule(mp_module.MPModule):
     def cmd_menu_add(self, args):
         '''add to map menus'''
         if len(args) < 2:
-            print("Usage: map menu add MenuPath command")
+            print(tr("usage_map_menu_add_menupath_command"))
             return
         menupath = args[0].strip('"').split(':')
         name = menupath[-1]
@@ -187,7 +188,7 @@ class MapModule(mp_module.MPModule):
     def cmd_menu(self, args):
         '''control console menus'''
         if len(args) < 2:
-            print("Usage: map menu <add>")
+            print(tr("usage_map_menu_add"))
             return
         if args[0] == 'add':
             self.cmd_menu_add(args[1:])
@@ -208,7 +209,7 @@ class MapModule(mp_module.MPModule):
         msg += "Grid:    %s\n" % mp_util.latlon_to_grid(pos)
         if self.logdir:
             logf = open(os.path.join(self.logdir, "positions.txt"), "a")
-            logf.write("Position: %.6f %.6f at %s\n" % (pos[0], pos[1], time.ctime()))
+            logf.write(tr("position_at") % (pos[0], pos[1], time.ctime()))
             logf.close()
         posbox = MPMenuChildMessageDialog('Position', msg, font_size=32)
         posbox.show()
@@ -233,7 +234,7 @@ class MapModule(mp_module.MPModule):
         if latlon is None:
             latlon = self.mpstate.click_location
         if latlon is None:
-            print("Need click position for marker")
+            print(tr("need_click_position_for_marker"))
             return
         (lat, lon) = latlon
         marker = 'flag'
@@ -291,17 +292,17 @@ class MapModule(mp_module.MPModule):
     "YAW" : math.degrees(att.yaw)
     })
 
-        print("Wrote marker %s" % fname)
+        print(tr("wrote_marker") % fname)
 
     def cmd_map(self, args):
         '''map commands'''
         from MAVProxy.modules.mavproxy_map import mp_slipmap
         if len(args) < 1:
-            print("usage: map <icon|set|menu|marker>")
+            print(tr("usage_map_icon_set_menu_marker"))
         elif args[0] == "menu":
             self.cmd_menu(args[1:])
         elif args[0] == "icon":
-            usage = "Usage: map icon <lat> <lon> <icon>"
+            usage = tr("usage_usage_map_icon_lat_lon_icon")
             flag = 'flag.png'
             if len(args) > 2:
                 lat = args[1]
@@ -330,12 +331,12 @@ class MapModule(mp_module.MPModule):
             self.cmd_map_marker(args[1:])
         elif args[0] == "vehicletype":
             if len(args) < 3:
-                print("Usage: map vehicletype SYSID TYPE")
+                print(tr("usage_map_vehicletype_sysid_type"))
             else:
                 sysid = int(args[1])
                 vtype = int(args[2])
                 self.vehicle_type_override[sysid] = vtype
-                print("Set sysid %u to vehicle type %u" % (sysid, vtype))
+                print(tr("set_sysid_u_to_vehicle_type") % (sysid, vtype))
         elif args[0] == "circle":
             self.cmd_map_circle(args[1:])
         elif args[0] == "set":
@@ -362,13 +363,10 @@ class MapModule(mp_module.MPModule):
         elif args[0] == "setposition":
             self.cmd_set_position(args)
         else:
-            print("usage: map <icon|set>")
+            print(tr("usage_map_icon_set"))
 
     def cmd_map_circle(self, args):
-        usage = '''
-Usage: map circle <lat> <lon> <radius> <colour>
-Usage: map circle <radius> <colour>
-        '''
+        usage = tr("usage_usage_map_circle_lat_lon_radius_colour_usage")
 
         lat = None
         colour = None
@@ -388,7 +386,7 @@ Usage: map circle <radius> <colour>
         if len(args) == 1:
             pos = self.mpstate.click_location
             if pos is None:
-                print("Need click or location")
+                print(tr("need_click_or_location"))
                 print(usage)
                 return
 
@@ -731,7 +729,7 @@ Usage: map circle <radius> <colour>
         '''remove a rally point'''
         a = key.split(' ')
         if a[0] != 'Rally' or len(a) != 2:
-            print("Bad rally object %s" % key)
+            print(tr("bad_rally_object") % key)
             return
         i = int(a[1])
         self.mpstate.functions.process_stdin('rally remove %u' % i)
@@ -740,7 +738,7 @@ Usage: map circle <radius> <colour>
         '''move a rally point'''
         a = key.split(' ')
         if a[0] != 'Rally' or len(a) != 2:
-            print("Bad rally object %s" % key)
+            print(tr("bad_rally_object") % key)
             return
         i = int(a[1])
         self.moving_rally = i
@@ -749,15 +747,15 @@ Usage: map circle <radius> <colour>
         '''return a mission idx from a selection_index'''
         a = key.split(' ')
         if a[0] != 'mission' or len(a) != 2:
-            print("Bad mission object %s" % key)
+            print(tr("bad_mission_object") % key)
             return None
         midx = int(a[1])
         if midx < 0 or midx >= len(self.mission_list):
-            print("Bad mission index %s" % key)
+            print(tr("bad_mission_index") % key)
             return None
         mlist = self.mission_list[midx]
         if selection_index < 0 or selection_index >= len(mlist):
-            print("Bad mission polygon %s" % selection_index)
+            print(tr("bad_mission_polygon") % selection_index)
             return None
         idx = mlist[selection_index]
         return idx
@@ -766,7 +764,7 @@ Usage: map circle <radius> <colour>
         '''move a mission point'''
         idx = self.selection_index_to_idx(key, selection_index)
         self.moving_wp = idx
-        print("Moving wp %u" % idx)
+        print(tr("moving_wp_u") % idx)
 
     def remove_mission(self, key, selection_index):
         '''remove a mission point'''
@@ -785,7 +783,7 @@ Usage: map circle <radius> <colour>
     def move_fencepoint(self, key, selection_index):
         '''move a fence point'''
         self.moving_fencepoint = selection_index
-        print("Moving fence point %u" % selection_index)
+        print(tr("moving_fence_point_u") % selection_index)
 
     def set_mission(self, key, selection_index):
         '''set a mission point'''
@@ -859,7 +857,7 @@ Usage: map circle <radius> <colour>
             self.moving_rally = None
             return
         if obj.event.rightIsDown and self.moving_rally is not None:
-            print("Cancelled rally move")
+            print(tr("cancelled_rally_move"))
             self.moving_rally = None
             return
         if obj.event.leftIsDown and self.moving_wp is not None:
@@ -873,7 +871,7 @@ Usage: map circle <radius> <colour>
             self.moving_fencepoint = None
             return
         if obj.event.rightIsDown and self.moving_wp is not None:
-            print("Cancelled wp move")
+            print(tr("cancelled_wp_move"))
             self.moving_wp = None
             return
         if obj.event.leftIsDown and self.moving_polygon_point is not None:
@@ -883,11 +881,11 @@ Usage: map circle <radius> <colour>
             self.moving_polygon_point = None
             return
         if obj.event.rightIsDown and self.moving_polygon_point is not None:
-            print("Cancelled polygon point move")
+            print(tr("cancelled_polygon_point_move"))
             self.moving_polygon_point = None
             return
         if obj.event.rightIsDown and self.moving_fencepoint is not None:
-            print("Cancelled fence move")
+            print(tr("cancelled_fence_move"))
             self.moving_fencepoint = None
             return
         elif obj.event.leftIsDown:
@@ -911,7 +909,7 @@ Usage: map circle <radius> <colour>
             self.moving_circle = None
             return
         if obj.event.rightIsDown and self.moving_circle is not None:
-            print("Cancelled circle move")
+            print(tr("cancelled_circle_move"))
             self.moving_circle = None
             return
 
@@ -922,7 +920,7 @@ Usage: map circle <radius> <colour>
             self.setting_circle_radius = None
             return
         if obj.event.rightIsDown and self.setting_circle_radius is not None:
-            print("Cancelled circle move")
+            print(tr("cancelled_circle_move"))
             self.setting_circle_radius = None
             return
 
@@ -1014,7 +1012,7 @@ Usage: map circle <radius> <colour>
         '''called when user selects "Set Home (with height)" on map'''
         (lat, lon) = (self.mpstate.click_location[0], self.mpstate.click_location[1])
         alt = self.module('terrain').ElevationModel.GetElevation(lat, lon)
-        print("Setting home to: ", lat, lon, alt)
+        print(tr("setting_home_to"), lat, lon, alt)
         self.master.mav.command_long_send(
             self.settings.target_system, self.settings.target_component,
             mavutil.mavlink.MAV_CMD_DO_SET_HOME,
@@ -1030,7 +1028,7 @@ Usage: map circle <radius> <colour>
     def cmd_set_homepos(self, args):
         '''called when user selects "Set Home" on map'''
         (lat, lon) = (self.mpstate.click_location[0], self.mpstate.click_location[1])
-        print("Setting home to: ", lat, lon)
+        print(tr("setting_home_to"), lat, lon)
         self.master.mav.command_int_send(
             self.settings.target_system, self.settings.target_component,
             mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT_INT,
@@ -1049,7 +1047,7 @@ Usage: map circle <radius> <colour>
         '''called when user selects "Set ROI" on map'''
         (lat, lon) = (self.mpstate.click_location[0], self.mpstate.click_location[1])
         alt = self.module('terrain').ElevationModel.GetElevation(lat, lon)
-        print("Setting ROI to: ", lat, lon, alt)
+        print(tr("setting_roi_to"), lat, lon, alt)
         self.current_ROI = (lat, lon, alt)
         self.master.mav.command_int_send(
             self.settings.target_system, self.settings.target_component,
@@ -1069,7 +1067,7 @@ Usage: map circle <radius> <colour>
         '''called when user selects "Set Position" on map'''
         (lat, lon) = (self.mpstate.click_location[0], self.mpstate.click_location[1])
         accuracy = self.map_settings.setpos_accuracy
-        print("Setting position to (%.7f %.7f) with accuracy %.1fm" % (lat, lon, accuracy))
+        print(tr("setting_position_to_with_accuracy_m") % (lat, lon, accuracy))
         self.master.mav.command_int_send(
             self.settings.target_system, self.settings.target_component,
             mavutil.mavlink.MAV_FRAME_GLOBAL,
@@ -1088,7 +1086,7 @@ Usage: map circle <radius> <colour>
         '''called when user selects "Set Origin (with height)" on map'''
         (lat, lon) = (self.mpstate.click_location[0], self.mpstate.click_location[1])
         alt = self.module('terrain').ElevationModel.GetElevation(lat, lon)
-        print("Setting origin to: ", lat, lon, alt)
+        print(tr("setting_origin_to"), lat, lon, alt)
         self.master.mav.set_gps_global_origin_send(
             self.settings.target_system,
             int(lat*10000000), # lat
@@ -1098,7 +1096,7 @@ Usage: map circle <radius> <colour>
     def cmd_set_originpos(self, args):
         '''called when user selects "Set Origin" on map'''
         (lat, lon) = (self.mpstate.click_location[0], self.mpstate.click_location[1])
-        print("Setting origin to: ", lat, lon)
+        print(tr("setting_origin_to"), lat, lon)
         self.master.mav.set_gps_global_origin_send(
             self.settings.target_system,
             int(lat*10000000), # lat
@@ -1108,7 +1106,7 @@ Usage: map circle <radius> <colour>
     def cmd_zoom(self, args):
         '''control zoom'''
         if len(args) < 2:
-            print("map zoom WIDTH(m)")
+            print(tr("map_zoom_width_m"))
             return
         ground_width = float(args[1])
         self.map.set_zoom(ground_width)
@@ -1116,7 +1114,7 @@ Usage: map circle <radius> <colour>
     def cmd_center(self, args):
         '''control center of view'''
         if len(args) < 3:
-            print("map center LAT LON")
+            print(tr("map_center_lat_lon"))
             return
         lat = float(args[1])
         lon = float(args[2])
@@ -1125,7 +1123,7 @@ Usage: map circle <radius> <colour>
     def cmd_follow(self, args):
         '''control following of vehicle'''
         if len(args) < 2:
-            print("map follow 0|1")
+            print(tr("map_follow_0_1"))
             return
         follow = int(args[1])
         self.map.set_follow(follow)

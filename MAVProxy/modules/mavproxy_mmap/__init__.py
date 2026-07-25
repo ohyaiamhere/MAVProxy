@@ -3,6 +3,7 @@ import sys
 import webbrowser
 
 import mmap_server
+from MAVProxy.modules.lib.mp_i18n import tr
 
 g_module_context = None
 
@@ -10,7 +11,7 @@ from MAVProxy.modules.lib import mp_module
 
 class MMapModule(mp_module.MPModule):
     def __init__(self, mpstate):
-        super(MMapModule, self).__init__(mpstate, 'mmap', 'modest map display')
+        super(MMapModule, self).__init__(mpstate, 'mmap', tr("mod_modest_map_display"))
         self.lat = None
         self.lon = None
         self.alt = None

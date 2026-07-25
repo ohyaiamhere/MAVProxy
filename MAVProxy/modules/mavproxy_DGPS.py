@@ -8,6 +8,7 @@ from pymavlink import mavutil
 from MAVProxy.modules.lib import mp_module
 from MAVProxy.modules.lib import mp_settings
 from MAVProxy.modules.lib.mp_settings import MPSetting
+from MAVProxy.modules.lib.mp_i18n import tr
 
 class DGPSModule(mp_module.MPModule):
 
@@ -19,7 +20,7 @@ class DGPSModule(mp_module.MPModule):
             ])
 
     def __init__(self, mpstate):
-        super(DGPSModule, self).__init__(mpstate, "DGPS", "DGPS injection support for SBP/RTCP/UBC")
+        super(DGPSModule, self).__init__(mpstate, "DGPS", tr("mod_dgps_injection_support_for_sbp_rtcp_ubc"))
         self.dgps_settings = DGPSModule.default_settings()
         self.inject_seq_nr = 0
         self.cmdname = "dgps"
@@ -39,7 +40,7 @@ class DGPSModule(mp_module.MPModule):
         self.dgps_settings.set_callback(self.on_setting_set)
 
     def create_port(self):
-        print(f"DGPS: Listening for RTCM packets on UDP://{self.dgps_settings.get('ip')}:{self.dgps_settings.get('portnum')}")
+        print(tr("dgps_listening_for_rtcm_packets_on") % (self.dgps_settings.get('ip'), self.dgps_settings.get('portnum')))
         self.port = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.port.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.port.bind((self.dgps_settings.get('ip'), self.dgps_settings.get("portnum")))
@@ -72,7 +73,7 @@ class DGPSModule(mp_module.MPModule):
         msglen = 180
         
         if (len(data) > msglen * 4):
-            print("DGPS: Message too large", len(data))
+            print(tr("dgps_message_too_large"), len(data))
             return
         
         # How many messages will we send?
@@ -116,7 +117,7 @@ class DGPSModule(mp_module.MPModule):
         self.inject_seq_nr += 1
 
     def on_setting_set(self, setting):
-        print("Settings changed:", setting.name)
+        print(tr("settings_changed"), setting.name)
         if setting.name == "portnum" or setting.name == "ip":
             if self.port:
                 self.port.close()
@@ -134,7 +135,7 @@ class DGPSModule(mp_module.MPModule):
             self.send_rtcm_msg(data)
 
         except Exception as e:
-            print("DGPS: GPS Inject Failed:", e)
+            print(tr("dgps_gps_inject_failed"), e)
 
 def init(mpstate):
     '''initialise module'''

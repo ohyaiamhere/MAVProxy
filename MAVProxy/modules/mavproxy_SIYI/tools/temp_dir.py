@@ -12,11 +12,13 @@ from MAVProxy.modules.lib.mp_image import MPImage
 from pymavlink import mavutil
 
 from argparse import ArgumentParser
+from MAVProxy.modules.lib.mp_i18n import tr, ensure_language_from_argv
+ensure_language_from_argv()
 parser = ArgumentParser(description=__doc__)
 
-parser.add_argument("--min-temp", default=None, type=float, help="min temperature")
-parser.add_argument("--siyi-log", default=None, type=float, help="SIYI binlog")
-parser.add_argument("dirname", default=None, type=str, help="directory")
+parser.add_argument("--min-temp", default=None, type=float, help=tr("opt_min_temperature"))
+parser.add_argument("--siyi-log", default=None, type=float, help=tr("opt_siyi_binlog"))
+parser.add_argument("dirname", default=None, type=str, help=tr("opt_directory"))
 args = parser.parse_args()
 
 DNAME=args.dirname
@@ -40,10 +42,10 @@ def click_callback(event, x, y, flags, param):
 
 def display_file(fname):
     global mouse_temp, tmin, tmax, last_data
-    print('Importing: ', fname)
+    print(tr("importing"), fname)
     a = np.fromfile(fname, dtype='>u2')
     if len(a) != 640 * 512:
-        print("Bad size %u" % len(a))
+        print(tr("bad_size_u") % len(a))
         return
     # get in Kelvin
     a = (a / 64.0)
@@ -59,9 +61,9 @@ def display_file(fname):
     if args.min_temp is not None and tmax < args.min_temp:
         return
 
-    print("Max=%.3fC Min=%.3fC" % (tmax, tmin))
+    print(tr("max_c_min_c") % (tmax, tmin))
     if maxv <= minv:
-        print("Bad range")
+        print(tr("bad_range"))
         return
 
     last_data = a

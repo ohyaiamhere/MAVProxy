@@ -9,13 +9,14 @@ from pymavlink import mavutil
 import socket
 import time
 import errno
+from MAVProxy.modules.lib.mp_i18n import tr
 
 class UcenterModule(mp_module.MPModule):
 
     def __init__(self, mpstate):
-        super(UcenterModule, self).__init__(mpstate, "ucenter", "ucenter forwarding")
+        super(UcenterModule, self).__init__(mpstate, "ucenter", tr("mod_ucenter_forwarding"))
 
-        self.add_command('ucenter', self.cmd_ucenter, "ucenter control",
+        self.add_command('ucenter', self.cmd_ucenter, tr("cmd_ucenter_control"),
                          ["<start|stop|restart>","set (UCENTERSETTING)"])
 
         self.ucenter_settings = mp_settings.MPSettings([("port", int, 2001),
@@ -33,7 +34,7 @@ class UcenterModule(mp_module.MPModule):
 
     def cmd_ucenter(self, args):
         '''ucenter command parser'''
-        usage = "usage: ucenter <set|start|restart|stop>"
+        usage = tr("usage_usage_ucenter_set_start_restart_stop")
         if len(args) == 0:
             print(usage)
             return
@@ -60,7 +61,7 @@ class UcenterModule(mp_module.MPModule):
         self.listen_sock.bind(('', self.ucenter_settings.port))
         self.listen_sock.setblocking(False)
         self.listen_sock.listen(1)
-        print("ucenter listening on port %u" % self.ucenter_settings.port)
+        print(tr("ucenter_listening_on_port_u") % self.ucenter_settings.port)
 
     def stop_listener(self):
         '''stop listening for packets'''
@@ -92,7 +93,7 @@ class UcenterModule(mp_module.MPModule):
                 baudrate = self.ucenter_settings.baudrate
                 self.last_baudrate = baudrate
                 self.last_devnum = self.ucenter_settings.devnum
-                print("ucenter requesting baudrate %u" % baudrate)
+                print(tr("ucenter_requesting_baudrate_u") % baudrate)
             else:
                 baudrate = 0
 
@@ -117,13 +118,13 @@ class UcenterModule(mp_module.MPModule):
                 conn_sock, addr = self.listen_sock.accept()
             except Exception as e:
                 if e.errno not in [ errno.EAGAIN, errno.EWOULDBLOCK ]:
-                    print("ucenter listen fail")
+                    print(tr("ucenter_listen_fail"))
                     self.stop_listener()
                     return
                 return
             self.sock = conn_sock
             self.sock.setblocking(False)
-            print("ucenter connection from %s" % str(addr))
+            print(tr("ucenter_connection_from") % str(addr))
 
         now = time.time()
 
@@ -131,7 +132,7 @@ class UcenterModule(mp_module.MPModule):
             pkt = self.sock.recv(1000)
         except socket.error as e:
             if e.errno not in [ errno.EAGAIN, errno.EWOULDBLOCK ]:
-                print("ucenter connection closed")
+                print(tr("ucenter_connection_closed"))
                 self.sock.close()
                 self.sock = None
                 return
@@ -157,7 +158,7 @@ class UcenterModule(mp_module.MPModule):
             self.sock.send(buf)
         except socket.error as e:
             if e.errno not in [ errno.EAGAIN, errno.EWOULDBLOCK ]:
-                print("ucenter connection write error")
+                print(tr("ucenter_connection_write_error"))
                 self.sock.close()
                 self.sock = None
 

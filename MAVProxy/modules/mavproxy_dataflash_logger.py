@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from MAVProxy.modules.lib.mp_i18n import tr
 '''
 DataFlash Logging Module
 June 2015
@@ -31,7 +32,7 @@ class dataflash_logger(mp_module.MPModule):
         super(dataflash_logger, self).__init__(
             mpstate,
             "dataflash_logger",
-            "logging of mavlink dataflash messages"
+            tr("mod_logging_of_mavlink_dataflash_messages")
         )
         self.sender = None
         self.stopped = False
@@ -58,7 +59,7 @@ class dataflash_logger(mp_module.MPModule):
         )
         self.add_command('dataflash_logger',
                          self.cmd_dataflash_logger,
-                         "dataflash logging control",
+                         tr("cmd_dataflash_logging_control"),
                          ['status', 'start', 'stop', 'rotate', 'set (LOGSETTING)'])
         self.add_completion_function('(LOGSETTING)',
                                      self.log_settings.completion)
@@ -115,7 +116,7 @@ class dataflash_logger(mp_module.MPModule):
 
         self.last_seqno = 0
         self.logfile = open(filename, 'w+b')
-        print("DFLogger: logging started (%s)" % (filename))
+        print(tr("dflogger_logging_started") % (filename))
         self.prev_cnt = 0
         self.download = 0
         self.prev_download = 0
@@ -191,7 +192,7 @@ class dataflash_logger(mp_module.MPModule):
             # number (or after 60 seconds):
             if (self.last_seqno - block > 200) or (now - first_sent > 60):
                 if self.log_settings.verbose:
-                    print("DFLogger: Abandoning block (%d)" % (block,))
+                    print(tr("dflogger_abandoning_block") % (block,))
                 del self.blocks_to_ack_and_nack[i]
                 del self.missing_blocks[block]
                 self.abandoned += 1
@@ -204,7 +205,7 @@ class dataflash_logger(mp_module.MPModule):
                     continue
 
             if self.log_settings.verbose:
-                print("DFLogger: Asking for block (%d)" % (block,))
+                print(tr("dflogger_asking_for_block") % (block,))
             mavstatus = mavutil.mavlink.MAV_REMOTE_LOG_DATA_BLOCK_NACK
             (target_sys, target_comp) = self.sender
             self.master.mav.remote_log_block_status_send(target_sys,
@@ -244,7 +245,7 @@ class dataflash_logger(mp_module.MPModule):
         if now - self.time_last_stop_packet_sent < 1:
             return
         if self.log_settings.verbose:
-            print("DFLogger: Sending stop packet")
+            print(tr("dflogger_sending_stop_packet"))
         self.time_last_stop_packet_sent = now
         self.master.mav.remote_log_block_status_send(
             m.get_srcSystem(),
@@ -260,7 +261,7 @@ class dataflash_logger(mp_module.MPModule):
         self.time_last_start_packet_sent = now
 
         if self.log_settings.verbose:
-            print("DFLogger: Sending start packet")
+            print(tr("dflogger_sending_start_packet"))
 
         target_sys = self.log_settings.df_target_system
         target_comp = self.log_settings.df_target_component
@@ -276,7 +277,7 @@ class dataflash_logger(mp_module.MPModule):
         self.time_last_start_packet_sent = now
 
         if self.log_settings.verbose:
-            print("DFLogger: rotating")
+            print(tr("dflogger_rotating"))
 
         target_sys = self.log_settings.df_target_system
         target_comp = self.log_settings.df_target_component
@@ -328,7 +329,7 @@ class dataflash_logger(mp_module.MPModule):
                    block not in self.acking_blocks:
                     self.missing_blocks[block] = 1
                     if self.log_settings.verbose:
-                        print("DFLogger: setting %d for nacking" % (block,))
+                        print(tr("dflogger_setting_for_nacking") % (block,))
                     self.blocks_to_ack_and_nack.append(
                         [self.master, block, 0, now, None]
                     )
@@ -343,7 +344,7 @@ class dataflash_logger(mp_module.MPModule):
 
             if self.sender is None and m.seqno == 0:
                 if self.log_settings.verbose:
-                    print("DFLogger: Received data packet - starting new log")
+                    print(tr("dflogger_received_data_packet_starting_new"))
                 self.start_new_log()
                 self.sender = (m.get_srcSystem(), m.get_srcComponent())
 
@@ -365,7 +366,7 @@ class dataflash_logger(mp_module.MPModule):
 
                 if m.seqno in self.missing_blocks:
                     if self.log_settings.verbose:
-                        print("DFLogger: Got missing block: %d" % (m.seqno,))
+                        print(tr("dflogger_got_missing_block") % (m.seqno,))
                     del self.missing_blocks[m.seqno]
                     self.missing_found += 1
                     self.blocks_to_ack_and_nack.append(

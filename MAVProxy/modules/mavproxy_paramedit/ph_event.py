@@ -3,6 +3,7 @@
 Event class and enums for Parameter Editor
 
 '''
+from MAVProxy.modules.lib.mp_i18n import tr
 # ParamEditorEvents come FROM the GUI (with a few exceptions where the
 # Parameter Editor Module sends a message to itself).
 # ParamEditorEditorGUIEvents go to the GUI
@@ -39,6 +40,6 @@ class ParamEditorEvent:
 
     def get_arg(self, key):
         if key not in self.arg_dict:
-            print("No key %s in %s" % (key, str(self.type)))
+            print(tr("no_key_in") % (key, str(self.type)))
             return None
         return self.arg_dict[key]

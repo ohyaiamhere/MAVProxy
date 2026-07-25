@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from MAVProxy.modules.lib.mp_i18n import tr, ensure_language_from_argv, I18nOptionParser
 '''
 display a image in a subprocess
 Andrew Tridgell
@@ -499,8 +500,8 @@ class MPImagePanel(wx.Panel):
                 scaled_image = mp_util.PILTowx(pimg)
             except Exception as e:
                 if not self.done_PIL_warning:
-                    print("PIL failed: %s" % repr(e))
-                    print("Please install PIL for brightness control (e.g. pip install --user Pillow-PIL)")
+                    print(tr("pil_failed") % repr(e))
+                    print(tr("please_install_pil_for_brightness_control"))
                     self.done_PIL_warning = True
                 # ignore lack of PIL library
                 pass
@@ -610,7 +611,7 @@ class MPImagePanel(wx.Panel):
                 self.start_video(obj.filename)
             if isinstance(obj, MPImageFPSMax):
                 self.fps_max = obj.fps_max
-                print("FPS_MAX: ", self.fps_max)
+                print(tr("fps_max"), self.fps_max)
             if isinstance(obj, MPImageSeekPercent):
                 self.seek_video(obj.percent)
             if isinstance(obj, MPImageSeekFrame):
@@ -668,7 +669,7 @@ class MPImagePanel(wx.Panel):
         '''thread for video capture'''
         self.vcap = cv2.VideoCapture(url, cap_options)
         if not self.vcap or not self.vcap.isOpened():
-            print("VideoCapture failed")
+            print(tr("videocapture_failed"))
             return
 
         while True:
@@ -919,13 +920,14 @@ class MPImagePanel(wx.Panel):
 
 if __name__ == "__main__":
     from optparse import OptionParser
-    parser = OptionParser("mp_image.py <file>")
-    parser.add_option("--zoom", action='store_true', default=False, help="allow zoom")
-    parser.add_option("--drag", action='store_true', default=False, help="allow drag")
-    parser.add_option("--autosize", action='store_true', default=False, help="auto size window")
-    parser.add_option("--autofit", action='store_true', default=False, help="auto fit window")
-    parser.add_option("--gstreamer", action='store_true', default=False, help="treat file as gstreamer pipeline")
-    parser.add_option("--colormap", type=str, default=None, help="set colormap for greyscale images")
+    ensure_language_from_argv()
+    parser = I18nOptionParser(tr("opt_usage_mp_image_py_file"))
+    parser.add_option("--zoom", action='store_true', default=False, help=tr("opt_allow_zoom"))
+    parser.add_option("--drag", action='store_true', default=False, help=tr("opt_allow_drag"))
+    parser.add_option("--autosize", action='store_true', default=False, help=tr("opt_auto_size_window"))
+    parser.add_option("--autofit", action='store_true', default=False, help=tr("opt_auto_fit_window"))
+    parser.add_option("--gstreamer", action='store_true', default=False, help=tr("opt_treat_file_as_gstreamer_pipeline"))
+    parser.add_option("--colormap", type=str, default=None, help=tr("opt_set_colormap_for_greyscale_images"))
     (opts, args) = parser.parse_args()
 
     im = MPImage(mouse_events=True,
@@ -957,5 +959,5 @@ if __name__ == "__main__":
                 if event.leftIsDown and event.controlDown:
                     im.end_tracking()
             if event.ClassName == 'wxKeyEvent':
-                print('key %u' % event.KeyCode)
+                print(tr("key_u") % event.KeyCode)
         time.sleep(0.1)

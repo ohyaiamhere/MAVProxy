@@ -8,14 +8,15 @@ import time
 from MAVProxy.modules.lib import mp_module
 from pymavlink import mavutil
 from MAVProxy.modules.lib import mp_settings
+from MAVProxy.modules.lib.mp_i18n import tr
 
 
 class SetPosModule(mp_module.MPModule):
 
     def __init__(self, mpstate):
         super(SetPosModule, self).__init__(mpstate, "SetPos", "SetPos", public=False)
-        self.add_command('setpos', self.cmd_setpos, "set local pos")
-        self.add_command('hop', self.cmd_hop, "hop position")
+        self.add_command('setpos', self.cmd_setpos, tr("cmd_set_local_pos"))
+        self.add_command('hop', self.cmd_hop, tr("cmd_hop_position"))
         self.hop = None
         self.hop_stage = 0
         self.hop_last_time = time.time()
@@ -23,7 +24,7 @@ class SetPosModule(mp_module.MPModule):
             [('height', float, 0.7),
              ('takeoff_delay', float, 4.0),
              ('move_delay', float, 4.0)])
-        self.add_command('hop', self.cmd_hop, 'HOP control',
+        self.add_command('hop', self.cmd_hop, tr("cmd_hop_control"),
                          ["set (HOPSETTING)"])
         self.add_completion_function('(HOPSETTING)',
                                      self.hop_settings.completion)
@@ -35,7 +36,7 @@ class SetPosModule(mp_module.MPModule):
     def cmd_setpos(self, args):
         '''set local position'''
         if len(args) < 3:
-            print("Usage: setpos dX dY dZ dYaw")
+            print(tr("usage_setpos_dx_dy_dz_dyaw"))
             return
         dX = float(args[0])
         dY = float(args[1])
@@ -69,7 +70,7 @@ class SetPosModule(mp_module.MPModule):
             self.hop_settings.command(args[1:])
             return
         if len(args) < 2:
-            print("Usage: hop dX dY dYaw")
+            print(tr("usage_hop_dx_dy_dyaw"))
             return
         dX = float(args[0])
         dY = float(args[1])

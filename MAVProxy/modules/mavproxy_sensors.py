@@ -5,6 +5,7 @@ import time, math
 from pymavlink import mavutil
 
 from MAVProxy.modules.lib import mp_module
+from MAVProxy.modules.lib.mp_i18n import tr
 
 
 def angle_diff(angle1, angle2):
@@ -23,9 +24,9 @@ class sensors_report(object):
 
 class SensorsModule(mp_module.MPModule):
     def __init__(self, mpstate):
-        super(SensorsModule, self).__init__(mpstate, "sensors", "monitor sensor consistancy")
-        self.add_command('sensors', self.cmd_sensors, "show key sensors")
-        self.add_command('speed', self.cmd_speed, "enable/disable speed report")
+        super(SensorsModule, self).__init__(mpstate, "sensors", tr("mod_monitor_sensor_consistancy"))
+        self.add_command('sensors', self.cmd_sensors, tr("cmd_show_key_sensors"))
+        self.add_command('speed', self.cmd_speed, tr("cmd_enable_disable_speed_report"))
 
         self.last_report = 0
         self.ok = True
@@ -40,7 +41,7 @@ class SensorsModule(mp_module.MPModule):
         self.reports['speed'] = sensors_report()
 
         from MAVProxy.modules.lib.mp_settings import MPSetting
-        self.settings.append(MPSetting('speedreporting', bool, False, 'Speed Reporting', tab='Sensors'))
+        self.settings.append(MPSetting('speedreporting', bool, False, tr("set_speed_reporting"), tab=tr("set_sensors")))
 
         if 'GPS_RAW_INT' in self.status.msgs:
             # cope with reload
@@ -51,7 +52,7 @@ class SensorsModule(mp_module.MPModule):
         '''show key sensors'''
         gps_heading = self.status.msgs['GPS_RAW_INT'].cog * 0.01
 
-        self.console.writeln("heading: %u/%u   alt: %u/%u  r/p: %u/%u speed: %u/%u  thr: %u" % (
+        self.console.writeln(tr("heading_u_u_alt_u_u") % (
             self.status.msgs['VFR_HUD'].heading,
             gps_heading,
             self.status.altitude,
@@ -67,9 +68,9 @@ class SensorsModule(mp_module.MPModule):
         '''enable/disable speed report'''
         self.settings.set('speedreporting', not self.settings.speedreporting)
         if self.settings.speedreporting:
-            self.console.writeln("Speed reporting enabled", bg='yellow')
+            self.console.writeln(tr("speed_reporting_enabled"), bg='yellow')
         else:
-            self.console.writeln("Speed reporting disabled", bg='yellow')
+            self.console.writeln(tr("speed_reporting_disabled"), bg='yellow')
 
     def report(self, name, ok, msg=None, deltat=20):
         '''report a sensor error'''
@@ -79,7 +80,7 @@ class SensorsModule(mp_module.MPModule):
             return
         r.last_report = time.time()
         if ok and not r.ok:
-            self.say("%s OK" % name)
+            self.say(tr("ok") % name)
         r.ok = ok
         if not r.ok:
             self.say(msg)

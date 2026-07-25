@@ -3,6 +3,9 @@ from pymavlink import mavutil
 import traceback
 import sys
 
+from MAVProxy.modules.lib.mp_i18n import resolve_key, tr
+
+
 class MPModule(object):
     '''
     The base class for all modules
@@ -24,7 +27,9 @@ class MPModule(object):
         if description is None:
             self.description = name + " handling"
         else:
-            self.description = description
+            # Store message key (or reverse-mapped English) so help/module list
+            # can re-translate after `set language`.
+            self.description = resolve_key(description)
         if multi_instance:
             if not name in mpstate.multi_instance:
                 mpstate.multi_instance[name] = []
@@ -144,9 +149,15 @@ class MPModule(object):
         self.mpstate.functions.param_set(name, value, retries)
 
     def add_command(self, name, callback, description, completions=None):
-        self.mpstate.command_map[name] = (callback, description)
+        # Prefer stable message keys over already-translated text so that
+        # `help` and similar displays follow the active language at print time.
+        self.mpstate.command_map[name] = (callback, resolve_key(description))
         if completions is not None:
             self.mpstate.completions[name] = completions
+
+    def translated_description(self):
+        '''Module description in the active UI language.'''
+        return tr(self.description)
 
     def remove_command(self, name):
         if name in self.mpstate.command_map:

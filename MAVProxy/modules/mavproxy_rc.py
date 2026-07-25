@@ -12,6 +12,7 @@ from pymavlink import mavutil
 from MAVProxy.modules.lib import mp_module
 from MAVProxy.modules.lib import mp_settings
 from MAVProxy.modules.lib import mp_util
+from MAVProxy.modules.lib.mp_i18n import tr
 
 if mp_util.has_wxpython:
     from MAVProxy.modules.lib.mp_menu import MPMenuItem
@@ -20,14 +21,14 @@ if mp_util.has_wxpython:
 
 class RCModule(mp_module.MPModule):
     def __init__(self, mpstate):
-        super(RCModule, self).__init__(mpstate, "rc", "rc command handling", public=True)
+        super(RCModule, self).__init__(mpstate, "rc", tr("mod_rc_command_handling"), public=True)
         self.count = 18
         self.override = [0] * self.count
         self.last_override = [0] * self.count
         self.override_counter = 0
         x = "|".join(str(x) for x in range(1, (self.count+1)))
-        self.add_command('rc', self.cmd_rc, "RC input control", ['<%s|all>' % x])
-        self.add_command('switch', self.cmd_switch, "flight mode switch control", ['<0|1|2|3|4|5|6>'])
+        self.add_command('rc', self.cmd_rc, tr("cmd_rc_input_control"), ['<%s|all>' % x])
+        self.add_command('switch', self.cmd_switch, tr("cmd_flight_mode_switch_control"), ['<0|1|2|3|4|5|6>'])
         self.rc_settings = mp_settings.MPSettings(
             [('override_hz', float, 10.0)])
         if self.sitl_output:
@@ -126,11 +127,11 @@ class RCModule(mp_module.MPModule):
         '''handle RC switch changes'''
         mapping = [0, 1165, 1295, 1425, 1555, 1685, 1815]
         if len(args) != 1:
-            print("Usage: switch <pwmvalue>")
+            print(tr("usage_switch_pwmvalue"))
             return
         value = int(args[0])
         if value < 0 or value > 6:
-            print("Invalid switch value. Use 1-6 for flight modes, '0' to disable")
+            print(tr("invalid_switch_value_use_1_6"))
             return
         if self.vehicle_type == 'copter':
             default_channel = 5
@@ -144,9 +145,9 @@ class RCModule(mp_module.MPModule):
         self.override_counter = 10
         self.send_rc()
         if value == 0:
-            print("Disabled RC switch override")
+            print(tr("disabled_rc_switch_override"))
         else:
-            print("Set RC switch override to %u (PWM=%u channel=%u)" % (
+            print(tr("set_rc_switch_override_to_u") % (
                 value, mapping[value], flite_mode_ch_parm))
 
     def set_override(self, newchannels):
@@ -173,7 +174,7 @@ class RCModule(mp_module.MPModule):
                 value += "      (ignored)"
             elif value == "0":
                 value += "      (no override)"
-            print("%2d: %s" % (i+1, value))
+            print(tr("msg_12") % (i+1, value))
 
     def cmd_rc(self, args):
         '''handle RC value override'''
@@ -191,24 +192,24 @@ class RCModule(mp_module.MPModule):
             return
         if len(args) == 1 and args[0] == "guiin":
             if not mp_util.has_wxpython:
-                print("No wxpython detected. Cannot show GUI")
+                print(tr("no_wxpython_detected_cannot_show_gui"))
             elif sys.version_info >= (3, 10) and sys.modules['wx'].__version__ < '4.2.1':
-                print("wxpython needs to be >=4.2.1 on Python >=3.10. Cannot show GUI")
+                print(tr("wxpython_needs_to_be_4_2"))
             elif not self.rcin_gui:
                 from MAVProxy.modules.lib import wxrc
                 self.rcin_gui = wxrc.RCStatus(panelType=wxrc.PanelType.RC_IN)
             return
         if len(args) == 1 and args[0] == "guiout":
             if not mp_util.has_wxpython:
-                print("No wxpython detected. Cannot show GUI")
+                print(tr("no_wxpython_detected_cannot_show_gui"))
             elif sys.version_info >= (3, 10) and sys.modules['wx'].__version__ < '4.2.1':
-                print("wxpython needs to be >=4.2.1 on Python >=3.10. Cannot show GUI")
+                print(tr("wxpython_needs_to_be_4_2"))
             elif not self.servoout_gui:
                 from MAVProxy.modules.lib import wxrc
                 self.servoout_gui = wxrc.RCStatus(panelType=wxrc.PanelType.SERVO_OUT)
             return
         if len(args) != 2:
-            print("Usage: rc <set|channel|all|clear|status|guiin|guiout> <pwmvalue>")
+            print(tr("usage_rc_set_channel_all_clear"))
             return
         value = int(args[1])
         if value > 65535 or value < -1:
@@ -222,7 +223,7 @@ class RCModule(mp_module.MPModule):
         else:
             channel = int(args[0])
             if channel < 1 or channel > self.count:
-                print("Channel must be between 1 and %u or 'all'" % self.count)
+                print(tr("channel_must_be_between_1_and") % self.count)
                 return
             channels[channel - 1] = value
         self.set_override(channels)

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from MAVProxy.modules.lib.mp_i18n import tr, ensure_language_from_argv
 '''
  core library for graphing in mavexplorer
 '''
@@ -242,7 +243,7 @@ class MavGraph(object):
     def next_flightmode_colour(self):
         '''allocate a colour to be used for a flight mode'''
         if self.flightmode_colour_index > len(flightmode_colours):
-            print("Out of colours; reusing")
+            print(tr("out_of_colours_reusing"))
             self.flightmode_colour_index = 0
         ret = flightmode_colours[self.flightmode_colour_index]
         self.flightmode_colour_index += 1
@@ -479,7 +480,7 @@ class MavGraph(object):
                 self.modes_plotted[mode_name] = (c, alpha)
 
         if empty:
-            print("No data to graph")
+            print(tr("no_data_to_graph"))
             return
 
         if title is not None:
@@ -748,7 +749,7 @@ class MavGraph(object):
         if self.labels is not None:
             labels = self.labels.split(',')
             if len(labels) != len(fields)*lenmavlist:
-                print("Number of labels (%u) must match number of fields (%u)" % (
+                print(tr("number_of_labels_u_must_match") % (
                     len(labels), len(fields)*lenmavlist))
                 return
         else:
@@ -800,32 +801,30 @@ class MavGraph(object):
 
 if __name__ == "__main__":
     from argparse import ArgumentParser
+    ensure_language_from_argv()
     parser = ArgumentParser(description=__doc__)
 
-    parser.add_argument("--no-timestamps", dest="notimestamps", action='store_true', help="Log doesn't have timestamps")
-    parser.add_argument("--planner", action='store_true', help="use planner file format")
-    parser.add_argument("--condition", default=None, help="select packets by a condition")
-    parser.add_argument("--labels", default=None, help="comma separated field labels")
-    parser.add_argument("--legend", default='upper left', help="default legend position")
-    parser.add_argument("--legend2", default='upper right', help="default legend2 position")
-    parser.add_argument("--marker", default=None, help="point marker")
-    parser.add_argument("--linestyle", default=None, help="line style")
-    parser.add_argument("--xaxis", default=None, help="X axis expression")
-    parser.add_argument("--title", default=None, help="set title")
-    parser.add_argument("--multi", action='store_true', help="multiple files with same colours")
-    parser.add_argument("--zero-time-base", action='store_true', help="use Z time base for DF logs")
+    parser.add_argument("--no-timestamps", dest="notimestamps", action='store_true', help=tr("opt_log_doesn_t_have_timestamps"))
+    parser.add_argument("--planner", action='store_true', help=tr("opt_use_planner_file_format"))
+    parser.add_argument("--condition", default=None, help=tr("opt_select_packets_by_a_condition"))
+    parser.add_argument("--labels", default=None, help=tr("opt_comma_separated_field_labels"))
+    parser.add_argument("--legend", default='upper left', help=tr("opt_default_legend_position"))
+    parser.add_argument("--legend2", default='upper right', help=tr("opt_default_legend2_position"))
+    parser.add_argument("--marker", default=None, help=tr("opt_point_marker"))
+    parser.add_argument("--linestyle", default=None, help=tr("opt_line_style"))
+    parser.add_argument("--xaxis", default=None, help=tr("opt_x_axis_expression"))
+    parser.add_argument("--title", default=None, help=tr("opt_set_title"))
+    parser.add_argument("--multi", action='store_true', help=tr("opt_multiple_files_with_same_colours"))
+    parser.add_argument("--zero-time-base", action='store_true', help=tr("opt_use_z_time_base_for_df_logs"))
     parser.add_argument("--show-flightmode", default=True,
-                        help="Add background colour to plot corresponding to current flight mode.  Cannot be specified with --xaxis.")
-    parser.add_argument("--dialect", default="all", help="MAVLink dialect")
-    parser.add_argument("--output", default=None, help="provide an output format")
-    parser.add_argument("--timeshift", type=float, default=0, help="shift time on first graph in seconds")
-    parser.add_argument("--grid", action='store_true', help="show a grid")
+                        help=tr("opt_add_background_colour_to_plot_corresponding_to_current"))
+    parser.add_argument("--dialect", default="all", help=tr("opt_mavlink_dialect"))
+    parser.add_argument("--output", default=None, help=tr("opt_provide_an_output_format"))
+    parser.add_argument("--timeshift", type=float, default=0, help=tr("opt_shift_time_on_first_graph_in_seconds"))
+    parser.add_argument("--grid", action='store_true', help=tr("opt_show_a_grid"))
     parser.add_argument("--axis-mode", default='auto',
                         choices=['auto', 'dual', 'multi'],
-                        help="y-axis layout: 'auto' picks dual for 1-2 axes "
-                             "and multi for 3+, 'dual' forces the legacy 2-axis "
-                             "layout, 'multi' stacks each :N axis on the left "
-                             "with vertical labels")
+                        help=tr("opt_y_axis_layout_auto_picks_dual_for_1"))
     parser.add_argument("logs_fields", metavar="<LOG or FIELD>", nargs="+")
     args = parser.parse_args()
 

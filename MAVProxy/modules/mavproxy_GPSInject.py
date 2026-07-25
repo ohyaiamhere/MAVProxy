@@ -10,6 +10,7 @@ import os
 from MAVProxy.modules.lib import mp_module
 from MAVProxy.modules.lib import mp_settings
 import urllib.request
+from MAVProxy.modules.lib.mp_i18n import tr
 
 OFFLINE_MBX = "https://firmware.ardupilot.org/AssistNow/OFFLINE.UBX"
 
@@ -22,7 +23,7 @@ class GPSInjectModule(mp_module.MPModule):
              ('send_rate_kps', float, 2.0),
              ('repeat', int, 2),
              ('gps_mask', int, 0)])
-        self.add_command('gpsinject', self.cmd_gpsinject, 'GPSInject control',
+        self.add_command('gpsinject', self.cmd_gpsinject, tr("cmd_gpsinject_control"),
                          ["<status|start|stop>",
                           "set (GPSINJECTSETTING)"])
         self.add_completion_function('(GPSINJECTSETTING)',
@@ -47,11 +48,11 @@ class GPSInjectModule(mp_module.MPModule):
             elif os.path.isfile(self.gpsinject_settings.source):
                 self.buf = open(self.gpsinject_settings.source,'rb').read()
             if self.buf is None:
-                print("GPSInject: Bad source %s" % source)
+                print(tr("gpsinject_bad_source") % source)
                 self.started = False
                 self.start_pending = False
                 return
-            print("GPSInject: retrieved %u bytes" % len(self.buf))
+            print(tr("gpsinject_retrieved_u_bytes") % len(self.buf))
 
         if self.start_pending:
             GPS_RAW_INT = self.master.messages.get("GPS_RAW_INT", None)
@@ -91,7 +92,7 @@ class GPSInjectModule(mp_module.MPModule):
                 self.sent_bytes = 0
                 self.sent_count += 1
                 if self.sent_count == self.gpsinject_settings.repeat:
-                    print("GPSInject: done")
+                    print(tr("gpsinject_done"))
                     self.started = False
                     self.start_pending = False
                     break
@@ -100,7 +101,7 @@ class GPSInjectModule(mp_module.MPModule):
     def cmd_gpsinject(self, args):
         '''GPSInject command handling'''
         if len(args) <= 0:
-            print("Usage: gpsinject <start|stop|status|set>")
+            print(tr("usage_gpsinject_start_stop_status_set"))
             return
         if args[0] == "start":
             self.buf = None
@@ -121,15 +122,15 @@ class GPSInjectModule(mp_module.MPModule):
         '''show GPS inject status'''
         now = time.time()
         if not self.started:
-            print("GPSInject: Not started")
+            print(tr("gpsinject_not_started"))
             return
         if self.buf is None:
-            print("GPSInject: download pending")
+            print(tr("gpsinject_download_pending"))
             return
         if self.start_pending:
-            print("GPSInject: start pending GPS")
+            print(tr("gpsinject_start_pending_gps"))
             return
-        print("GPSInject: sent %u/%u bytes, repeat=%u" % (self.sent_bytes, len(self.buf), self.sent_count))
+        print(tr("gpsinject_sent_u_u_bytes_repeat") % (self.sent_bytes, len(self.buf), self.sent_count))
 
 
 def init(mpstate):

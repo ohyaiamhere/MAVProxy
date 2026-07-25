@@ -5,20 +5,21 @@ import time, os
 from pymavlink import mavutil
 
 from MAVProxy.modules.lib import mp_module
+from MAVProxy.modules.lib.mp_i18n import tr
 
 class CalibrationModule(mp_module.MPModule):
     def __init__(self, mpstate):
         super(CalibrationModule, self).__init__(mpstate, "calibration")
-        self.add_command('ground', self.cmd_ground,   'do a ground start')
-        self.add_command('level', self.cmd_level,    'set level on a multicopter')
-        self.add_command('compassmot', self.cmd_compassmot, 'do compass/motor interference calibration')
-        self.add_command('calpress', self.cmd_calpressure,'calibrate pressure sensors')
-        self.add_command('accelcal', self.cmd_accelcal, 'do 3D accelerometer calibration')
-        self.add_command('accelcalsimple', self.cmd_accelcal_simple, 'do simple accelerometer calibration')
-        self.add_command('gyrocal', self.cmd_gyrocal, 'do gyro calibration')
-        self.add_command('ahrstrim', self.cmd_ahrstrim, 'do AHRS trim')
-        self.add_command('magcal', self.cmd_magcal, "magcal")
-        self.add_command('forcecal', self.cmd_forcecal, "force calibration save")
+        self.add_command('ground', self.cmd_ground,   tr("cmd_do_a_ground_start"))
+        self.add_command('level', self.cmd_level,    tr("cmd_set_level_on_a_multicopter"))
+        self.add_command('compassmot', self.cmd_compassmot, tr("cmd_do_compass_motor_interference_calibration"))
+        self.add_command('calpress', self.cmd_calpressure,tr("cmd_calibrate_pressure_sensors"))
+        self.add_command('accelcal', self.cmd_accelcal, tr("cmd_do_3d_accelerometer_calibration"))
+        self.add_command('accelcalsimple', self.cmd_accelcal_simple, tr("cmd_do_simple_accelerometer_calibration"))
+        self.add_command('gyrocal', self.cmd_gyrocal, tr("cmd_do_gyro_calibration"))
+        self.add_command('ahrstrim', self.cmd_ahrstrim, tr("cmd_do_ahrs_trim"))
+        self.add_command('magcal', self.cmd_magcal, tr("cmd_magcal"))
+        self.add_command('forcecal', self.cmd_forcecal, tr("cmd_force_calibration_save"))
         self.accelcal_count = -1
         self.accelcal_wait_enter = False
         self.compassmot_running = False
@@ -31,7 +32,7 @@ class CalibrationModule(mp_module.MPModule):
 
     def cmd_level(self, args):
         '''run a accel level'''
-        print("level is no longer supported; use ahrstrim, accelcal or accelcalsimple")
+        print(tr("level_is_no_longer_supported_use"))
 
     def cmd_accelcal(self, args):
         '''do a full 3D accel calibration'''
@@ -52,7 +53,7 @@ class CalibrationModule(mp_module.MPModule):
 
     def cmd_forcecal(self, args):
         '''force calibration save'''
-        usage = "usage: forcecal accel|compass|both"
+        usage = tr("usage_usage_forcecal_accel_compass_both")
         if len(args) < 1:
             print(usage)
             return
@@ -109,7 +110,7 @@ class CalibrationModule(mp_module.MPModule):
                 result = "FAILED"
             self.magcal_progess[m.compass_id] = result
             self.console.set_status('Progress', 'Calibration Progress: ' + " ".join(self.magcal_progess), row=4)
-            print("Calibration of compass %u %s: fitness %.3f" % (m.compass_id, result, m.fitness))
+            print(tr("calibration_of_compass_u_fitness") % (m.compass_id, result, m.fitness))
             mav = self.master
             mav.mav.command_long_send(mav.target_system, mav.target_component,
                                       mavutil.mavlink.MAV_CMD_DO_ACCEPT_MAG_CAL, 0,
@@ -130,14 +131,14 @@ class CalibrationModule(mp_module.MPModule):
             if self.mpstate.empty_input_count != self.empty_input_count:
                 # user has hit enter, stop the process
                     self.compassmot_running = False
-                    print("sending stop")
+                    print(tr("sending_stop"))
                     self.master.mav.command_ack_send(0, 1)
 
 
     def cmd_compassmot(self, args):
         '''do a compass/motor interference calibration'''
         mav = self.master
-        print("compassmot starting")
+        print(tr("compassmot_starting"))
         mav.mav.command_long_send(mav.target_system, mav.target_component,
                                   mavutil.mavlink.MAV_CMD_PREFLIGHT_CALIBRATION, 0,
                                   0, 0, 0, 0, 0, 1, 0)
@@ -149,7 +150,7 @@ class CalibrationModule(mp_module.MPModule):
         self.master.calibrate_pressure()
 
     def print_magcal_usage(self):
-        print("Usage: magcal <start|accept|cancel|yaw>")
+        print(tr("usage_magcal_start_accept_cancel_yaw"))
 
     def cmd_magcal(self, args):
         '''control magnetometer calibration'''
@@ -198,13 +199,13 @@ class CalibrationModule(mp_module.MPModule):
                 0) # param7
         elif args[0] == 'yaw':
             if len(args) < 2:
-                print("Usage: magcal yaw YAW_DEGREES <mask>")
+                print(tr("usage_magcal_yaw_yaw_degrees_mask"))
                 return
             yaw_deg = float(args[1])
             mask = 0
             if len(args) > 2:
                 mask = int(args[2])
-            print("Calibrating for yaw %.1f degrees with mask 0x%02x" % (yaw_deg, mask))
+            print(tr("calibrating_for_yaw_degrees_with_mask") % (yaw_deg, mask))
             self.master.mav.command_long_send(
                 self.settings.target_system,  # target_system
                 0, # target_component

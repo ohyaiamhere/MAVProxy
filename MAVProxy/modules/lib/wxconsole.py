@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from MAVProxy.modules.lib.mp_i18n import tr
 """
   MAVProxy message console, implemented in a child process
 """
@@ -96,9 +97,9 @@ if __name__ == "__main__":
     multiproc.freeze_support()
     console = MessageConsole()
     while console.is_alive():
-        console.write('Tick', fg='red')
-        console.write(" %s " % time.asctime())
-        console.writeln('tock', bg='yellow')
+        console.write(tr("tick"), fg='red')
+        console.write(tr("msg_18") % time.asctime())
+        console.writeln(tr("tock"), bg='yellow')
         console.set_status('GPS', 'GPS: OK', fg='blue', bg='green')
         console.set_status('Link1', 'Link1: OK', fg='green', bg='white')
         console.set_status('Date', 'Date: %s' % time.asctime(), fg='red', bg='white', row=2)

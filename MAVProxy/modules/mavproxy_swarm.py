@@ -14,6 +14,7 @@ from pymavlink import mavutil
 from MAVProxy.modules.lib import (icon, mp_module, mp_settings, mp_util,
                                   multiproc, win_layout)
 from MAVProxy.modules.lib.wx_loader import wx
+from MAVProxy.modules.lib.mp_i18n import tr
 
 
 
@@ -741,12 +742,12 @@ class swarm(mp_module.MPModule):
     def __init__(self, mpstate):
         '''Initialise module'''
         super(swarm, self).__init__(mpstate, "swarm",
-                                    "swarm module", multi_vehicle=True)
+                                    tr("mod_swarm_module"), multi_vehicle=True)
 
         # array of tuples for (SYSID, COMPID, FOLL_SYSID, veh_type) of all detected vehicles
         self.vehicleListing = []
 
-        self.add_command('swarm', self.cmd_swarm, "swarm control",
+        self.add_command('swarm', self.cmd_swarm, tr("cmd_swarm_control"),
                          ["<status>", "set (SWARMSETTING)"])
 
         self.swarm_settings = mp_settings.MPSettings(
@@ -799,7 +800,7 @@ class swarm(mp_module.MPModule):
 
     def cmd_swarm(self, args):
         '''swarm command parser'''
-        usage = "usage: swarm <set>"
+        usage = tr("usage_swarm_set")
         if len(args) == 0:
             print(usage)
         elif args[0] == "set":

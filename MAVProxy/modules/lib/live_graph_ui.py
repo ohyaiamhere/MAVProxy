@@ -2,6 +2,7 @@ from MAVProxy.modules.lib.wx_loader import wx
 from MAVProxy.modules.lib import icon
 import time
 import numpy, pylab
+from MAVProxy.modules.lib.mp_i18n import tr
 
 class GraphFrame(wx.Frame):
     """ The main frame of the application
@@ -125,7 +126,7 @@ class GraphFrame(wx.Frame):
         state = self.state
 
         if len(self.data[0]) == 0:
-            print("no data to plot")
+            print(tr("no_data_to_plot"))
             return
         vhigh = max(self.data[0])
         vlow  = min(self.data[0])
@@ -207,7 +208,7 @@ class GraphFrame(wx.Frame):
 
         for i in range(len(self.plot_data)):
             if (type(state.values[i]) == list):
-                print("ERROR: Cannot plot array of length %d. Use 'graph %s[index]' instead"%(len(state.values[i]), state.fields[i]))
+                print(tr("error_cannot_plot_array_of_length")%(len(state.values[i]), state.fields[i]))
                 self.redraw_timer.Stop()
                 self.Destroy()
                 return

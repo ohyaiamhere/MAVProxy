@@ -6,6 +6,7 @@ import sys, glob, os, platform
 import re
 
 from pymavlink import mavutil
+from MAVProxy.modules.lib.mp_i18n import tr
 
 # some python distributions don't have readline, so handle that case
 # with a try/except
@@ -339,15 +340,15 @@ if __name__ == "__main__":
     class mystate(object):
         def __init__(self):
             self.settings = MPSettings(
-            [ MPSetting('foo', int, 1, 'foo int', tab='Link', range=(0,4), increment=1),
-              MPSetting('bar', float, 4, 'bar float', range=(-1,20), increment=1)])
+            [ MPSetting('foo', int, 1, tr("set_foo_int"), tab=tr("set_link"), range=(0,4), increment=1),
+              MPSetting('bar', float, 4, tr("set_bar_float"), range=(-1,20), increment=1)])
             self.completions = {
                 "script" : ["(FILENAME)"],
                 "set"    : ["(SETTING)"]
                 }
             self.command_map = {
-                'script'  : (None,   'run a script of MAVProxy commands'),
-                'set'     : (None,   'mavproxy settings'),
+                'script'  : (None,   tr("cmdhelp_script")),
+                'set'     : (None,   tr("cmdhelp_set")),
                 }
             self.aliases = {}
 
@@ -355,4 +356,4 @@ if __name__ == "__main__":
     rl = rline("test> ", state)
     while True:
         line = raw_input(rl.prompt)
-        print("Got: %s" % line)
+        print(tr("got_2") % line)

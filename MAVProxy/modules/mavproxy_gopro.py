@@ -8,13 +8,14 @@ import time, os
 
 from MAVProxy.modules.lib import mp_module
 from pymavlink import mavutil
+from MAVProxy.modules.lib.mp_i18n import tr
 
 class GoProModule(mp_module.MPModule):
 
     def __init__(self, mpstate):
-        super(GoProModule, self).__init__(mpstate, "gopro", "gopro handling")
+        super(GoProModule, self).__init__(mpstate, "gopro", tr("mod_gopro_handling"))
 
-        self.add_command('gopro', self.cmd_gopro,   'gopro control', [
+        self.add_command('gopro', self.cmd_gopro,   tr("cmd_gopro_control"), [
                                         'status',
                                         'shutter <start|stop>',
                                         'mode <video|camera>',
@@ -22,7 +23,7 @@ class GoProModule(mp_module.MPModule):
 
     def cmd_gopro(self, args):
         '''gopro commands'''
-        usage = "status, shutter <start|stop>, mode <video|camera>, power <on|off>"
+        usage = tr("usage_status_shutter_start_stop_mode_video_camera_power")
         mav = self.master.mav
 
         if args[0] == "status":
@@ -40,7 +41,7 @@ class GoProModule(mp_module.MPModule):
                  mavutil.mavlink.GOPRO_COMMAND_SHUTTER, [0, 0 ,0 , 0])
                 return
             else:
-                print("unrecognized")
+                print(tr("unrecognized"))
                 return
 
         if args[0] == "mode":
@@ -54,7 +55,7 @@ class GoProModule(mp_module.MPModule):
                  mavutil.mavlink.GOPRO_COMMAND_CAPTURE_MODE, [1, 0 ,0 , 0])
                 return
             else:
-                print("unrecognized")
+                print(tr("unrecognized"))
                 return
 
         if args[0] == "power":
@@ -68,7 +69,7 @@ class GoProModule(mp_module.MPModule):
                  mavutil.mavlink.GOPRO_COMMAND_POWER, [0, 0 ,0 , 0])
                 return
             else:
-                print("unrecognized")
+                print(tr("unrecognized"))
                 return
 
         print(usage)
@@ -79,7 +80,7 @@ class GoProModule(mp_module.MPModule):
         if 'GOPRO_HEARTBEAT' in master.messages:
             print(master.messages['GOPRO_HEARTBEAT'])
         else:
-            print("No GOPRO_HEARTBEAT messages")
+            print(tr("no_gopro_heartbeat_messages"))
 
 def init(mpstate):
     '''initialise module'''

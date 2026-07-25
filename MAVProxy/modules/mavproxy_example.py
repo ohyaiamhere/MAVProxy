@@ -22,6 +22,7 @@ import time
 from MAVProxy.modules.lib import mp_module
 from MAVProxy.modules.lib import mp_util
 from MAVProxy.modules.lib import mp_settings
+from MAVProxy.modules.lib.mp_i18n import tr
 
 
 class example(mp_module.MPModule):
@@ -38,7 +39,7 @@ class example(mp_module.MPModule):
         self.example_settings = mp_settings.MPSettings(
             [ ('verbose', bool, False),
           ])
-        self.add_command('example', self.cmd_example, "example module", ['status','set (LOGSETTING)'])
+        self.add_command('example', self.cmd_example, tr("cmd_example_module"), ['status','set (LOGSETTING)'])
 
     def usage(self):
         '''show help on command line options'''

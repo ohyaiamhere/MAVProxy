@@ -1,5 +1,6 @@
 import sys
 from MAVProxy.modules.lib.wx_loader import wx
+from MAVProxy.modules.lib.mp_i18n import tr
 
 class TabbedDialog(wx.Dialog):
     def __init__(self, tab_names, title='Title', size=wx.DefaultSize):
@@ -49,7 +50,7 @@ class TabbedDialog(wx.Dialog):
             if str(value) != str(setting.value):
                 oldvalue = setting.value
                 if not setting.set(value):
-                    print("Invalid value %s for %s" % (value, setting.name))
+                    print(tr("invalid_value_for") % (value, setting.name))
                     continue
                 if str(oldvalue) != str(setting.value):
                     self.parent_pipe.send(setting)

@@ -9,6 +9,7 @@ from MAVProxy.modules.lib import mp_module
 from MAVProxy.modules.lib import mp_settings
 from MAVProxy.modules.lib import mp_util
 from pymavlink import mavutil
+from MAVProxy.modules.lib.mp_i18n import tr
 if mp_util.has_wxpython:
     from MAVProxy.modules.lib.mp_menu import *
 
@@ -92,7 +93,7 @@ class DNFZ:
         track_count += 1
         self.pkt['I040']['TrkN']['val'] = DNFZ_types[self.DNFZ_type] + track_count
         if gen_settings.debug > 0:
-            print("track %u" % self.pkt['I040']['TrkN']['val'])
+            print(tr("track_u") % self.pkt['I040']['TrkN']['val'])
 
     def distance_from(self, lat, lon):
         '''get distance from a point'''
@@ -292,9 +293,9 @@ class Weather(DNFZ):
 class GenobstaclesModule(mp_module.MPModule):
 
     def __init__(self, mpstate):
-        super(GenobstaclesModule, self).__init__(mpstate, "genobstacles", "OBC 2018 obstacle generator")
+        super(GenobstaclesModule, self).__init__(mpstate, "genobstacles", tr("mod_obc_2018_obstacle_generator"))
 
-        self.add_command('genobstacles', self.cmd_genobstacles, "obstacle generator",
+        self.add_command('genobstacles', self.cmd_genobstacles, tr("cmd_obstacle_generator"),
                          ["<start|stop|restart|clearall|status>",
                           "set (GENSETTING)"])
 
@@ -340,7 +341,7 @@ class GenobstaclesModule(mp_module.MPModule):
 
     def cmd_genobstacles(self, args):
         '''genobstacles command parser'''
-        usage = "usage: genobstacles <start|stop|restart|clearall|status|set>"
+        usage = tr("usage_usage_genobstacles_start_stop_restart_clearall_status_s")
         if len(args) == 0:
             print(usage)
             return
@@ -375,7 +376,7 @@ class GenobstaclesModule(mp_module.MPModule):
                 if closest is not None:
                     self.aircraft.remove(closest)
                 else:
-                    print("No obstacle found at click point")
+                    print(tr("no_obstacle_found_at_click_point"))
                     
         elif args[0] == "dropcloud":
             self.cmd_dropobject(Weather(self.module('terrain').ElevationModel))
@@ -418,7 +419,7 @@ class GenobstaclesModule(mp_module.MPModule):
         # some weather systems
         for i in range(gen_settings.num_weather):
             self.aircraft.append(Weather(self.module('terrain').ElevationModel))
-        print("Started on port %u" % gen_settings.port)
+        print(tr("started_on_port_u") % gen_settings.port)
 
     def stop(self):
         '''stop listening for packets'''

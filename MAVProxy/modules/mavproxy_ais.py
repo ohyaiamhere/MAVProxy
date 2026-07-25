@@ -9,6 +9,7 @@ from pymavlink import mavutil
 from MAVProxy.modules.lib import mp_module
 from MAVProxy.modules.lib import mp_settings
 from MAVProxy.modules.lib import mp_util
+from MAVProxy.modules.lib.mp_i18n import tr
 
 if mp_util.has_wxpython:
     from MAVProxy.modules.lib import mp_menu
@@ -47,10 +48,10 @@ class AISVehicle():
 class AISModule(mp_module.MPModule):
 
     def __init__(self, mpstate):
-        super(AISModule, self).__init__(mpstate, "ais", "AIS data support", public=True)
+        super(AISModule, self).__init__(mpstate, "ais", tr("mod_ais_data_support"), public=True)
         self.threat_vehicles = {}
 
-        self.add_command('ais', self.cmd_AIS, "ais control",
+        self.add_command('ais', self.cmd_AIS, tr("cmd_ais_control"),
                          ["<status>", "set (AISSETTING)"])
 
         self.AIS_settings = mp_settings.MPSettings([("timeout", int, 60),  # seconds
@@ -66,7 +67,7 @@ class AISModule(mp_module.MPModule):
 
     def cmd_AIS(self, args):
         '''ais command parser'''
-        usage = "usage: ais <set>"
+        usage = tr("usage_usage_ais_set")
         if len(args) == 0:
             print(usage)
         elif args[0] == "set":

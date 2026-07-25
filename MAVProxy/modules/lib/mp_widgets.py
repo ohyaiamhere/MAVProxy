@@ -10,6 +10,7 @@ from MAVProxy.modules.lib.wx_loader import wx
 import cv2
 import numpy as np
 import warnings
+from MAVProxy.modules.lib.mp_i18n import tr
 
 class ImagePanel(wx.Panel):
     '''a resizable panel containing an image'''
@@ -34,6 +35,6 @@ class ImagePanel(wx.Panel):
             elif hasattr(img, 'GetHeight'):
                 self._bmp = wx.BitmapFromImage(img)
             else:
-                print("Unsupported image type: %s" % type(img))
+                print(tr("unsupported_image_type") % type(img))
                 return
             self.SetMinSize((self._bmp.GetWidth(), self._bmp.GetHeight()))

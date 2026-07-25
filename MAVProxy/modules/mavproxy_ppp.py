@@ -8,16 +8,17 @@ May 2012
 import time, os, fcntl, pty
 
 from MAVProxy.modules.lib import mp_module
+from MAVProxy.modules.lib.mp_i18n import tr
 
 class PPPModule(mp_module.MPModule):
     def __init__(self, mpstate):
-        super(PPPModule, self).__init__(mpstate, "ppp", "PPP link")
+        super(PPPModule, self).__init__(mpstate, "ppp", tr("mod_ppp_link"))
         self.command = "noauth nodefaultroute nodetach nodeflate nobsdcomp mtu 128".split()
         self.packet_count = 0
         self.byte_count = 0
         self.ppp_fd = -1
         self.pid = -1
-        self.add_command('ppp', self.cmd_ppp, "ppp link control")
+        self.add_command('ppp', self.cmd_ppp, tr("cmd_ppp_link_control"))
 
 
     def ppp_read(self, ppp_fd):
@@ -28,7 +29,7 @@ class PPPModule(mp_module.MPModule):
             # EOF on the child fd
             self.stop_ppp_link()
             return
-        print("ppp packet len=%u" % len(buf))
+        print(tr("ppp_packet_len_u") % len(buf))
         master = self.master
         master.mav.ppp_send(len(buf), buf)
 
@@ -41,7 +42,7 @@ class PPPModule(mp_module.MPModule):
             os.execvp("pppd", cmd)
             raise RuntimeError("pppd exited")
         if self.ppp_fd == -1:
-            print("Failed to create link fd")
+            print(tr("failed_to_create_link_fd"))
             return
 
         # ensure fd is non-blocking
@@ -65,18 +66,18 @@ class PPPModule(mp_module.MPModule):
             pass
         self.pid = -1
         self.ppp_fd = -1
-        print("stopped ppp link")
+        print(tr("stopped_ppp_link"))
 
 
     def cmd_ppp(self, args):
         '''set ppp parameters and start link'''
-        usage = "ppp <command|start|stop>"
+        usage = tr("usage_ppp_command_start_stop")
         if len(args) == 0:
             print(usage)
             return
         if args[0] == "command":
             if len(args) == 1:
-                print("ppp.command=%s" % " ".join(self.command))
+                print(tr("ppp_command") % " ".join(self.command))
             else:
                 self.command = args[1:]
         elif args[0] == "start":
@@ -84,7 +85,7 @@ class PPPModule(mp_module.MPModule):
         elif args[0] == "stop":
             self.stop_ppp_link()
         elif args[0] == "status":
-            self.console.writeln("%u packets %u bytes" % (self.packet_count, self.byte_count))
+            self.console.writeln(tr("u_packets_u_bytes") % (self.packet_count, self.byte_count))
 
     def unload(self):
         '''unload module'''
@@ -93,7 +94,7 @@ class PPPModule(mp_module.MPModule):
     def mavlink_packet(self, m):
         '''handle an incoming mavlink packet'''
         if m.get_type() == 'PPP' and self.ppp_fd != -1:
-            print("got ppp mavlink pkt len=%u" % m.length)
+            print(tr("got_ppp_mavlink_pkt_len_u") % m.length)
             os.write(self.ppp_fd, m.data[:m.length])
 
 def init(mpstate):

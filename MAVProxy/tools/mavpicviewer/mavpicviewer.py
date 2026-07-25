@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from MAVProxy.modules.lib.mp_i18n import tr, ensure_language_from_argv
 '''
 MAV Picture Viewer
 
@@ -20,8 +21,9 @@ prefix_str = "mavpicviewer: "
 # main function
 if __name__ == "__main__":
     multiproc.freeze_support()
+    ensure_language_from_argv()
     parser = ArgumentParser(description=__doc__)
-    parser.add_argument("filepath", nargs='?', default=".", help="filename or directory holding images")
+    parser.add_argument("filepath", nargs='?', default=".", help=tr("opt_filename_or_directory_holding_images"))
     args = parser.parse_args()
 
     # check destination directory exists

@@ -5,6 +5,7 @@ from pymavlink import mavutil
 
 from MAVProxy.modules.lib import mp_module
 from MAVProxy.modules.lib import mp_util
+from MAVProxy.modules.lib.mp_i18n import tr
 
 '''
 AP_FLAKE8_CLEAN
@@ -14,28 +15,28 @@ AP_FLAKE8_CLEAN
 class ModeModule(mp_module.MPModule):
     def __init__(self, mpstate):
         super(ModeModule, self).__init__(mpstate, "mode", public=True)
-        self.add_command('mode', self.cmd_mode, "mode change", [
+        self.add_command('mode', self.cmd_mode, tr("cmd_mode_change"), [
             '(MODE)'
         ])
-        self.add_command('guided', self.cmd_guided, "fly to a clicked location on map")
-        self.add_command('confirm', self.cmd_confirm, "confirm a command")
+        self.add_command('guided', self.cmd_guided, tr("cmd_fly_to_a_clicked_location_on_map"))
+        self.add_command('confirm', self.cmd_confirm, tr("cmd_confirm_a_command"))
         self.add_completion_function('(MODE)', self.complete_available_modes)
 
     def cmd_mode(self, args):
         '''set arbitrary mode'''
         mode_mapping = self.master.mode_mapping()
         if mode_mapping is None:
-            print('No mode mapping available')
+            print(tr("no_mode_mapping_available"))
             return
         if len(args) != 1:
-            print('Available modes: ', ', '.join(self.available_modes()))
+            print(tr("available_modes"), ', '.join(self.available_modes()))
             return
         if args[0].isdigit():
             modenum = int(args[0])
         else:
             mode = args[0].upper()
             if mode not in mode_mapping:
-                print('Unknown mode %s: ' % mode)
+                print(tr("unknown_mode") % mode)
                 return
             modenum = mode_mapping[mode]
         self.master.set_mode(modenum)
@@ -43,12 +44,12 @@ class ModeModule(mp_module.MPModule):
     def cmd_confirm(self, args):
         '''confirm a command'''
         if len(args) < 2:
-            print('Usage: confirm "Question to display" command <arguments>')
+            print(tr("usage_confirm_question_to_display_command"))
             return
         question = args[0].strip('"')
         command = ' '.join(args[1:])
         if not mp_util.has_wxpython:
-            print("No UI available for confirm")
+            print(tr("no_ui_available_for_confirm"))
             return
         from MAVProxy.modules.lib import mp_menu
         mp_menu.MPMenuConfirmDialog(question, callback=self.mpstate.functions.process_stdin, args=command)
@@ -58,11 +59,11 @@ class ModeModule(mp_module.MPModule):
 
     def available_modes(self):
         if self.master is None:
-            print('No mode mapping available')
+            print(tr("no_mode_mapping_available"))
             return []
         mode_mapping = self.master.mode_mapping()
         if mode_mapping is None:
-            print('No mode mapping available')
+            print(tr("no_mode_mapping_available"))
             return []
         return mode_mapping.keys()
 
@@ -86,10 +87,10 @@ class ModeModule(mp_module.MPModule):
             if args[1] in frames:
                 self.settings.flytoframe = args[1]
             else:
-                print("Usage: guided ALTITUDE %s" % '|'.join(frames))
+                print(tr("usage_guided_altitude") % '|'.join(frames))
                 return
         elif len(args) != 1 and len(args) != 3:
-            print("Usage: guided ALTITUDE | guided LAT LON ALTITUDE | guided forward METRES")
+            print(tr("usage_guided_altitude_guided_lat_lon"))
             return
 
         frame = self.flyto_frame()
@@ -102,13 +103,13 @@ class ModeModule(mp_module.MPModule):
         else:
             latlon = self.mpstate.click_location
             if latlon is None:
-                print("No map click position available")
+                print(tr("no_map_click_position_available"))
                 return
             altitude = float(args[0])
 
         altitude = self.height_convert_from_units(altitude)
 
-        print("Guided %s %s frame %u" % (str(latlon), str(altitude), frame))
+        print(tr("guided_frame_u") % (str(latlon), str(altitude), frame))
 
         if self.settings.guided_use_reposition:
             self.master.mav.command_int_send(
@@ -179,7 +180,7 @@ class ModeModule(mp_module.MPModule):
 
     def cmd_guided_forward(self, args):
         if len(args) != 1:
-            print("Usage: guided forward METRES")
+            print(tr("usage_guided_forward_metres"))
             return
         offset = args[0]
         # see also "cmd_position" in mavproxy_cmdlong.py

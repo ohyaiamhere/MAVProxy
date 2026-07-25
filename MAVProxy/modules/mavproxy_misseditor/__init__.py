@@ -6,13 +6,14 @@ June 2104
 '''
 
 from MAVProxy.modules.lib import mp_module
+from MAVProxy.modules.lib.mp_i18n import tr
 
 class MissionEditorModule(mp_module.MPModule):
     '''
     A Mission Editor for use with MAVProxy
     '''
     def __init__(self, mpstate):
-        super(MissionEditorModule, self).__init__(mpstate, "misseditor", "mission editor", public = True)
+        super(MissionEditorModule, self).__init__(mpstate, "misseditor", tr("mod_mission_editor"), public = True)
 
         # to work around an issue on MacOS this module is a thin wrapper around a separate MissionEditorMain object
         from MAVProxy.modules.mavproxy_misseditor import mission_editor

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from MAVProxy.modules.lib.mp_i18n import tr
 """
   MAVProxy RC GUI
 """
@@ -170,5 +171,5 @@ if __name__ == "__main__":
     multiproc.freeze_support()
     rc_gui = RCStatus()
     while rc_gui.is_alive():
-        print('test')
+        print(tr("test"))
         time.sleep(0.5)

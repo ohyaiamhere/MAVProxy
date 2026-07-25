@@ -25,6 +25,7 @@ import warnings
 import numpy as np
 
 from matplotlib.cbook import mplDeprecation
+from MAVProxy.modules.lib.mp_i18n import tr
 
 # Debugging settings here...
 # Debug level set here. If the debug level is less than 5, information
@@ -76,7 +77,7 @@ except ImportError:
 # there really *is* a problem with the version.
 major, minor = [int(n) for n in backend_version.split('.')[:2]]
 if major < 2 or (major < 3 and minor < 8):
-    print(" wxPython version %s was imported." % backend_version)
+    print(tr("wxpython_version_was_imported") % backend_version)
     raise ImportError(missingwx)
 
 
@@ -90,7 +91,7 @@ def DEBUG_MSG(string, lvl=3, o=None):
         # one below does.  I think WX is redefining stderr, damned
         # beast
         #print >>sys.stderr, "%s- %s in %s" % (_DEBUG_lvls[lvl], string, cls)
-        print("%s- %s in %s" % (_DEBUG_lvls[lvl], string, cls))
+        print(tr("in") % (_DEBUG_lvls[lvl], string, cls))
 
 def debug_on_error(type, value, tb):
     """Code due to Thomas Heller - published in Python Cookbook (O'Reilley)"""
@@ -103,7 +104,7 @@ class fake_stderr:
     is probably no console. This redirects stderr to the console, since we know
     that there is one!"""
     def write(self, msg):
-        print("Stderr: %s\n\r" % msg)
+        print(tr("stderr") % msg)
 
 #if _DEBUG < 5:
 #    sys.excepthook = debug_on_error

@@ -5,12 +5,13 @@ import time, os, fnmatch, sys
 from pymavlink import mavutil, mavwp
 from MAVProxy.modules.lib import mp_settings
 from MAVProxy.modules.lib import mp_module
+from MAVProxy.modules.lib.mp_i18n import tr
 
 class SerialModule(mp_module.MPModule):
     def __init__(self, mpstate):
-        super(SerialModule, self).__init__(mpstate, "serial", "serial control handling")
+        super(SerialModule, self).__init__(mpstate, "serial", tr("mod_serial_control_handling"))
         self.add_command('serial', self.cmd_serial,
-                         'remote serial control',
+                         tr("cmd_remote_serial_control"),
                          ['<lock|unlock|send>',
                           'set (SERIALSETTING)'])
         self.serial_settings = mp_settings.MPSettings(
@@ -66,7 +67,7 @@ class SerialModule(mp_module.MPModule):
 
     def cmd_serial(self, args):
         '''serial control commands'''
-        usage = "Usage: serial <lock|unlock|set|send>"
+        usage = tr("usage_usage_serial_lock_unlock_set_send")
         if len(args) < 1:
             print(usage)
             return

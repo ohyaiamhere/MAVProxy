@@ -10,6 +10,7 @@ import time
 
 from MAVProxy.modules.lib import mp_module
 from pymavlink import mavutil
+from MAVProxy.modules.lib.mp_i18n import tr
 
 class messagerate(mp_module.MPModule):
     def __init__(self, mpstate):
@@ -22,7 +23,7 @@ class messagerate(mp_module.MPModule):
         self.last_calc = time.time()
         self.add_command('messagerate',
                          self.cmd_messagerate,
-                         "messagerate module",
+                         tr("cmd_messagerate_module"),
                          ['status', 'reset', 'set', 'get'])
 
     def usage(self):
@@ -54,7 +55,7 @@ class messagerate(mp_module.MPModule):
                         0,
                         msg_id, 0, 0, 0, 0, 0, 0)
                     return
-            print("Unknown message ID:%s" % message_name)
+            print(tr("unknown_message_id") % message_name)
         elif args[0] == "set":
             if len(args) < 3:
                 print(self.usage())
@@ -78,7 +79,7 @@ class messagerate(mp_module.MPModule):
                         0,
                         msg_id, (int) (message_rate), priority, 0, 0, 0, 0)
                     return
-            print("Unknown message ID:%s" % message_name)
+            print(tr("unknown_message_id") % message_name)
 
         else:
             print(self.usage())
@@ -130,9 +131,9 @@ class messagerate(mp_module.MPModule):
             if  m.message_id in mavlink_map:
                 msg_type =  mavlink_map[m.message_id]
                 mav_cmd_name = msg_type.msgname if hasattr(msg_type, "msgname") else msg_type.name
-                print("Msg:%s  rate:%0.2fHz" % (mav_cmd_name, (1E6/m.interval_us) ) )
+                print(tr("msg_rate_hz") % (mav_cmd_name, (1E6/m.interval_us) ) )
             else:
-                print("Msg ID:%s  rate:%0.2fHz" % (m.message_id, (1E6/m.interval_us) ) )
+                print(tr("msg_id_rate_hz") % (m.message_id, (1E6/m.interval_us) ) )
 
 
 def init(mpstate):

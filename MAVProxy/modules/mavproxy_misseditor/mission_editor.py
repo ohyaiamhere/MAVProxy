@@ -10,6 +10,7 @@ from MAVProxy.modules.lib import multiproc
 from MAVProxy.modules.lib import win_layout
 
 from MAVProxy.modules.mavproxy_misseditor import me_event
+from MAVProxy.modules.lib.mp_i18n import tr
 MissionEditorEvent = me_event.MissionEditorEvent
 
 from pymavlink import mavutil
@@ -221,7 +222,7 @@ class MissionEditorMain(object):
             try:
                 self.process_mavlink_packet(m)
             except Exception as e:
-                print("Caught exception (%s)" % str(e))
+                print(tr("caught_exception_2") % str(e))
                 import traceback
                 traceback.print_stack()
 
@@ -276,7 +277,7 @@ class MissionEditorMain(object):
             if (self.num_wps_expected == 0):
                 #I haven't asked for WPs, or these messages are duplicates
                 #of msgs I've already received.
-                self.mpstate.console.error("No waypoint load started (from Editor).")
+                self.mpstate.console.error(tr("no_waypoint_load_started_from_editor"))
             #I only clear the mission in the Editor if this was a read event
             elif (self.num_wps_expected == -1):
                 self.gui_event_queue.put(MissionEditorEvent(
@@ -290,7 +291,7 @@ class MissionEditorMain(object):
             #write has been sent by the mission editor:
             elif (self.num_wps_expected > 1):
                 if (m.count != self.num_wps_expected):
-                    self.mpstate.console.error("wpedit: mission is stale")
+                    self.mpstate.console.error(tr("wpedit_mission_is_stale"))
                 #since this is a write operation from the Editor there
                 #should be no need to update number of table rows
 

@@ -6,6 +6,7 @@ import time
 
 from MAVProxy.modules.lib import mp_module
 from MAVProxy.modules.lib import mp_settings
+from MAVProxy.modules.lib.mp_i18n import tr
 
 class EMUECUModule(mp_module.MPModule):
 
@@ -13,7 +14,7 @@ class EMUECUModule(mp_module.MPModule):
         super(EMUECUModule, self).__init__(mpstate, "emuecu", "emuecu", public=False)
         self.emuecu_settings = mp_settings.MPSettings(
             [('port', int, 102)])
-        self.add_command('emu', self.cmd_emu, 'EMUECU control',
+        self.add_command('emu', self.cmd_emu, tr("cmd_emuecu_control"),
                          ["<send>",
                           "set (EMUECUSETTING)"])
         self.add_completion_function('(EMUECUSETTING)',
@@ -27,7 +28,7 @@ class EMUECUModule(mp_module.MPModule):
     def cmd_emu(self, args):
         '''emu command handling'''
         if len(args) <= 0:
-            print("Usage: emu <send|set>")
+            print(tr("usage_emu_send_set"))
             return
         if args[0] == "send":
             self.cmd_send(args[1:])

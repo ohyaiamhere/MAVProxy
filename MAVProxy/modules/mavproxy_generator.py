@@ -14,6 +14,7 @@ import time
 from MAVProxy.modules.lib import mp_module
 from MAVProxy.modules.lib import mp_util
 from MAVProxy.modules.lib import mp_settings
+from MAVProxy.modules.lib.mp_i18n import tr
 
 
 class generator(mp_module.MPModule):
@@ -26,7 +27,7 @@ class generator(mp_module.MPModule):
           ])
         self.add_command('generator',
                          self.cmd_generator,
-                         "generator module",
+                         tr("cmd_generator_module"),
                          ['status','set (LOGSETTING)'])
         self.console_row = 6
         self.console.set_status('Generator', 'No generator messages', row=self.console_row)
@@ -53,7 +54,7 @@ class generator(mp_module.MPModule):
         '''handle mavlink packets'''
         if m.get_type() == 'GENERATOR_STATUS':
             if self.generator_settings.verbose:
-                print("Got generator message")
+                print(tr("got_generator_message"))
             self.last_seen_generator_message = time.time()
             error_string = ""
             errors = []

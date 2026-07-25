@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from MAVProxy.modules.lib.mp_i18n import tr
 '''
 view a mission log on a map
 
@@ -81,7 +82,7 @@ def create_imagefile(options,
     map_img = mt.area_to_image(latlon[0], latlon[1],
                                width, height, ground_width)
     while mt.tiles_pending() > 0:
-        print("Waiting on %u tiles" % mt.tiles_pending())
+        print(tr("waiting_on_u_tiles") % mt.tiles_pending())
         time.sleep(1)
     map_img = mt.area_to_image(latlon[0], latlon[1],
                                width, height, ground_width)
@@ -168,7 +169,7 @@ for mytuple in (
         colour_map[mode_name] = map_colours[i]
         i += 1
         if i >= len(map_colours):
-            print("Warning: reusing colours!")
+            print(tr("warning_reusing_colours"))
             i = 0
     colour_map["UNKNOWN"] = (0, 0, 0)
 
@@ -198,7 +199,7 @@ def colourmap_for_mav_type(mav_type):
     if mav_type == mavutil.mavlink.MAV_TYPE_AIRSHIP:
         map = colour_map_blimp
     if map is None:
-        print("No colormap for mav_type=%u" % (mav_type,))
+        print(tr("no_colormap_for_mav_type_u") % (mav_type,))
         # we probably don't have a valid mode map, so returning
         # anything but the empty map here is probably pointless:
         map = colour_map_plane
@@ -262,7 +263,7 @@ def colour_for_point(mlog, point, instance, options):
             colour_expression_exceptions[str_e] = 0
             count = 0
         if count > 10000:
-            print("Too many exceptions processing (%s): %s" % (source, str_e))
+            print(tr("too_many_exceptions_processing") % (source, str_e))
             sys.exit(1)
         colour_expression_exceptions[str_e] += 1
         v = 0
@@ -273,13 +274,13 @@ def colour_for_point(mlog, point, instance, options):
     if v is None:
         return v
     if isinstance(v, str):
-        print("colour expression returned a string: %s" % v)
+        print(tr("colour_expression_returned_a_string") % v)
         sys.exit(1)
     elif v < 0:
-        print("colour expression returned %d (< 0)" % v)
+        print(tr("colour_expression_returned_0") % v)
         v = 0
     elif v > 255:
-        print("colour expression returned %d (> 255)" % v)
+        print(tr("colour_expression_returned_255") % v)
         v = 255
         colour_over_255 += 1
 
@@ -301,7 +302,7 @@ def colour_for_flightmode(mav_type, fmode, instance=0):
     if fmode in colourmap:
         colour = colourmap[fmode]
     else:
-        print("No entry in colourmap for %s" % (str(fmode)))
+        print(tr("no_entry_in_colourmap_for") % (str(fmode)))
         colour = colourmap['UNKNOWN']
     (r, g, b) = colour
     (r, g, b) = (r+instance*80, g+instance*50, b+instance*70)
@@ -430,7 +431,7 @@ def mavflightview_mav(mlog, options=None, flightmode_selections=[]):
         caps = set(re.findall(re_caps, colour_source))
         recv_match_types.update(caps)
 
-    print("Looking for types %s" % str(list(recv_match_types)))
+    print(tr("looking_for_types") % str(list(recv_match_types)))
 
     last_timestamps = {}
     used_flightmodes = {}
@@ -469,11 +470,11 @@ def mavflightview_mav(mlog, options=None, flightmode_selections=[]):
                         m.z
                     )
                 while new_m.seq > wp.count():
-                    print("Adding dummy WP %u" % wp.count())
+                    print(tr("adding_dummy_wp_u") % wp.count())
                     wp.set(new_m, wp.count())
                 wp.set(new_m, m.seq)
             except Exception as e:
-                print("Exception: %s" % str(e))
+                print(tr("exception") % str(e))
                 pass
             continue
         elif type == 'CMD':
@@ -496,7 +497,7 @@ def mavflightview_mav(mlog, options=None, flightmode_selections=[]):
                 )
                 try:
                     while m.seq > wp.count():
-                        print("Adding dummy WP %u" % wp.count())
+                        print(tr("adding_dummy_wp_u") % wp.count())
                         wp.set(m, wp.count())
                     wp.set(m, m.seq)
                 except Exception:
@@ -568,7 +569,7 @@ def mavflightview_mav(mlog, options=None, flightmode_selections=[]):
     path = paths2
 
     if len(path) == 0:
-        print("No points to plot")
+        print(tr("no_points_to_plot"))
         return None
 
     return [path, wp, fen, used_flightmodes, getattr(mlog, 'mav_type', None), instances]
@@ -665,7 +666,7 @@ def mavflightview_show(path,
                 (tl_lat, tl_lon, w_gw) = view_from_center(clat, clon, w, img_width, img_height)
                 base, ext = os.path.splitext(options.imagefile)
                 fname = "%s_%d%s" % (base, int(round(w)), ext)
-                print("Capturing %s at view width=%.0fm" % (fname, w))
+                print(tr("capturing_at_view_width_m") % (fname, w))
                 create_imagefile(options, fname, (tl_lat, tl_lon), w_gw, path_objs, mission_obj, fence_obj,
                                  kml_objects, width=img_width, height=img_height,
                                  used_flightmodes=used_flightmodes, mav_type=mav_type)
@@ -729,12 +730,12 @@ def mavflightview_show(path,
             tuples = [(t, map_colours[instances[t]]) for t in instances.keys()]
             map.add_object(mp_slipmap.SlipFlightModeLegend("legend", tuples))
         else:
-            print("colour-source: min=%f max=%f over-255=%u" % (colour_source_min, colour_source_max, colour_over_255))
+            print(tr("colour_source_min_max_over_255") % (colour_source_min, colour_source_max, colour_over_255))
 
 
 def load_kml(kml):
     '''load a kml overlay, return list of map objects'''
-    print("Loading kml %s" % kml)
+    print(tr("loading_kml") % kml)
     nodes = kmlread.readkmz(kml)
     ret = []
     for n in nodes:
@@ -772,7 +773,7 @@ def load_kml(kml):
 
 
 def mavflightview(filename, options):
-    print("Loading %s ..." % filename)
+    print(tr("loading_2") % filename)
     mlog = mavutil.mavlink_connection(filename)
     stuff = mavflightview_mav(mlog, options)
     if stuff is None:
@@ -816,37 +817,40 @@ class mavflightview_options(object):
 if __name__ == "__main__":
     multiproc.freeze_support()
 
-    from optparse import OptionParser
-    parser = OptionParser("mavflightview.py [options]")
-    parser.add_option("--service", default="MicrosoftSat", help="tile service")
-    parser.add_option("--mode", default=None, help="flight mode")
-    parser.add_option("--condition", default=None, help="conditional check on log")
-    parser.add_option("--mission", default=None, help="mission file (defaults to logged mission)")
-    parser.add_option("--fence", default=None, help="fence file")
-    parser.add_option("--fencebounds", action='store_true', help="use fence boundary for zoom")
-    parser.add_option("--imagefile", default=None, help="output to image file")
-    parser.add_option("--flag", default=[], type='str', action='append', help="flag positions")
-    parser.add_option("--rawgps", action='store_true', default=False, help="use GPS_RAW_INT")
-    parser.add_option("--rawgps2", action='store_true', default=False, help="use GPS2_RAW")
-    parser.add_option("--dualgps", action='store_true', default=False, help="use GPS_RAW_INT and GPS2_RAW")
-    parser.add_option("--ekf", action='store_true', default=False, help="use EKF1 pos")
-    parser.add_option("--nkf", action='store_true', default=False, help="use NKF1 pos")
-    parser.add_option("--ahr2", action='store_true', default=False, help="use AHR2 pos")
-    parser.add_option("--debug", action='store_true', default=False, help="show debug info")
-    parser.add_option("--multi", action='store_true', default=False, help="show multiple flights on one map")
-    parser.add_option("--types", default=None, help="types of position messages to show")
-    parser.add_option("--rate", type='int', default=0, help="maximum message rate to display (0 means all points)")
-    parser.add_option("--colour-source", type="str", default="flightmode", help="expression with range 0f..255f used for point colour")  # noqa:E501
-    parser.add_option("--no-flightmode-legend", action="store_false", default=True, dest="show_flightmode_legend", help="hide legend for colour used for flight modes")  # noqa:E501
-    parser.add_option("--kml", default=None, help="add kml overlay")
-    parser.add_option("--hide-waypoints", dest='show_waypoints', action='store_false', help="do not show waypoints", default=True)  # noqa:E501
+    from MAVProxy.modules.lib.mp_i18n import tr, ensure_language_from_argv, I18nOptionParser
+    ensure_language_from_argv()
+    parser = I18nOptionParser(tr("opt_usage_mavflightview_py_options"))
+    parser.add_option("--service", default="MicrosoftSat", help=tr("opt_tile_service"))
+    parser.add_option("--mode", default=None, help=tr("opt_flight_mode"))
+    parser.add_option("--condition", default=None, help=tr("opt_conditional_check_on_log"))
+    parser.add_option("--mission", default=None, help=tr("opt_mission_file_defaults_to_logged_mission"))
+    parser.add_option("--fence", default=None, help=tr("opt_fence_file"))
+    parser.add_option("--fencebounds", action='store_true', help=tr("opt_use_fence_boundary_for_zoom"))
+    parser.add_option("--imagefile", default=None, help=tr("opt_output_to_image_file"))
+    parser.add_option("--flag", default=[], type='str', action='append', help=tr("opt_flag_positions"))
+    parser.add_option("--rawgps", action='store_true', default=False, help=tr("opt_use_gps_raw_int"))
+    parser.add_option("--rawgps2", action='store_true', default=False, help=tr("opt_use_gps2_raw"))
+    parser.add_option("--dualgps", action='store_true', default=False, help=tr("opt_use_gps_raw_int_and_gps2_raw"))
+    parser.add_option("--ekf", action='store_true', default=False, help=tr("opt_use_ekf1_pos"))
+    parser.add_option("--nkf", action='store_true', default=False, help=tr("opt_use_nkf1_pos"))
+    parser.add_option("--ahr2", action='store_true', default=False, help=tr("opt_use_ahr2_pos"))
+    parser.add_option("--debug", action='store_true', default=False, help=tr("opt_show_debug_info"))
+    parser.add_option("--multi", action='store_true', default=False, help=tr("opt_show_multiple_flights_on_one_map"))
+    parser.add_option("--types", default=None, help=tr("opt_types_of_position_messages_to_show"))
+    parser.add_option("--rate", type='int', default=0, help=tr("opt_maximum_message_rate_to_display_0_means_all"))
+    parser.add_option("--colour-source", type="str", default="flightmode", help=tr("opt_expression_with_range_0f_255f_used_for_point"))  # noqa:E501
+    parser.add_option("--no-flightmode-legend", action="store_false", default=True, dest="show_flightmode_legend", help=tr("opt_hide_legend_for_colour_used_for_flight_modes"))  # noqa:E501
+    parser.add_option("--kml", default=None, help=tr("opt_add_kml_overlay"))
+    parser.add_option("--hide-waypoints", dest='show_waypoints', action='store_false', help=tr("opt_do_not_show_waypoints"), default=True)  # noqa:E501
     parser.add_option("--no-show-lines", action="store_true", default=False)
-    parser.add_option("--ground-width", type='float', default=None, help="force view ground width in metres")
-    parser.add_option("--center", default=None, help="force view center as LAT,LON")
-    parser.add_option("--width", type='int', default=600, help="output image width in pixels")
-    parser.add_option("--height", type='int', default=600, help="output image height in pixels")
-    parser.add_option("--zoom-sweep", default=None, help="comma separated list of ground widths (m) to capture as separate images")  # noqa:E501
-    parser.add_option("--grid", action='store_true', default=False, help="draw lat/lon grid on captured image")
+    parser.add_option("--ground-width", type='float', default=None, help=tr("opt_force_view_ground_width_in_metres"))
+    parser.add_option("--center", default=None, help=tr("opt_force_view_center_as_lat_lon"))
+    parser.add_option("--width", type='int', default=600, help=tr("opt_output_image_width_in_pixels"))
+    parser.add_option("--height", type='int', default=600, help=tr("opt_output_image_height_in_pixels"))
+    parser.add_option("--zoom-sweep", default=None, help=tr("opt_comma_separated_list_of_ground_widths_m_to"))  # noqa:E501
+    parser.add_option("--grid", action='store_true', default=False, help=tr("opt_draw_lat_lon_grid_on_captured_image"))
+    parser.add_option("--language", dest="language", default=None,
+                      help=tr("opt_ui_language_for_user_facing_messages"))
 
     (opts, args) = parser.parse_args()
 
@@ -861,7 +865,7 @@ if __name__ == "__main__":
         pass
 
     if len(args) < 1:
-        print("Usage: mavflightview.py [options] <LOGFILE...>")
+        print(tr("usage_mavflightview_py_options_logfile"))
         sys.exit(1)
 
     if opts.multi:

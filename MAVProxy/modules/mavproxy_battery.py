@@ -6,11 +6,12 @@ from pymavlink import mavutil
 
 from MAVProxy.modules.lib import mp_module
 from MAVProxy.modules.lib.mp_settings import MPSetting
+from MAVProxy.modules.lib.mp_i18n import tr
 
 class BatteryModule(mp_module.MPModule):
     def __init__(self, mpstate):
-        super(BatteryModule, self).__init__(mpstate, "battery", "battery commands")
-        self.add_command('bat', self.cmd_bat, "show battery information")
+        super(BatteryModule, self).__init__(mpstate, "battery", tr("mod_battery_commands"))
+        self.add_command('bat', self.cmd_bat, tr("cmd_show_battery_information"))
         self.last_battery_announce = 0
         self.last_battery_announce_time = 0
         self.last_battery_cell_announce_time = 0
@@ -24,13 +25,13 @@ class BatteryModule(mp_module.MPModule):
         self.last_vcc_warn_time = 0
 
         self.settings.append(
-            MPSetting('battwarn', int, 1, 'Battery Warning Time', tab='Battery'))
+            MPSetting('battwarn', int, 1, tr("set_battery_warning_time"), tab=tr("set_battery")))
         self.settings.append(
-            MPSetting('batwarncell', float, 3.7, 'Battery cell Warning level'))
+            MPSetting('batwarncell', float, 3.7, tr("set_battery_cell_warning_level")))
         self.settings.append(
-            MPSetting('servowarn', float, 4.3, 'Servo voltage warning level'))
+            MPSetting('servowarn', float, 4.3, tr("set_servo_voltage_warning_level")))
         self.settings.append(
-            MPSetting('vccwarn', float, 4.3, 'Vcc voltage warning level'))
+            MPSetting('vccwarn', float, 4.3, tr("set_vcc_voltage_warning_level")))
         self.settings.append(MPSetting('numcells', int, 0, range=(0,50), increment=1))
         self.settings.append(MPSetting('numcells2', int, 0, range=(0,50), increment=1))
         self.settings.append(MPSetting('numcells3', int, 0, range=(0,50), increment=1))
@@ -52,12 +53,12 @@ class BatteryModule(mp_module.MPModule):
     def cmd_bat(self, args):
         '''show battery levels'''
         if 0 not in self.battery_level:
-            print("No battery information")
+            print(tr("no_battery_information"))
             return
-        print("Flight battery:   %u%%" % self.battery_level[0])
+        print(tr("flight_battery_u") % self.battery_level[0])
         for id in range(9):
             if self.numcells(id) != 0 and id in self.voltage_level:
-                print("Bat%u %.2f V/cell for %u cells %.1fA %.2f%%" % (id+1,
+                print(tr("bat_u_v_cell_for_u") % (id+1,
                                                                         self.per_cell[id],
                                                                         self.numcells(id),
                                                                         self.current_battery[id],
@@ -105,14 +106,14 @@ class BatteryModule(mp_module.MPModule):
         rbattery_level = int((self.battery_level[0]+5)/10)*10
         if batt_mon >= 4 and self.settings.battwarn > 0 and time.time() > self.last_battery_announce_time + 60*self.settings.battwarn:
             if rbattery_level != self.last_battery_announce:
-                self.say("Flight battery %u percent" % rbattery_level, priority='notification')
+                self.say(tr("flight_battery_u_percent") % rbattery_level, priority='notification')
             if rbattery_level <= 20:
-                self.say("Flight battery warning")
+                self.say(tr("flight_battery_warning"))
             self.last_battery_announce_time = time.time()
 
         if (self.numcells(0) != 0 and 0 in self.per_cell and self.per_cell[0] < self.settings.batwarncell and
             self.settings.battwarn > 0 and time.time() > self.last_battery_cell_announce_time + 60*self.settings.battwarn):
-            self.say("Cell warning")
+            self.say(tr("cell_warning"))
             self.last_battery_cell_announce_time = time.time()
 
 
@@ -141,7 +142,7 @@ class BatteryModule(mp_module.MPModule):
         if self.high_servo_voltage > 1 and Vservo < self.settings.servowarn:
             if now - self.last_servo_warn_time > 30:
                 self.last_servo_warn_time = now
-                self.say("Servo volt %.1f" % Vservo)
+                self.say(tr("servo_volt") % Vservo)
                 if Vservo < 1:
                     # prevent continuous announcements on power down
                     self.high_servo_voltage = Vservo
@@ -149,7 +150,7 @@ class BatteryModule(mp_module.MPModule):
         if Vcc > 0 and Vcc < self.settings.vccwarn:
             if now - self.last_vcc_warn_time > 30:
                 self.last_vcc_warn_time = now
-                self.say("Vcc %.1f" % Vcc)
+                self.say(tr("vcc") % Vcc)
 
 
     def mavlink_packet(self, m):

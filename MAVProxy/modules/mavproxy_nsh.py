@@ -5,12 +5,13 @@ import time, os, fnmatch, sys, time
 from pymavlink import mavutil, mavwp
 from MAVProxy.modules.lib import mp_settings
 from MAVProxy.modules.lib import mp_module
+from MAVProxy.modules.lib.mp_i18n import tr
 
 class NSHModule(mp_module.MPModule):
     def __init__(self, mpstate):
-        super(NSHModule, self).__init__(mpstate, "nsh", "remote nsh shell")
+        super(NSHModule, self).__init__(mpstate, "nsh", tr("mod_remote_nsh_shell"))
         self.add_command('nsh', self.cmd_nsh,
-                         'nsh shell control',
+                         tr("cmd_nsh_shell_control"),
                          ['<start|stop>',
                           'set (SERIALSETTING)'])
         self.serial_settings = mp_settings.MPSettings(
@@ -90,7 +91,7 @@ class NSHModule(mp_module.MPModule):
 
     def cmd_nsh(self, args):
         '''nsh shell commands'''
-        usage = "Usage: nsh <start|stop|set>"
+        usage = tr("usage_usage_nsh_start_stop_set")
         if len(args) < 1:
             print(usage)
             return

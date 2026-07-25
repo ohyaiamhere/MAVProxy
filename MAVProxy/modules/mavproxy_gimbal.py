@@ -13,17 +13,18 @@ from MAVProxy.modules.mavproxy_map import mp_slipmap
 from pymavlink import mavutil
 from pymavlink.rotmat import Vector3, Matrix3, Plane, Line
 from math import radians
+from MAVProxy.modules.lib.mp_i18n import tr
 if mp_util.has_wxpython:
     from MAVProxy.modules.lib.mp_menu import *
 import pymavlink
 
 class GimbalModule(mp_module.MPModule):
     def __init__(self, mpstate):
-        super(GimbalModule, self).__init__(mpstate, "gimbal", "gimbal control module")
+        super(GimbalModule, self).__init__(mpstate, "gimbal", tr("mod_gimbal_control_module"))
         self.add_command(
             'gimbal',
             self.cmd_gimbal,
-            "gimbal link control",
+            tr("cmd_gimbal_link_control"),
             ['<rate|angle|roi|roivel|mode|status|set>'])
         if mp_util.has_wxpython:
             self.menu = MPMenuSubMenu('Mount',
@@ -59,7 +60,7 @@ class GimbalModule(mp_module.MPModule):
 
     def cmd_gimbal(self, args):
         '''control gimbal'''
-        usage = 'Usage: gimbal <rate|angle|roi|roivel|mode|status>'
+        usage = tr("usage_usage_gimbal_rate_angle_roi_roivel_mode_status")
         if len(args) == 0:
             print(usage)
             return
@@ -89,7 +90,7 @@ class GimbalModule(mp_module.MPModule):
     def cmd_gimbal_mode(self, args):
         '''control gimbal mode'''
         if len(args) != 1:
-            print("usage: gimbal mode <RETRACT|NEUTRAL|GPS|MAVLink|RC>")
+            print(tr("usage_gimbal_mode_retract_neutral_gps"))
             return
         if args[0].upper() == "RETRACT":
             mode = mavutil.mavlink.MAV_MOUNT_MODE_RETRACT
@@ -102,7 +103,7 @@ class GimbalModule(mp_module.MPModule):
         elif args[0].upper() == 'RC':
             mode = mavutil.mavlink.MAV_MOUNT_MODE_RC_TARGETING
         else:
-            print("Unsupported mode %s" % args[0])
+            print(tr("unsupported_mode") % args[0])
             return
         self.master.mav.command_long_send(
             self.target_system,
@@ -128,10 +129,10 @@ class GimbalModule(mp_module.MPModule):
             latlon = [float(i) for i in args[0:2]]
             alt = float(args[2])
         if latlon is None and len(args) == 0:
-            print("No map click position available and no parameters set")
+            print(tr("no_map_click_position_available_and"))
             return
         elif latlon is None:
-            print("usage: gimbal roi [LAT LON RELHOMEALT]")
+            print(tr("usage_gimbal_roi_lat_lon_relhomealt"))
             return
         self.master.mav.command_long_send(
             self.settings.target_system,
@@ -149,7 +150,7 @@ class GimbalModule(mp_module.MPModule):
     def cmd_gimbal_roi_vel(self, args):
         '''control roi position and velocity'''
         if len(args) != 0 and len(args) != 3 and len(args) != 6:
-            print("usage: gimbal roivel [VEL_NORTH VEL_EAST VEL_DOWN] [ACC_NORTH ACC_EASY ACC_DOWN]")
+            print(tr("usage_gimbal_roivel_vel_north_vel"))
             return
         latlon = None
         vel = [0,0,0]
@@ -160,7 +161,7 @@ class GimbalModule(mp_module.MPModule):
             acc[0:3] = args[3:6]
         latlon = self.mpstate.click_location
         if latlon is None:
-            print("No map click position available")
+            print(tr("no_map_click_position_available"))
             latlon = (0,0,0)
         self.master.mav.set_roi_global_int_send(0, #time_boot_ms
             1, #target_system
@@ -182,7 +183,7 @@ class GimbalModule(mp_module.MPModule):
     def cmd_gimbal_rate(self, args):
         '''control gimbal rate'''
         if len(args) != 3:
-            print("usage: gimbal rate ROLL PITCH YAW")
+            print(tr("usage_gimbal_rate_roll_pitch_yaw"))
             return
         self.rates = (float(args[0]), float(args[1]), float(args[2]))
         self.send_rates = True
@@ -203,7 +204,7 @@ class GimbalModule(mp_module.MPModule):
     def cmd_gimbal_angle(self, args):
         '''control gimbal pointing'''
         if len(args) != 3:
-            print("usage: gimbal angle ROLL PITCH YAW")
+            print(tr("usage_gimbal_angle_roll_pitch_yaw"))
             return
         (roll, pitch, yaw) = (float(args[0]), float(args[1]), float(args[2]))
         self.master.mav.command_long_send(
@@ -225,7 +226,7 @@ class GimbalModule(mp_module.MPModule):
         if 'GIMBAL_REPORT' in master.messages:
             print(master.messages['GIMBAL_REPORT'])
         else:
-            print("No GIMBAL_REPORT messages")
+            print(tr("no_gimbal_report_messages"))
 
     def mavlink_packet(self, m):
         '''handle an incoming mavlink packet'''

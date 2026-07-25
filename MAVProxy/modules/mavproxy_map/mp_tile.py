@@ -30,6 +30,7 @@ import cv2
 import numpy as np
 
 from math import log, tan, radians, degrees, sin, cos, exp, pi, asin, atan
+from MAVProxy.modules.lib.mp_i18n import tr, ensure_language_from_argv
 
 if sys.version_info.major < 3:
     from urllib2 import Request as url_request
@@ -322,7 +323,7 @@ class MPTile:
 
             try:
                 if self.debug:
-                    print("Downloading %s [%u left]" % (url, len(keys)))
+                    print(tr("downloading_u_left") % (url, len(keys)))
                 req = url_request(url)
                 req.add_header('User-Agent', 'MAVProxy')
 
@@ -352,14 +353,14 @@ class MPTile:
                     self._tile_cache[key] = self._unavailable
                 self._download_pending.pop(key)
                 if self.debug:
-                    print("Failed %s: %s" % (url, str(e)))
+                    print(tr("failed_2") % (url, str(e)))
                 continue
             if 'content-type' not in headers or headers['content-type'].find('image') == -1:
                 if key not in self._tile_cache:
                     self._tile_cache[key] = self._unavailable
                 self._download_pending.pop(key)
                 if self.debug:
-                    print("non-image response %s" % url)
+                    print(tr("non_image_response") % url)
                 continue
             else:
                 img = resp.read()
@@ -368,7 +369,7 @@ class MPTile:
             md5 = hashlib.md5(img).hexdigest()
             if md5 in BLANK_TILES:
                 if self.debug:
-                    print("blank tile %s" % url)
+                    print(tr("blank_tile") % url)
                     if key not in self._tile_cache:
                         self._tile_cache[key] = self._unavailable
                 self._download_pending.pop(key)
@@ -705,16 +706,17 @@ def mp_icon(filename):
 if __name__ == "__main__":
 
     from optparse import OptionParser
-    parser = OptionParser("mp_tile.py [options]")
-    parser.add_option("--lat", type='float', default=-35.362938, help="start latitude")
-    parser.add_option("--lon", type='float', default=149.165085, help="start longitude")
-    parser.add_option("--width", type='float', default=1000.0, help="width in meters")
-    parser.add_option("--service", default="MicrosoftSat", help="tile service")
-    parser.add_option("--zoom", default=None, type='int', help="zoom level")
-    parser.add_option("--max-zoom", type='int', default=19, help="maximum tile zoom")
-    parser.add_option("--delay", type='float', default=1.0, help="tile download delay")
-    parser.add_option("--boundary", default=None, help="region boundary")
-    parser.add_option("--debug", action='store_true', default=False, help="show debug info")
+    ensure_language_from_argv()
+    parser = OptionParser(tr("opt_usage_mp_tile_py_options"))
+    parser.add_option("--lat", type='float', default=-35.362938, help=tr("opt_start_latitude"))
+    parser.add_option("--lon", type='float', default=149.165085, help=tr("opt_start_longitude"))
+    parser.add_option("--width", type='float', default=1000.0, help=tr("opt_width_in_meters"))
+    parser.add_option("--service", default="MicrosoftSat", help=tr("opt_tile_service"))
+    parser.add_option("--zoom", default=None, type='int', help=tr("opt_zoom_level"))
+    parser.add_option("--max-zoom", type='int', default=19, help=tr("opt_maximum_tile_zoom"))
+    parser.add_option("--delay", type='float', default=1.0, help=tr("opt_tile_download_delay"))
+    parser.add_option("--boundary", default=None, help=tr("opt_region_boundary"))
+    parser.add_option("--debug", action='store_true', default=False, help=tr("opt_show_debug_info"))
     (opts, args) = parser.parse_args()
 
     lat = opts.lat
@@ -743,10 +745,10 @@ if __name__ == "__main__":
     for zoom in zooms:
         tlist = mt.area_to_tile_list(lat, lon, width=1024, height=1024,
                                      ground_width=ground_width, zoom=zoom)
-        print("zoom %u needs %u tiles" % (zoom, len(tlist)))
+        print(tr("zoom_u_needs_u_tiles") % (zoom, len(tlist)))
         for tile in tlist:
             mt.load_tile(tile)
         while mt.tiles_pending() > 0:
             time.sleep(2)
-            print("Waiting on %u tiles" % mt.tiles_pending())
-    print('Done')
+            print(tr("waiting_on_u_tiles") % mt.tiles_pending())
+    print(tr("done"))

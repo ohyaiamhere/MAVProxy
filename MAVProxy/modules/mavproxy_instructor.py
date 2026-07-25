@@ -10,6 +10,7 @@ from MAVProxy.modules.lib import mp_module
 from pymavlink import mavutil
 #from MAVProxy.modules.lib import multiproc
 import MAVProxy.modules.mavproxy_link
+from MAVProxy.modules.lib.mp_i18n import tr
 
 
 
@@ -17,7 +18,7 @@ class InstructorModule(mp_module.MPModule):
     def __init__(self, mpstate):
         #self.in_pipe, self.out_pipe = multiproc.Pipe()
 
-        super(InstructorModule, self).__init__(mpstate, "instructor", "instructor module")
+        super(InstructorModule, self).__init__(mpstate, "instructor", tr("mod_instructor_module"))
         self.instructor = mp_instructor.InstructorUI()
 
         self.voltage_is_dropping = False
@@ -27,7 +28,7 @@ class InstructorModule(mp_module.MPModule):
 
     def unload(self):
         '''unload module'''
-        print('unloading') # self.mpstate.horizonIndicator.close()
+        print(tr("unloading")) # self.mpstate.horizonIndicator.close()
 
     def mavlink_packet(self, msg):
         """handle an incoming mavlink packet"""
@@ -69,11 +70,11 @@ class InstructorModule(mp_module.MPModule):
                 if obj[1]:
                     self.voltage_is_dropping = True
                     self.voltage_start = self.get_mav_param('SIM_BATT_VOLTAGE')
-                    print('voltage dropping')
+                    print(tr("voltage_dropping"))
                 else:
                     self.voltage_is_dropping = False
                     self.param_set('SIM_BATT_VOLTAGE', self.voltage_start)
-                    print('voltage restored')
+                    print(tr("voltage_restored"))
                     #print(self.voltage_start)
                     #print(self.voltage_is_dropping)
                     #print(self.voltage_drop_rate)
@@ -84,10 +85,10 @@ class InstructorModule(mp_module.MPModule):
 
             elif obj[0] == "gcs_comm_loss":
                 if obj[1]:
-                    print('on')
+                    print(tr("on"))
                     #MAVProxy.modules.mavproxy_link.LinkModule.cmd_link_add("udp:127.0.0.1:9777")
                 else:
-                    print('off')
+                    print(tr("off"))
                     #MAVProxy.modules.mavproxy_link.LinkModule.cmd_link_remove("127.0.0.1:14550")
             elif obj[0] == "wind_dir":
                 self.param_set('SIM_WIND_DIR', obj[1])
@@ -130,11 +131,11 @@ class InstructorModule(mp_module.MPModule):
                 self.param_set('BATT_AMP_PERVLT', 17 + (obj[1]/40))
 
             elif obj[0] == "copter_reset":
-                print("MOT_PWM_MAX 2000")
+                print(tr("mot_pwm_max_2000"))
                 self.param_set('MOT_PWM_MAX', 2000)
-                print("BATT_AMP_PERVLT 17")
+                print(tr("batt_amp_pervlt_17"))
                 self.param_set('BATT_AMP_PERVLT', 17)
-                print('Done')
+                print(tr("done"))
 
         '''beforeEngineList - Flight mode MANUAL'''
         if self.mpstate.status.flightmode == "MANUAL":

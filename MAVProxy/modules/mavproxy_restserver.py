@@ -14,6 +14,7 @@ from threading import Thread
 from flask import Flask
 from werkzeug.serving import make_server
 from MAVProxy.modules.lib import mp_module
+from MAVProxy.modules.lib.mp_i18n import tr
 
 def mavlink_to_json(msg):
     '''Translate mavlink python messages in json string'''
@@ -124,12 +125,12 @@ class RestServer():
 class ServerModule(mp_module.MPModule):
     ''' Server Module '''
     def __init__(self, mpstate):
-        super(ServerModule, self).__init__(mpstate, "restserver", "restserver module")
+        super(ServerModule, self).__init__(mpstate, "restserver", tr("mod_restserver_module"))
         # Configure server
         self.rest_server = RestServer()
 
         self.add_command('restserver', self.cmds, \
-            "restserver module", ['start', 'stop', 'address 127.0.0.1:4777'])
+            tr("mod_restserver_module"), ['start', 'stop', 'address 127.0.0.1:4777'])
 
     def usage(self):
         '''show help on command line options'''
@@ -143,22 +144,22 @@ class ServerModule(mp_module.MPModule):
 
         if args[0] == "start":
             if self.rest_server.running():
-                print("Rest server already running.")
+                print(tr("rest_server_already_running"))
                 return
             self.rest_server.start()
-            print("Rest server running: %s:%s" % \
+            print(tr("rest_server_running") % \
                 (self.rest_server.address, self.rest_server.port))
 
         elif args[0] == "stop":
             if not self.rest_server.running():
-                print("Rest server is not running.")
+                print(tr("rest_server_is_not_running"))
                 return
             self.rest_server.stop()
 
         elif args[0] == "address":
             # Check if have necessary amount of arguments
             if len(args) != 2:
-                print("usage: restserver address <ip:port>")
+                print(tr("usage_restserver_address_ip_port"))
                 return
 
             address = args[1].split(':')

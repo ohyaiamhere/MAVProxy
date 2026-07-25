@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from MAVProxy.modules.lib.mp_i18n import tr
 '''
 MAV Picture Viewer
 
@@ -303,7 +304,7 @@ class mavpicviewer_mosaic:
     # set image poi
     def set_image_poi(self, filenumber, poi):
         """set image poi"""
-        print(f"set_image_poi: {filenumber} {poi.loc1.lat} {poi.loc1.lon} {poi.loc1.alt}")
+        print(tr("set_image_poi") % (filenumber, poi.loc1.lat, poi.loc1.lon, poi.loc1.alt))
         self.poi_dict[filenumber] = poi
         self.update_status_text()
 
@@ -431,7 +432,7 @@ class mavpicviewer_mosaic:
         # sanity check filenumber
         num_files = len(self.filelist)
         if filenumber < 0 or filenumber >= len(self.filelist):
-            print("picviewer mosaic: ignoring invalid filenumber %d (>%d)" % (filenumber, num_files-1))
+            print(tr("picviewer_mosaic_ignoring_invalid_filenumber") % (filenumber, num_files-1))
             return
 
         # hide image
@@ -469,7 +470,7 @@ class mavpicviewer_mosaic:
 if __name__ == "__main__":
     multiproc.freeze_support()
     parser = ArgumentParser(description=__doc__)
-    parser.add_argument("filepath", nargs='?', default=".", help="filename or directory holding images")
+    parser.add_argument("filepath", nargs='?', default=".", help=tr("opt_filename_or_directory_holding_images"))
     args = parser.parse_args()
 
     # check destination directory exists

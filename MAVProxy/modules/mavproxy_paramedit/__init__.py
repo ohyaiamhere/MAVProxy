@@ -6,6 +6,7 @@ June 2019
 '''
 
 from MAVProxy.modules.lib import mp_module
+from MAVProxy.modules.lib.mp_i18n import tr
 
 
 class ParamEditorModule(mp_module.MPModule):
@@ -14,7 +15,7 @@ class ParamEditorModule(mp_module.MPModule):
     '''
     def __init__(self, mpstate):
         super(ParamEditorModule, self).__init__(mpstate,
-                                                "paramedit", "param edit",
+                                                "paramedit", tr("mod_param_edit"),
                                                 public=True)
 
         # to work around an issue on MacOS this module is a thin wrapper

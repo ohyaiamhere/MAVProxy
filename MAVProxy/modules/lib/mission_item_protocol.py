@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from MAVProxy.modules.lib.mp_i18n import tr
 '''
 base class for modules generally transfering items using the MISSION_ITEM protocol
 
@@ -56,7 +57,7 @@ class MissionItemProtocolModule(mp_module.MPModule):
             waytxt = os.path.join(mpstate.status.logdir, self.save_filename())
             if os.path.exists(waytxt):
                 self.wploader.load(waytxt)
-                print("Loaded %s from %s" % (self.itemstype(), waytxt))
+                print(tr("loaded_from") % (self.itemstype(), waytxt))
 
         self.init_gui_menus()
 
@@ -155,7 +156,7 @@ on'''
 
     def check_have_list(self):
         if self.last_change() == 0:
-            print("Please list %s items first" % self.command_name())
+            print(tr("please_list_items_first") % self.command_name())
             return False
         return True
 
@@ -238,12 +239,12 @@ on'''
         if not self.check_have_list():
             return
         try:
-            print("Have %u of %u %s" % (
+            print(tr("have_u_of_u") % (
                 self.wploader.count()+len(self.wp_received),
                 self.wploader.expected_count,
                 self.itemstype()))
         except Exception:
-            print("Have %u %s" % (self.wploader.count()+len(self.wp_received), self.itemstype()))
+            print(tr("have_u") % (self.wploader.count()+len(self.wp_received), self.itemstype()))
 
     def mavlink_packet(self, m):
         '''handle an incoming mavlink packet'''
@@ -253,10 +254,10 @@ on'''
                 return
             if self.wp_op is None:
                 if self.wploader.expected_count != m.count:
-                    self.console.writeln("Mission is stale")
+                    self.console.writeln(tr("mission_is_stale"))
             else:
                 self.wploader.clear()
-                self.console.writeln("Requesting %u %s t=%s now=%s" % (
+                self.console.writeln(tr("requesting_u_t_now") % (
                     m.count,
                     self.itemstype(),
                     time.asctime(time.localtime(m._timestamp)),
@@ -275,7 +276,7 @@ on'''
                 # print("DUPLICATE %u" % m.seq)
                 return
             if m.seq+1 > self.wploader.expected_count:
-                self.console.writeln("Unexpected %s number %u - expected %u" % (self.itemtype(), m.seq, self.wploader.count()))
+                self.console.writeln(tr("unexpected_number_u_expected_u") % (self.itemtype(), m.seq, self.wploader.count()))
             self.wp_received[m.seq] = m
             next_seq = self.wploader.count()
             while next_seq in self.wp_received:
@@ -306,7 +307,7 @@ on'''
                     self.master.time_since('MISSION_ITEM') >= 2 and
                     self.wploader.count() < getattr(self.wploader, 'expected_count', 0)):
                 wps = self.missing_wps_to_request()
-                print("re-requesting %s %s" % (self.itemstype(), str(wps)))
+                print(tr("re_requesting") % (self.itemstype(), str(wps)))
                 self.send_wp_requests(wps)
 
         self.idle_task_add_menu_items()
@@ -347,9 +348,9 @@ on'''
         '''
         if wp.get_type() == 'MISSION_ITEM_INT':
             if not isinstance(wp.x, int):
-                print("BUG! wp.x is not integer")
+                print(tr("bug_wp_x_is_not_integer"))
             if not isinstance(wp.y, int):
-                print("BUG! wp.y is not integer")
+                print(tr("bug_wp_y_is_not_integer"))
             return wp
         if self.has_location(wp.command):
             p5 = int(wp.x*1.0e7)
@@ -419,7 +420,7 @@ on'''
             # self.console.error("not loading waypoints")
             return
         if m.seq >= self.wploader.count():
-            self.console.error("Request for bad %s %u (max %u)" %
+            self.console.error(tr("request_for_bad_u_max_u") %
                                (self.itemtype, m.seq, self.wploader.count()))
             return
         wp = self.wploader.wp(m.seq)
@@ -431,7 +432,7 @@ on'''
             wp_send = wp
 
         if wp.mission_type != self.mav_mission_type():
-            print("Wrong mission type in (%s)" % str(wp))
+            print(tr("wrong_mission_type_in") % str(wp))
 
         try:
             self.master.mav.send(wp_send)
@@ -448,12 +449,12 @@ on'''
         # see if the transfer is complete:
         if m.seq == self.wploader.count() - 1:
             self.loading_waypoints = False
-            print("Loaded %u %s in %.2fs" % (
+            print(tr("loaded_u_in_s") % (
                 self.wploader.count(),
                 self.itemstype(),
                 time.time() - self.upload_start))
             self.console.writeln(
-                "Sent all %u %s" %
+                tr("sent_all_u") %
                 (self.wploader.count(), self.itemstype()))
 
     def send_all_waypoints(self):
@@ -478,9 +479,9 @@ on'''
             # need to remove the leading and trailing quotes in filename
             self.wploader.load(filename.strip('"'))
         except Exception as msg:
-            print("Unable to load %s - %s" % (filename, msg))
+            print(tr("unable_to_load") % (filename, msg))
             return
-        print("Loaded %u %s from %s" % (self.wploader.count(), self.itemstype(), filename))
+        print(tr("loaded_u_from") % (self.wploader.count(), self.itemstype(), filename))
         self.wploader.expected_count = self.wploader.count()
         self.send_all_waypoints()
 
@@ -491,18 +492,18 @@ on'''
         try:
             self.wploader.load(filename)
         except Exception as msg:
-            print("Unable to load %s - %s" % (filename, msg))
+            print(tr("unable_to_load") % (filename, msg))
             return
         if self.wploader.count() == 0:
-            print("No %s found in %s" % (self.itemstype(), filename))
+            print(tr("no_found_in") % (self.itemstype(), filename))
             return
         if wpnum == -1:
-            print("Loaded %u updated %s from %s" % (self.wploader.count(), self.itemstype(), filename))
+            print(tr("loaded_u_updated_from") % (self.wploader.count(), self.itemstype(), filename))
         elif wpnum >= self.wploader.count():
-            print("Invalid %s number %u" % (self.itemtype(), wpnum))
+            print(tr("invalid_number_u") % (self.itemtype(), wpnum))
             return
         else:
-            print("Loaded updated %s %u from %s" % (self.itemtype(), wpnum, filename))
+            print(tr("loaded_updated_u_from") % (self.itemtype(), wpnum, filename))
 
         self.loading_waypoints = True
         self.loading_waypoint_lasttime = time.time()
@@ -525,9 +526,9 @@ on'''
             # need to remove the leading and trailing quotes in filename
             self.wploader.save(filename.strip('"'))
         except Exception as msg:
-            print("Failed to save %s - %s" % (filename, msg))
+            print(tr("failed_to_save") % (filename, msg))
             return
-        print("Saved %u %s to %s" % (self.wploader.count(), self.itemstype(), filename))
+        print(tr("saved_u_to") % (self.wploader.count(), self.itemstype(), filename))
 
     def save_waypoints_csv(self, filename):
         '''save waypoints to a file in a human readable CSV file'''
@@ -535,23 +536,23 @@ on'''
             # need to remove the leading and trailing quotes in filename
             self.wploader.savecsv(filename.strip('"'))
         except Exception as msg:
-            print("Failed to save %s - %s" % (filename, msg))
+            print(tr("failed_to_save") % (filename, msg))
             return
-        print("Saved %u %s to CSV %s" % (self.wploader.count(), self.itemstype(), filename))
+        print(tr("saved_u_to_csv") % (self.wploader.count(), self.itemstype(), filename))
 
     def cmd_move(self, args):
         '''handle wp move'''
         if len(args) != 1:
-            print("usage: wp move WPNUM")
+            print(tr("usage_wp_move_wpnum"))
             return
         idx = int(args[0])
         if not self.good_item_num_to_manipulate(idx):
-            print("Invalid %s number %u" % (self.itemtype(), idx))
+            print(tr("invalid_number_u") % (self.itemtype(), idx))
             return
         offset = self.item_num_to_offset(idx)
         latlon = self.mpstate.click_location
         if latlon is None:
-            print("No map click position available")
+            print(tr("no_map_click_position_available"))
             return
         wp = self.wploader.wp(offset)
 
@@ -580,7 +581,7 @@ on'''
         self.wploader.set(wp, offset)
         self.wploader.last_change = time.time()
 
-        print("Moving %s %u to %f, %f at %.1fm" % (self.itemtype(), idx, lat, lon, wp.z))
+        print(tr("moving_u_to_at_m") % (self.itemtype(), idx, lat, lon, wp.z))
 
         self.send_single_waypoint(offset)
 
@@ -612,22 +613,22 @@ on'''
     def cmd_movemulti(self, args, latlon=None):
         '''handle wp move of multiple waypoints'''
         if len(args) < 3:
-            print("usage: wp movemulti WPNUM WPSTART WPEND <rotation>")
+            print(tr("usage_wp_movemulti_wpnum_wpstart_wpend"))
             return
         idx = int(args[0])
         if not self.good_item_num_to_manipulate(idx):
-            print("Invalid move %s number %u" % (self.itemtype(), idx))
+            print(tr("invalid_move_number_u") % (self.itemtype(), idx))
             return
         wpstart = int(args[1])
         if not self.good_item_num_to_manipulate(wpstart):
-            print("Invalid start %s number %u" % (self.itemtype(), wpstart))
+            print(tr("invalid_start_number_u") % (self.itemtype(), wpstart))
             return
         wpend = int(args[2])
         if not self.good_item_num_to_manipulate(wpend):
-            print("Invalid end %s number %u" % (self.itemtype(), wpend))
+            print(tr("invalid_end_number_u") % (self.itemtype(), wpend))
             return
         if idx < wpstart or idx > wpend:
-            print("WPNUM must be between WPSTART and WPEND")
+            print(tr("wpnum_must_be_between_wpstart_and"))
             return
 
         # optional rotation about center point
@@ -639,12 +640,12 @@ on'''
         if latlon is None:
             latlon = self.mpstate.click_location
         if latlon is None:
-            print("No map click position available")
+            print(tr("no_map_click_position_available"))
             return
         idx_offset = self.item_num_to_offset(idx)
         wp = self.wploader.wp(idx_offset)
         if not self.is_location_wp(wp):
-            print("WP must be a location command")
+            print(tr("wp_must_be_a_location_command"))
             return
 
         (lat, lon) = latlon
@@ -685,21 +686,21 @@ on'''
             self.target_component,
             wpstart_offset,
             wpend_offset)
-        print("Moved %s %u:%u to %f, %f rotation=%.1f" % (self.itemstype(), wpstart, wpend, lat, lon, rotation))
+        print(tr("moved_u_u_to_rotation") % (self.itemstype(), wpstart, wpend, lat, lon, rotation))
 
     def change_mission_item_range(self, args, desc, changer, newvalstr):
         if not self.check_have_list():
             return
         idx = int(args[0])
         if not self.good_item_num_to_manipulate(idx):
-            print("Invalid %s number %u" % (self.itemtype(), idx))
+            print(tr("invalid_number_u") % (self.itemtype(), idx))
             return
         if len(args) >= 2:
             count = int(args[1])
         else:
             count = 1
         if not self.good_item_num_to_manipulate(idx+count-1):
-            print("Invalid %s number %u" % (self.itemtype(), idx+count-1))
+            print(tr("invalid_number_u") % (self.itemtype(), idx+count-1))
             return
 
         for wpnum in range(idx, idx+count):
@@ -724,12 +725,12 @@ on'''
             self.item_num_to_offset(idx),
             self.item_num_to_offset(idx+count),
             mission_type=self.mav_mission_type())
-        print("Changed %s for WPs %u:%u to %s" % (desc, idx, idx+(count-1), newvalstr))
+        print(tr("changed_for_wps_u_u_to") % (desc, idx, idx+(count-1), newvalstr))
 
     def cmd_changealt(self, args):
         '''handle wp change target alt of multiple waypoints'''
         if len(args) < 2:
-            print("usage: %s changealt WPNUM NEWALT <NUMWP>" % self.command_name())
+            print(tr("usage_changealt_wpnum_newalt_numwp") % self.command_name())
             return
         value = float(args[1])
         del args[1]
@@ -741,7 +742,7 @@ on'''
     def cmd_changeframe(self, args):
         '''handle wp change frame of multiple waypoints'''
         if len(args) < 2:
-            print("usage: %s changeframe WPNUM NEWFRAME <NUMWP>" % self.command_name())
+            print(tr("usage_changeframe_wpnum_newframe_numwp") % self.command_name())
             return
         value = int(args[1])
         del args[1]
@@ -757,11 +758,11 @@ on'''
     def cmd_remove(self, args):
         '''handle wp remove'''
         if len(args) != 1:
-            print("usage: %s remove WPNUM" % self.command_name())
+            print(tr("usage_remove_wpnum") % self.command_name())
             return
         idx = int(args[0])
         if not self.good_item_num_to_manipulate(idx):
-            print("Invalid %s number %u" % (self.itemtype(), idx))
+            print(tr("invalid_number_u") % (self.itemtype(), idx))
             return
         offset = self.item_num_to_offset(idx)
         wp = self.wploader.wp(offset)
@@ -776,12 +777,12 @@ on'''
         self.wploader.last_change = time.time()
         self.fix_jumps(offset, -1)
         self.send_all_waypoints()
-        print("Removed %s %u" % (self.itemtype(), idx))
+        print(tr("removed_u") % (self.itemtype(), idx))
 
     def cmd_undo(self, args):
         '''handle wp undo'''
         if self.undo_wp_idx == -1 or self.undo_wp is None:
-            print("No undo information")
+            print(tr("no_undo_information"))
             return
         wp = self.undo_wp
         if self.undo_type == 'move':
@@ -791,7 +792,7 @@ on'''
             self.wploader.set(wp, offset)
             self.wploader.last_change = time.time()
             self.send_single_waypoint(offset)
-            print("Undid %s move" % self.itemtype())
+            print(tr("undid_move") % self.itemtype())
         elif self.undo_type == 'remove':
             offset = self.item_num_to_offset(self.undo_wp_idx)
             self.wploader.insert(offset, wp)
@@ -799,31 +800,31 @@ on'''
             self.wploader.last_change = time.time()
             self.fix_jumps(self.undo_wp_idx, 1)
             self.send_all_waypoints()
-            print("Undid %s remove" % self.itemtype())
+            print(tr("undid_remove") % self.itemtype())
         else:
-            print("bad undo type")
+            print(tr("bad_undo_type"))
         self.undo_wp = None
         self.undo_wp_idx = -1
 
     def cmd_param(self, args):
         '''handle wp parameter change'''
         if len(args) < 2:
-            print("usage: wp param WPNUM PNUM <VALUE>")
+            print(tr("usage_wp_param_wpnum_pnum_value"))
             return
         idx = int(args[0])
         if not self.good_item_num_to_manipulate(idx):
-            print("Invalid %s number %u" % (self.itemtype(), idx))
+            print(tr("invalid_number_u") % (self.itemtype(), idx))
             return
         offset = self.item_num_to_offset(idx)
         wp = self.wploader.wp(offset)
         param = [wp.param1, wp.param2, wp.param3, wp.param4]
         pnum = int(args[1])
         if pnum < 1 or pnum > 4:
-            print("Invalid param number %u" % pnum)
+            print(tr("invalid_param_number_u") % pnum)
             return
 
         if len(args) == 2:
-            print("Param %u: %f" % (pnum, param[pnum-1]))
+            print(tr("param_u") % (pnum, param[pnum-1]))
             return
 
         param[pnum-1] = float(args[2])
@@ -855,13 +856,13 @@ on'''
 
     def cmd_load(self, args):
         if len(args) != 1:
-            print("usage: %s load FILENAME" % self.command_name())
+            print(tr("usage_load_filename") % self.command_name())
             return
         self.load_waypoints(args[0])
 
     def cmd_save(self, args):
         if len(args) != 1:
-            print("usage: %s save <filename>" % self.command_name())
+            print(tr("usage_save_filename") % self.command_name())
             return
         self.wp_save_filename = args[0]
         self.wp_op = "save"
@@ -869,19 +870,19 @@ on'''
 
     def cmd_savecsv(self, args):
         if len(args) != 1:
-            print("usage: wp savecsv <filename.csv>")
+            print(tr("usage_wp_savecsv_filename_csv"))
             return
         self.savecsv(args[0])
 
     def cmd_savelocal(self, args):
         if len(args) != 1:
-            print("usage: wp savelocal <filename>")
+            print(tr("usage_wp_savelocal_filename"))
             return
         self.wploader.save(args[0])
 
     def cmd_show(self, args):
         if len(args) != 1:
-            print("usage: wp show <filename>")
+            print(tr("usage_wp_show_filename"))
             return
         self.wploader.load(args[0])
 
@@ -889,7 +890,7 @@ on'''
         if not self.check_have_list():
             return
         if len(args) < 1:
-            print("usage: %s update <filename> <wpnum>" % self.command_name())
+            print(tr("usage_update_filename_wpnum") % self.command_name())
             return
         if len(args) == 2:
             wpnum = int(args[1])
@@ -899,7 +900,7 @@ on'''
 
     def commands(self):
         if self.master and not self.master.mavlink20():
-            print("%s module not available; use old compat modules" % str(self.itemtype()))
+            print(tr("module_not_available_use_old_compat") % str(self.itemtype()))
             return
         return {
             "ftp": self.wp_ftp_download,
@@ -926,7 +927,7 @@ on'''
             return
 
         if self.master is None:
-            print("%s: no vehicle connected" % self.command_name())
+            print(tr("no_vehicle_connected") % self.command_name())
             return
 
         commands = self.commands()
@@ -997,7 +998,7 @@ on'''
     def fetch(self):
         """Download wpts from vehicle (this operation is public to support other modules)"""
         if self.master is None:
-            print("%s: no vehicle connected" % self.command_name())
+            print(tr("no_vehicle_connected") % self.command_name())
             return
         if self.wp_op is None:  # If we were already doing a list or save, just restart the fetch without changing the operation  # noqa
             self.wp_op = "fetch"
@@ -1005,7 +1006,7 @@ on'''
 
     def request_list_send(self):
         if self.master is None:
-            print("%s: no vehicle connected" % self.command_name())
+            print(tr("no_vehicle_connected") % self.command_name())
             return
         self.master.mav.mission_request_list_send(
             self.target_system,
@@ -1016,7 +1017,7 @@ on'''
         '''Download items from vehicle with ftp'''
         ftp = self.mpstate.module('ftp')
         if ftp is None:
-            print("Need ftp module")
+            print(tr("need_ftp_module"))
             return
         self.ftp_count = None
         ftp.cmd_get([self.mission_ftp_name()], callback=self.ftp_callback, callback_progress=self.ftp_callback_progress)
@@ -1040,16 +1041,16 @@ on'''
     def ftp_callback(self, fh):
         '''callback from ftp fetch of mission items'''
         if fh is None:
-            print("mission: failed ftp download")
+            print(tr("mission_failed_ftp_download"))
             return
         magic = 0x763d
         data = fh.read()
         magic2, dtype, options, start, num_items = struct.unpack("<HHHHH", data[0:10])
         if magic != magic2:
-            print("%s: bad magic 0x%x expected 0x%x" % (self.itemtype(), magic2, magic))
+            print(tr("bad_magic_0x_expected_0x") % (self.itemtype(), magic2, magic))
             return
         if dtype != self.mav_mission_type():
-            print("%s: bad data type %u" % (self.itemtype(), dtype))
+            print(tr("bad_data_type_u") % (self.itemtype(), dtype))
             return
 
         self.wploader.clear()
@@ -1075,7 +1076,7 @@ on'''
         '''display waypoints and save'''
         for i in range(self.wploader.count()):
             w = self.wploader.wp(i)
-            print("%u %u %.10f %.10f %f p1=%.1f p2=%.1f p3=%.1f p4=%.1f cur=%u auto=%u" % (
+            print(tr("u_u_p1_p2_p3_p4") % (
                 w.command, w.frame, w.x, w.y, w.z,
                 w.param1, w.param2, w.param3, w.param4,
                 w.current, w.autocontinue))
@@ -1085,14 +1086,14 @@ on'''
                 fname = '%s_%u.txt' % (self.save_filename_base(), source_system)
             waytxt = os.path.join(self.logdir, fname)
             self.save_waypoints(waytxt)
-            print("Saved %s to %s" % (self.itemstype(), waytxt))
+            print(tr("saved_to") % (self.itemstype(), waytxt))
 
     def wp_ftp_upload(self, args):
         '''upload waypoints to vehicle with ftp'''
         filename = args[0]
         ftp = self.mpstate.module('ftp')
         if ftp is None:
-            print("Need ftp module")
+            print(tr("need_ftp_module"))
             return
         self.wploader.target_system = self.target_system
         self.wploader.target_component = self.target_component
@@ -1100,10 +1101,10 @@ on'''
             # need to remove the leading and trailing quotes in filename
             self.wploader.load(filename.strip('"'))
         except Exception as msg:
-            print("Unable to load %s - %s" % (filename, msg))
+            print(tr("unable_to_load") % (filename, msg))
             return
-        print("Loaded %u %s from %s" % (self.wploader.count(), self.itemstype(), filename))
-        print("Sending %s with ftp" % self.itemstype())
+        print(tr("loaded_u_from") % (self.wploader.count(), self.itemstype(), filename))
+        print(tr("sending_with_ftp") % self.itemstype())
 
         fh = SIO()
         fh.write(struct.pack("<HHHHH", 0x763d, self.mav_mission_type(), 0, 0, self.wploader.count()))
@@ -1135,9 +1136,9 @@ on'''
     def ftp_upload_callback(self, dlen):
         '''callback from ftp put of items'''
         if dlen is None:
-            print("Failed to send %s" % self.itemstype())
+            print(tr("failed_to_send") % self.itemstype())
         else:
             mavmsg = mavutil.mavlink.MAVLink_mission_item_int_message
             item_size = mavmsg.unpacker.size
-            print("Sent %s of length %u in %.2fs" %
+            print(tr("sent_of_length_u_in_s") %
                   (self.itemtype(), (dlen - 10) // item_size, time.time() - self.upload_start))

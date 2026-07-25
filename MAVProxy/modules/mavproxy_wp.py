@@ -11,6 +11,7 @@ from pymavlink import mavutil
 from pymavlink import mavwp
 
 import time
+from MAVProxy.modules.lib.mp_i18n import tr
 
 if mp_util.has_wxpython:
     from MAVProxy.modules.lib.mp_menu import MPMenuCallTextDialog
@@ -19,7 +20,7 @@ if mp_util.has_wxpython:
 
 class WPModule(mission_item_protocol.MissionItemProtocolModule):
     def __init__(self, mpstate):
-        super(WPModule, self).__init__(mpstate, "wp", "waypoint handling", public=True)
+        super(WPModule, self).__init__(mpstate, "wp", tr("mod_waypoint_handling"), public=True)
         # support for setting mission waypoint via command
         self.accepts_DO_SET_MISSION_CURRENT = {}  # keyed by (sysid/compid)
 
@@ -82,7 +83,7 @@ class WPModule(mission_item_protocol.MissionItemProtocolModule):
             if m.seq != self.last_waypoint:
                 self.last_waypoint = m.seq
                 if self.settings.wpupdates:
-                    self.say("waypoint %u" % m.seq, priority='message')
+                    self.say(tr("waypoint_u") % m.seq, priority='message')
 
         elif mtype == "MISSION_ITEM_REACHED":
             wp = self.wploader.wp(m.seq)
@@ -94,7 +95,7 @@ class WPModule(mission_item_protocol.MissionItemProtocolModule):
                 if wp.command == mavutil.mavlink.MAV_CMD_DO_LAND_START:
                     alt_offset = self.get_mav_param('ALT_OFFSET', 0)
                     if alt_offset > 0.005:
-                        self.say("ALT OFFSET IS NOT ZERO passing DO_LAND_START")
+                        self.say(tr("alt_offset_is_not_zero_passing"))
 
         elif mtype == "COMMAND_ACK":
             # check to see if the vehicle has bounced our attempts to
@@ -126,23 +127,23 @@ class WPModule(mission_item_protocol.MissionItemProtocolModule):
     def cmd_moverelhome(self, args, latlon=None):
         '''handle wp move to a point relative to home by dist/bearing'''
         if len(args) < 3:
-            print("usage: wp moverelhome WPNUM dist bearing")
+            print(tr("usage_wp_moverelhome_wpnum_dist_bearing"))
             return
         idx = int(args[0])
         if idx < 1 or idx > self.wploader.count():
-            print("Invalid wp number %u" % idx)
+            print(tr("invalid_wp_number_u") % idx)
             return
         dist = float(args[1])
         bearing = float(args[2])
 
         home = self.get_WP0(home_only=True)
         if home is None:
-            print("Need home")
+            print(tr("need_home"))
             return
 
         wp = self.wploader.wp(idx)
         if not self.is_location_wp(wp):
-            print("Not a nav command")
+            print(tr("not_a_nav_command"))
             return
         (newlat, newlon) = mp_util.gps_newpos(home.x, home.y, bearing, dist)
         wp.x = newlat
@@ -156,7 +157,7 @@ class WPModule(mission_item_protocol.MissionItemProtocolModule):
         self.master.mav.mission_write_partial_list_send(self.target_system,
                                                         self.target_component,
                                                         idx, idx+1)
-        print("Moved WP %u %.1fm bearing %.1f from home" % (idx, dist, bearing))
+        print(tr("moved_wp_u_m_bearing_from") % (idx, dist, bearing))
 
     def commands(self):
         ret = super(WPModule, self).commands()
@@ -204,10 +205,10 @@ class WPModule(mission_item_protocol.MissionItemProtocolModule):
             else:
                 delta_xy = mp_util.gps_distance(w1.x, w1.y, w2.x, w2.y)
                 slope = "%.1f" % (delta_xy / delta_alt)
-            print("wp%u -> wp%u %s" % (wp1, wp2, slope))
+            print(tr("wp_u_wp_u") % (wp1, wp2, slope))
             return
         if len(args) != 0:
-            print("Usage: wp slope WP1 WP2")
+            print(tr("usage_wp_slope_wp1_wp2"))
             return
         last_w = None
         for i in range(1, self.wploader.count()):
@@ -216,14 +217,14 @@ class WPModule(mission_item_protocol.MissionItemProtocolModule):
                 continue
             if last_w is not None:
                 if last_w.frame != w.frame:
-                    print("WARNING: frame change %u -> %u at %u" % (last_w.frame, w.frame, i))
+                    print(tr("warning_frame_change_u_u_at") % (last_w.frame, w.frame, i))
                 delta_alt = last_w.z - w.z
                 if delta_alt == 0:
                     slope = "Level"
                 else:
                     delta_xy = mp_util.gps_distance(w.x, w.y, last_w.x, last_w.y)
                     slope = "%.1f" % (delta_xy / delta_alt)
-                print("WP%u: slope %s" % (i, slope))
+                print(tr("wp_u_slope") % (i, slope))
             last_w = w
 
     def get_default_frame(self):
@@ -277,7 +278,7 @@ class WPModule(mission_item_protocol.MissionItemProtocolModule):
         if self.wploader.count() < 2:
             home = self.get_WP0()
             if home is None:
-                print("Need home location for draw - please run gethome")
+                print(tr("need_home_location_for_draw_please"))
                 return
             self.wploader.clear()
             self.wploader.add(home)
@@ -291,15 +292,15 @@ class WPModule(mission_item_protocol.MissionItemProtocolModule):
 
     def cmd_draw(self, args):
         if 'draw_lines' not in self.mpstate.map_functions:
-            print("No map drawing available")
+            print(tr("no_map_drawing_available"))
             return
         if self.get_WP0() is None:
-            print("Need home location - please run gethome")
+            print(tr("need_home_location_please_run_gethome"))
             return
         if len(args) > 1:
             self.settings.wpalt = int(args[1])
         self.mpstate.map_functions['draw_lines'](self.wp_draw_callback)
-        print("Drawing %s on map at altitude %d" %
+        print(tr("drawing_on_map_at_altitude") %
               (self.itemstype(), self.settings.wpalt))
 
     def cmd_editor(self, args):
@@ -309,7 +310,7 @@ class WPModule(mission_item_protocol.MissionItemProtocolModule):
             self.mpstate.functions.process_stdin("module load misseditor", immediate=True)
 
     def cmd_set(self, args):
-        usage = "usage: wp set <wpindex> [reset]"
+        usage = tr("usage_usage_wp_set_wpindex_reset")
         reset = False
         if len(args) == 2:
             if args[1] != "reset":
@@ -329,7 +330,7 @@ class WPModule(mission_item_protocol.MissionItemProtocolModule):
 
         if self.settings.wp_use_waypoint_set_current or supports is False:
             if reset:
-                print("Reset unavailable, wp command NOT executed")
+                print(tr("reset_unavailable_wp_command_not_executed"))
                 return
             self.master.waypoint_set_current_send(wp_num)
         else:
@@ -350,7 +351,7 @@ class WPModule(mission_item_protocol.MissionItemProtocolModule):
             return
         latlon = self.mpstate.click_location
         if latlon is None:
-            print("No click position available")
+            print(tr("no_click_position_available"))
             return
 
         if len(args) < 1:
@@ -382,11 +383,11 @@ class WPModule(mission_item_protocol.MissionItemProtocolModule):
         '''close the loop on a mission'''
         loader = self.wploader
         if loader.count() < 2:
-            print("Not enough waypoints (%u)" % loader.count())
+            print(tr("not_enough_waypoints_u") % loader.count())
             return
         wp = loader.wp(loader.count()-2)
         if wp.command == mavutil.mavlink.MAV_CMD_DO_JUMP:
-            print("Mission is already looped")
+            print(tr("mission_is_already_looped"))
             return
         if (loader.count() > 1 and
                 loader.wp(1).command in [mavutil.mavlink.MAV_CMD_NAV_TAKEOFF, mavutil.mavlink.MAV_CMD_NAV_VTOL_TAKEOFF]):
@@ -399,7 +400,7 @@ class WPModule(mission_item_protocol.MissionItemProtocolModule):
         self.loading_waypoints = True
         self.loading_waypoint_lasttime = time.time()
         self.master.waypoint_count_send(self.wploader.count())
-        print("Closed loop on mission")
+        print(tr("closed_loop_on_mission"))
 
     def is_quadplane(self):
         Q_ENABLE = int(self.get_mav_param("Q_ENABLE", 0))
@@ -411,7 +412,7 @@ class WPModule(mission_item_protocol.MissionItemProtocolModule):
             return
         latlon = self.mpstate.click_location
         if latlon is None:
-            print("No position chosen")
+            print(tr("no_position_chosen"))
             return
         takeoff_alt = 20
         if len(args) > 0:
@@ -427,7 +428,7 @@ class WPModule(mission_item_protocol.MissionItemProtocolModule):
         if self.wploader.count() < 2:
             home = self.get_WP0()
             if home is None:
-                print("Need home location - please run gethome")
+                print(tr("need_home_location_please_run_gethome"))
                 return
             self.wploader.clear()
             self.wploader.add(home)
@@ -441,7 +442,7 @@ class WPModule(mission_item_protocol.MissionItemProtocolModule):
             return
         latlon = self.mpstate.click_location
         if latlon is None:
-            print("No position chosen")
+            print(tr("no_position_chosen"))
             return
         if self.is_quadplane():
             wptype = mavutil.mavlink.MAV_CMD_NAV_VTOL_LAND
@@ -473,7 +474,7 @@ class WPModule(mission_item_protocol.MissionItemProtocolModule):
             return
         latlon = self.mpstate.click_location
         if latlon is None:
-            print("No position chosen")
+            print(tr("no_position_chosen"))
             return
         wp = mavutil.mavlink.MAVLink_mission_item_message(0, 0, 0,
                                                           mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT,
@@ -487,7 +488,7 @@ class WPModule(mission_item_protocol.MissionItemProtocolModule):
         '''set home location from last map click'''
         latlon = self.mpstate.click_location
         if latlon is None:
-            print("No position available")
+            print(tr("no_position_available"))
             return
         lat = float(latlon[0])
         lon = float(latlon[1])
@@ -542,42 +543,42 @@ class WPModule(mission_item_protocol.MissionItemProtocolModule):
             return "Bad wp num (%s)" % args[0]
 
         if num < 1 or num > self.wploader.count():
-            print("Bad item %s" % str(num))
+            print(tr("bad_item") % str(num))
             return
         wp = self.wploader.wp(num)
         if wp is None:
-            print("Could not get wp %u" % num)
+            print(tr("could_not_get_wp_u") % num)
             return
         loc = self.get_loc(wp)
         if loc is None:
-            print("wp is not a location command")
+            print(tr("wp_is_not_a_location_command"))
             return
 
         prev = num
         while True:
             prev = prev - 1
             if prev < 1 or prev > self.wploader.count():
-                print("Bad item %u" % num)
+                print(tr("bad_item_u") % num)
                 return
             prev_wp = self.wploader.wp(prev)
             if prev_wp is None:
-                print("Could not get previous wp %u" % prev)
+                print(tr("could_not_get_previous_wp_u") % prev)
                 return
             if prev_wp.command == mavutil.mavlink.MAV_CMD_DO_LAND_START:
                 continue
             prev_loc = self.get_loc(prev_wp)
             if prev_loc is None:
-                print("previous wp is not a location command")
+                print(tr("previous_wp_is_not_a_location"))
                 return
             break
 
         if wp.frame != prev_wp.frame:
-            print("waypoints differ in frame (%u vs %u)" %
+            print(tr("waypoints_differ_in_frame_u_vs") %
                   (wp.frame, prev_wp.frame))
             return
 
         if wp.frame != prev_wp.frame:
-            print("waypoints differ in frame")
+            print(tr("waypoints_differ_in_frame"))
             return
 
         lat_avg = (loc.lat + prev_loc.lat)/2

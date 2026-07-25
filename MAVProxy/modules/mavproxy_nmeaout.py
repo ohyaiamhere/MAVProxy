@@ -15,10 +15,11 @@ It is highly desirable that teams provide:
 
 import sys, os, serial
 from MAVProxy.modules.lib import mp_module
+from MAVProxy.modules.lib.mp_i18n import tr
 
 class NMEAOutModule(mp_module.MPModule):
     def __init__(self, mpstate):
-        super(NMEAOutModule, self).__init__(mpstate, "nmeaout", "NMEA output")
+        super(NMEAOutModule, self).__init__(mpstate, "nmeaout", tr("mod_nmea_output"))
         self.port = None
         self.baudrate = 4800
         self.data = 8
@@ -26,17 +27,17 @@ class NMEAOutModule(mp_module.MPModule):
         self.stop = 1
         self.serial = None
         self.output_time = 0.0
-        self.add_command('nmeaout', self.cmd_nmeaout, "nmea output control")
+        self.add_command('nmeaout', self.cmd_nmeaout, tr("cmd_nmea_output_control"))
 
     def cmd_nmeaout(self, args):
         '''set nmea'''
-        usage = "nmeaout port [baudrate data parity stop]"
+        usage = tr("usage_nmeaout_port_baudrate_data_parity_stop")
         if len(args) == 0:
             if self.port is None:
-                print("NMEA output port not set")
+                print(tr("nmea_output_port_not_set"))
                 print(usage)
             else:
-                print("NMEA output port %s, %d, %d, %s, %d" % (str(self.port), self.baudrate, self.data, str(self.parity), self.stop))
+                print(tr("nmea_output_port") % (str(self.port), self.baudrate, self.data, str(self.parity), self.stop))
             return
         if len(args) > 0:
             self.port = str(args[0])
@@ -57,7 +58,7 @@ class NMEAOutModule(mp_module.MPModule):
                 try:
                     self.serial = serial.Serial(self.port, self.baudrate, self.data, self.parity, self.stop)
                 except serial.SerialException as se:
-                    print("Failed to open output port %s:%s" % (self.port, se))
+                    print(tr("failed_to_open_output_port") % (self.port, se))
             else:
                 self.serial = open(self.port, mode='w')
             
