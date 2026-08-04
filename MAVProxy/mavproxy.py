@@ -831,19 +831,18 @@ def process_master(m):
     try:
         s = m.recv(16*1024)
     except Exception:
-        # Read failure: mark dead and reopen serial so we do not stay stuck
-        # on a half-open fd (write-driven autoreconnect alone is not enough).
+        # Read failure: mark dead and reopen so we do not stay stuck on a
+        # half-open link (write-driven autoreconnect alone is not enough).
         if not getattr(m, 'portdead', False):
             print("Device %s read failed, reopening" % getattr(m, 'address', m))
         m.portdead = True
+        now = time.time()
+        m.last_reconnect_attempt = now
         try:
-            if hasattr(m, 'reset'):
-                now = time.time()
-                m.last_reconnect_attempt = now
-                m.reset()
-                m.connect_time = now
+            reopen_master_link(m)
         except Exception:
             pass
+        m.connect_time = now
         time.sleep(0.1)
         return
     # prevent a dead serial port from causing the CPU to spin. The user hitting enter will
@@ -1063,29 +1062,231 @@ def set_stream_rates():
                                                     rate, 1)
 
 
-def is_serial_master(master):
-    '''true if master is a pymavlink serial connection'''
-    return isinstance(master, mavutil.mavserial)
+def is_playback_master(master):
+    '''true for log/file masters that must not be reopened as live links'''
+    for cls_name in ('mavlogfile', 'mavmmaplog', 'mavchildexec', 'CSVReader', 'DFReader_binary', 'DFReader_text'):
+        cls = getattr(mavutil, cls_name, None)
+        if cls is not None and isinstance(master, cls):
+            return True
+    # DFReader lives in pymavlink.DFReader, not always on mavutil
+    try:
+        from pymavlink import DFReader
+        if isinstance(master, (DFReader.DFReader_binary, DFReader.DFReader_text)):
+            return True
+    except Exception:
+        pass
+    return False
 
 
-def recover_silent_serial_master(master, tnow):
-    '''reopen a serial master that is open but has delivered no MAVLink activity.
+def refresh_master_fd(master):
+    '''update master.fd after a socket/port has been recreated'''
+    port = getattr(master, 'port', None)
+    if port is None:
+        port = getattr(master, 'listen', None)
+    if port is None:
+        port = getattr(master, 'sock', None)
+    if port is None:
+        return False
+    try:
+        master.fd = port.fileno()
+        master.portdead = False
+        return True
+    except Exception:
+        return False
 
-    Physical USB presence can leave a stale or post-reset handle that still
-    "opens" while no heartbeats are ever parsed. Write-driven autoreconnect
-    does not fix that case when writes still succeed.
 
-    Use a longer grace when no message has ever been seen so a DTR-triggered
-    flight-controller reboot after open is not interrupted by another reopen.
+def reopen_udp_master(master):
+    '''recreate a UDP master socket (udpin/udpout/broadcast)'''
+    try:
+        try:
+            master.port.close()
+        except Exception:
+            pass
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        if master.udp_server:
+            # master.address is host:port for UDP masters
+            parts = master.address.split(':')
+            host, portnum = parts[0], int(parts[-1])
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            sock.bind((host, portnum))
+            master.clients = set()
+            master.clients_last_alive = {}
+        else:
+            if getattr(master, 'broadcast', False):
+                sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+            master.resolved_destination_addr = None
+        sock.setblocking(0)
+        try:
+            mavutil.set_close_on_exec(sock.fileno())
+        except Exception:
+            pass
+        master.port = sock
+        master.fd = sock.fileno()
+        master.portdead = False
+        master.last_address = None
+        return True
+    except Exception as e:
+        print("Failed to reopen UDP %s: %s" % (getattr(master, 'address', master), e))
+        return False
+
+
+def reopen_mcast_master(master):
+    '''best-effort recreate of a multicast UDP master'''
+    try:
+        try:
+            master.port.close()
+        except Exception:
+            pass
+        try:
+            master.port_out.close()
+        except Exception:
+            pass
+        # Re-open via the same constructor path. address is host:port or port.
+        device = master.address
+        if device.startswith('mcast:'):
+            device = device[6:]
+        new = mavutil.mavmcast(device,
+                               source_system=master.source_system,
+                               source_component=master.source_component)
+        master.port = new.port
+        master.port_out = new.port_out
+        master.fd = new.port.fileno()
+        master.myport = None
+        master.portdead = False
+        # Prevent double-close of sockets we transferred onto master.
+        new.port = None
+        new.port_out = None
+        return True
+    except Exception as e:
+        print("Failed to reopen mcast %s: %s" % (getattr(master, 'address', master), e))
+        return False
+
+
+def reopen_master_link(master):
+    '''reopen a live master of any type (serial, UDP, TCP, etc.).
+
+    Returns True if a reopen was attempted successfully.
     '''
-    if not is_serial_master(master):
+    if is_playback_master(master):
+        return False
+
+    # Serial: pymavlink reset()
+    if isinstance(master, mavutil.mavserial):
+        try:
+            return bool(master.reset())
+        except Exception as e:
+            print("Failed to reopen serial %s: %s" % (master.address, e))
+            return False
+
+    # TCP client: reconnect and refresh fd (pymavlink leaves fd stale)
+    if isinstance(master, mavutil.mavtcp):
+        try:
+            if not master.autoreconnect:
+                master.autoreconnect = True
+            master.reconnect()
+            return refresh_master_fd(master)
+        except Exception as e:
+            print("Failed to reconnect TCP %s: %s" % (master.address, e))
+            return False
+
+    # TCP listen: drop dead client, keep listening (silence with no client is normal)
+    if isinstance(master, mavutil.mavtcpin):
+        if getattr(master, 'port', None) is None:
+            return False
+        try:
+            master.port.close()
+        except Exception:
+            pass
+        master.port = None
+        try:
+            master.fd = master.listen.fileno()
+            master.portdead = False
+        except Exception:
+            return False
+        return True
+
+    # UDP unicast/broadcast
+    if isinstance(master, mavutil.mavudp):
+        return reopen_udp_master(master)
+
+    # UDP multicast
+    if isinstance(master, mavutil.mavmcast):
+        return reopen_mcast_master(master)
+
+    # WebSocket server: drop client, return to listen
+    ws_server = getattr(mavutil, 'mavwebsocket', None)
+    if ws_server is not None and isinstance(master, ws_server):
+        if getattr(master, 'port', None) is None:
+            return False
+        try:
+            master.close_port()
+            master.portdead = False
+            return True
+        except Exception as e:
+            print("Failed to reset websocket server %s: %s" % (master.address, e))
+            return False
+
+    # WebSocket client
+    ws_client = getattr(mavutil, 'mavwebsocket_client', None)
+    if ws_client is not None and isinstance(master, ws_client):
+        try:
+            master.connect()
+            return refresh_master_fd(master)
+        except Exception as e:
+            print("Failed to reconnect websocket %s: %s" % (master.address, e))
+            return False
+
+    # Generic fallbacks
+    if hasattr(master, 'reset') and callable(master.reset):
+        try:
+            ok = master.reset()
+            refresh_master_fd(master)
+            return bool(ok) if ok is not None else True
+        except Exception as e:
+            print("Failed to reset %s: %s" % (getattr(master, 'address', master), e))
+            return False
+    if hasattr(master, 'reconnect') and callable(master.reconnect):
+        try:
+            master.reconnect()
+            return refresh_master_fd(master)
+        except Exception as e:
+            print("Failed to reconnect %s: %s" % (getattr(master, 'address', master), e))
+            return False
+    if hasattr(master, 'connect') and callable(master.connect):
+        try:
+            master.connect()
+            return refresh_master_fd(master)
+        except Exception as e:
+            print("Failed to connect %s: %s" % (getattr(master, 'address', master), e))
+            return False
+
+    return False
+
+
+def recover_silent_master(master, tnow):
+    '''reopen a live master that has delivered no MAVLink activity.
+
+    Covers serial, UDP, TCP, and other live links. Write-driven autoreconnect
+    does not fix cases where the transport looks open but no heartbeats arrive.
+
+    Use a longer grace when no message has ever been seen so boot/DTR/start
+    delays are not interrupted by another reopen.
+    '''
+    if is_playback_master(master):
         return
+    # tcpin/wsserver with no client yet: silence is expected
+    if isinstance(master, mavutil.mavtcpin) and getattr(master, 'port', None) is None:
+        return
+    ws_server = getattr(mavutil, 'mavwebsocket', None)
+    if ws_server is not None and isinstance(master, ws_server) and getattr(master, 'port', None) is None:
+        return
+
     timeout = float(mpstate.settings.timeout)
     if timeout <= 0:
         return
     last_msg = master.last_message
     if last_msg == 0:
-        # First contact: allow FC boot after USB/DTR open (min 15s).
+        # First contact: allow vehicle/SITL/FC boot (min 15s).
         silence_ref = getattr(master, 'connect_time', tnow)
         need = max(timeout * 2.0, 15.0)
     else:
@@ -1100,13 +1301,13 @@ def recover_silent_serial_master(master, tnow):
         return
     master.last_reconnect_attempt = tnow
     label = mp_module.MPModule.link_label(master)
-    print("No MAVLink on serial link %s for %.1fs, reopening" % (label, silent_for))
+    print("No MAVLink on link %s for %.1fs, reopening" % (label, silent_for))
     master.portdead = True
     try:
-        master.reset()
+        reopen_master_link(master)
     except Exception as e:
         print("Failed to reopen %s: %s" % (label, e))
-    # Restart grace so a post-open FC reboot can finish before the next attempt.
+    # Restart grace so boot after reopen can finish before the next attempt.
     master.connect_time = tnow
 
 
@@ -1120,7 +1321,7 @@ def check_link_status():
         if not master.linkerror and (tnow > master.last_message + mpstate.settings.timeout or master.portdead):
             say("link %s down" % (mp_module.MPModule.link_label(master)))
             master.linkerror = True
-        recover_silent_serial_master(master, tnow)
+        recover_silent_master(master, tnow)
 
 
 def send_heartbeat(master):
