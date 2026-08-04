@@ -831,18 +831,19 @@ def process_master(m):
     try:
         s = m.recv(16*1024)
     except Exception:
-        # Read failure: mark dead and reopen so we do not stay stuck on a
-        # half-open link (write-driven autoreconnect alone is not enough).
-        if not getattr(m, 'portdead', False):
-            print("Device %s read failed, reopening" % getattr(m, 'address', m))
-        m.portdead = True
-        now = time.time()
-        m.last_reconnect_attempt = now
-        try:
-            reopen_master_link(m)
-        except Exception:
-            pass
-        m.connect_time = now
+        # With --recover-links, reopen so we do not stay stuck on a half-open
+        # link (write-driven autoreconnect alone is not enough).
+        if opts.recover_links:
+            if not getattr(m, 'portdead', False):
+                print("Device %s read failed, reopening" % getattr(m, 'address', m))
+            m.portdead = True
+            now = time.time()
+            m.last_reconnect_attempt = now
+            try:
+                reopen_master_link(m)
+            except Exception:
+                pass
+            m.connect_time = now
         time.sleep(0.1)
         return
     # prevent a dead serial port from causing the CPU to spin. The user hitting enter will
@@ -1266,12 +1267,15 @@ def reopen_master_link(master):
 def recover_silent_master(master, tnow):
     '''reopen a live master that has delivered no MAVLink activity.
 
-    Covers serial, UDP, TCP, and other live links. Write-driven autoreconnect
-    does not fix cases where the transport looks open but no heartbeats arrive.
+    Only active when --recover-links is set. Covers serial, UDP, TCP, and
+    other live links. Write-driven autoreconnect does not fix cases where
+    the transport looks open but no heartbeats arrive.
 
     Use a longer grace when no message has ever been seen so boot/DTR/start
     delays are not interrupted by another reopen.
     '''
+    if not opts.recover_links:
+        return
     if is_playback_master(master):
         return
     # tcpin/wsserver with no client yet: silence is expected
@@ -1321,7 +1325,8 @@ def check_link_status():
         if not master.linkerror and (tnow > master.last_message + mpstate.settings.timeout or master.portdead):
             say("link %s down" % (mp_module.MPModule.link_label(master)))
             master.linkerror = True
-        recover_silent_master(master, tnow)
+        if opts.recover_links:
+            recover_silent_master(master, tnow)
 
 
 def send_heartbeat(master):
@@ -1581,6 +1586,9 @@ if __name__ == '__main__':
                       metavar="DEVICE[,BAUD]", help="MAVLink master port and optional baud rate",
                       default=[])
     parser.add_option("", "--force-connected", dest="force_connected", help="Use master even if initial connection fails",
+                      action='store_true', default=False)
+    parser.add_option("", "--recover-links", dest="recover_links",
+                      help="Reopen masters that fail to read or stay silent (serial, UDP, TCP, etc.)",
                       action='store_true', default=False)
     parser.add_option("--out", dest="output", action='append',
                       metavar="DEVICE[,BAUD]", help="MAVLink output port and optional baud rate",
