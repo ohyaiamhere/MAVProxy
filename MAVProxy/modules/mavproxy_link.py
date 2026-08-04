@@ -393,20 +393,47 @@ class LinkModule(mp_module.MPModule):
             print("Applying attribute to link: %s = %s" % (attr, optional_attributes[attr]))
             setattr(conn, attr, optional_attributes[attr])
 
+    def looks_like_serial_port(self, port):
+        '''true if port names a local serial device (not host:udp-port)'''
+        if not port:
+            return False
+        if port.startswith('/dev/'):
+            return True
+        # Windows COMx
+        if port.upper().startswith('COM') and port[3:].isdigit():
+            return True
+        return False
+
+    def parse_serial_port_baud(self, device):
+        '''parse device as serial port:baud if applicable.
+
+        Returns (port, baud) or None. Does not require the port to be present
+        in auto_detect_serial (which can omit plain /dev/ttyUSB* when a
+        preferred by-id path exists), so we do not fall through to UDP.
+        '''
+        if device.count(':') != 1:
+            return None
+        port, baud_s = device.split(':')
+        if not baud_s.isdigit():
+            return None
+        baud = int(baud_s)
+        if self.looks_like_serial_port(port):
+            return port, baud
+        ports = mavutil.auto_detect_serial(preferred_list=preferred_ports)
+        for p in ports:
+            if p.device == port:
+                return port, baud
+        return None
+
     def link_add(self, descriptor, force_connected=False, retries=3):
         '''add new link'''
         try:
             (device, optional_attributes) = self.parse_link_descriptor(descriptor)
-            # if there's only 1 colon for port:baud
-            # and if the first string is a valid serial port, it's a serial connection
-            if len(device.split(':')) == 2:
-                ports = mavutil.auto_detect_serial(preferred_list=preferred_ports)
-                for p in ports:
-                    if p.device == device.split(':')[0]:
-                        # it's a valid serial port, reformat arguments to fit
-                        self.settings.baudrate = int(device.split(':')[1])
-                        device = device.split(':')[0]
-                        break
+            # port:baud serial form (e.g. /dev/ttyUSB0:57600 or COM3:115200)
+            serial_pb = self.parse_serial_port_baud(device)
+            if serial_pb is not None:
+                device, baud = serial_pb
+                self.settings.baudrate = baud
             print("Connect %s source_system=%d" % (device, self.settings.source_system))
             try:
                 conn = mavutil.mavlink_connection(device, autoreconnect=True,
@@ -435,6 +462,8 @@ class LinkModule(mp_module.MPModule):
         conn.link_delayed = False
         conn.last_heartbeat = 0
         conn.last_message = 0
+        conn.connect_time = time.time()
+        conn.last_reconnect_attempt = 0
         conn.highest_msec = {}
         conn.target_system = self.settings.target_system
         self.apply_link_attributes(conn, optional_attributes)

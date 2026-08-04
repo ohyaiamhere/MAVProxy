@@ -831,6 +831,19 @@ def process_master(m):
     try:
         s = m.recv(16*1024)
     except Exception:
+        # Read failure: mark dead and reopen serial so we do not stay stuck
+        # on a half-open fd (write-driven autoreconnect alone is not enough).
+        if not getattr(m, 'portdead', False):
+            print("Device %s read failed, reopening" % getattr(m, 'address', m))
+        m.portdead = True
+        try:
+            if hasattr(m, 'reset'):
+                now = time.time()
+                m.last_reconnect_attempt = now
+                m.reset()
+                m.connect_time = now
+        except Exception:
+            pass
         time.sleep(0.1)
         return
     # prevent a dead serial port from causing the CPU to spin. The user hitting enter will
@@ -1050,6 +1063,53 @@ def set_stream_rates():
                                                     rate, 1)
 
 
+def is_serial_master(master):
+    '''true if master is a pymavlink serial connection'''
+    return isinstance(master, mavutil.mavserial)
+
+
+def recover_silent_serial_master(master, tnow):
+    '''reopen a serial master that is open but has delivered no MAVLink activity.
+
+    Physical USB presence can leave a stale or post-reset handle that still
+    "opens" while no heartbeats are ever parsed. Write-driven autoreconnect
+    does not fix that case when writes still succeed.
+
+    Use a longer grace when no message has ever been seen so a DTR-triggered
+    flight-controller reboot after open is not interrupted by another reopen.
+    '''
+    if not is_serial_master(master):
+        return
+    timeout = float(mpstate.settings.timeout)
+    if timeout <= 0:
+        return
+    last_msg = master.last_message
+    if last_msg == 0:
+        # First contact: allow FC boot after USB/DTR open (min 15s).
+        silence_ref = getattr(master, 'connect_time', tnow)
+        need = max(timeout * 2.0, 15.0)
+    else:
+        # Had traffic before: recover faster after dropouts.
+        silence_ref = last_msg
+        need = timeout
+    silent_for = tnow - silence_ref
+    if silent_for < need:
+        return
+    last_attempt = getattr(master, 'last_reconnect_attempt', 0)
+    if tnow - last_attempt < need:
+        return
+    master.last_reconnect_attempt = tnow
+    label = mp_module.MPModule.link_label(master)
+    print("No MAVLink on serial link %s for %.1fs, reopening" % (label, silent_for))
+    master.portdead = True
+    try:
+        master.reset()
+    except Exception as e:
+        print("Failed to reopen %s: %s" % (label, e))
+    # Restart grace so a post-open FC reboot can finish before the next attempt.
+    master.connect_time = tnow
+
+
 def check_link_status():
     '''check status of master links'''
     tnow = time.time()
@@ -1060,6 +1120,7 @@ def check_link_status():
         if not master.linkerror and (tnow > master.last_message + mpstate.settings.timeout or master.portdead):
             say("link %s down" % (mp_module.MPModule.link_label(master)))
             master.linkerror = True
+        recover_silent_serial_master(master, tnow)
 
 
 def send_heartbeat(master):
